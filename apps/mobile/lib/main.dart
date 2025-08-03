@@ -1,59 +1,60 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'shared/providers/auth_provider.dart';
+import 'shared/widgets/auth_guard.dart';
+import 'features/home/home_screen.dart';
 
-void main() {
-  runApp(const EmaintananceApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize auth provider
+  final authProvider = await AuthProvider.getInstance();
+  
+  runApp(EmaintananceApp(authProvider: authProvider));
 }
 
-class EmaintananceApp extends StatelessWidget {
-  const EmaintananceApp({super.key});
+class EmaintananceApp extends StatefulWidget {
+  final AuthProvider authProvider;
+  
+  const EmaintananceApp({
+    super.key,
+    required this.authProvider,
+  });
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'E-Maintenance',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.blue,
-          foregroundColor: Colors.white,
-        ),
-      ),
-      home: const HomeScreen(),
-    );
+  State<EmaintananceApp> createState() => _EmaintananceAppState();
+}
+
+class _EmaintananceAppState extends State<EmaintananceApp> {
+  @override
+  void initState() {
+    super.initState();
+    // Initialize authentication state
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.authProvider.initializeAuth();
+    });
   }
-}
-
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('设备维修管理'),
-      ),
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Icon(
-              Icons.build,
-              size: 100,
-              color: Colors.blue,
-            ),
-            SizedBox(height: 20),
-            Text(
-              '企业设备维修管理系统',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-            Text(
-              'E-Maintenance Mobile App',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
-            ),
-          ],
+    return ChangeNotifierProvider.value(
+      value: widget.authProvider,
+      child: MaterialApp(
+        title: 'E-Maintenance',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+          useMaterial3: true,
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Colors.blue,
+            foregroundColor: Colors.white,
+          ),
         ),
+        home: const AuthGuard(
+          child: HomeScreen(),
+        ),
+        routes: {
+          '/home': (context) => const AuthGuard(child: HomeScreen()),
+        },
       ),
     );
   }
