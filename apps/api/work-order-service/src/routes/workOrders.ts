@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { PrismaClient } from '@emaintanance/database';
 import { WorkOrderController } from '../controllers/WorkOrderController';
 import { authenticate, authorize, checkWorkOrderAccess } from '../middleware/auth';
-import { uploadSingle } from '../middleware/upload';
+import { uploadSingle, uploadMultiple } from '../middleware/upload';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -32,5 +32,13 @@ router.delete('/:id/attachments', checkWorkOrderAccess, workOrderController.remo
 
 // Assignment routes (supervisors and admins only)
 router.put('/:id/assign', authorize('SUPERVISOR', 'ADMIN'), workOrderController.assignWorkOrder);
+
+// Work order completion routes
+router.post('/:id/complete', checkWorkOrderAccess, workOrderController.completeWorkOrder);
+router.get('/:id/resolution', checkWorkOrderAccess, workOrderController.getWorkOrderWithResolution);
+router.post('/:id/photos', checkWorkOrderAccess, uploadMultiple, workOrderController.uploadResolutionPhotos);
+
+// Asset maintenance history routes
+router.get('/assets/:assetId/maintenance-history', workOrderController.getAssetMaintenanceHistory);
 
 export default router;

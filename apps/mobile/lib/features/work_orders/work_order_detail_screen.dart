@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../shared/models/work_order.dart';
 import '../../shared/services/work_order_service.dart';
 import '../../shared/providers/auth_provider.dart';
+import 'work_order_completion_screen.dart';
 
 class WorkOrderDetailScreen extends StatefulWidget {
   final String workOrderId;
@@ -153,6 +154,36 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
     return _workOrder!.assignedToId == currentUser.id;
   }
 
+  bool _canCompleteWorkOrder() {
+    if (_workOrder == null) return false;
+    
+    final authProvider = context.read<AuthProvider>();
+    final currentUser = authProvider.user;
+    
+    if (currentUser == null) return false;
+    
+    // Only assigned technician can complete work order and it must be in progress
+    return _workOrder!.assignedToId == currentUser.id &&
+           _workOrder!.status == WorkOrderStatus.inProgress;
+  }
+
+  Future<void> _navigateToCompletion() async {
+    if (_workOrder == null) return;
+
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => WorkOrderCompletionScreen(
+          workOrder: _workOrder!,
+        ),
+      ),
+    );
+
+    if (result == true) {
+      // Refresh work order details if completion was successful
+      _loadWorkOrderDetail();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -161,6 +192,12 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         actions: [
+          if (_canCompleteWorkOrder())
+            IconButton(
+              icon: const Icon(Icons.check_circle),
+              onPressed: _navigateToCompletion,
+              tooltip: '完成工单',
+            ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _loadWorkOrderDetail,
@@ -551,37 +588,95 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
   }
 
   Widget _buildBottomBar() {
-    if (!_canUpdateStatus() || _workOrder == null) {
+    if (_workOrder == null) {
+      return const SizedBox.shrink();
+    }
+
+    final canUpdate = _canUpdateStatus();
+    final canComplete = _canCompleteWorkOrder();
+    
+    if (!canUpdate && !canComplete) {
       return const SizedBox.shrink();
     }
 
     final availableTransitions = _getAvailableStatusTransitions(_workOrder!.status);
-    if (availableTransitions.isEmpty) {
-      return const SizedBox.shrink();
+    
+    // Show completion button if work order can be completed
+    if (canComplete) {
+      return Container(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            if (availableTransitions.isNotEmpty) ...[
+              Expanded(
+                child: SizedBox(
+                  height: 50,
+                  child: ElevatedButton.icon(
+                    onPressed: _isUpdatingStatus ? null : _updateStatus,
+                    icon: _isUpdatingStatus
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.update),
+                    label: Text(_isUpdatingStatus ? '更新中...' : '更新状态'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.grey,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+            ],
+            Expanded(
+              flex: availableTransitions.isNotEmpty ? 2 : 1,
+              child: SizedBox(
+                height: 50,
+                child: ElevatedButton.icon(
+                  onPressed: _navigateToCompletion,
+                  icon: const Icon(Icons.check_circle),
+                  label: const Text('完成工单'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      child: SizedBox(
-        height: 50,
-        width: double.infinity,
-        child: ElevatedButton.icon(
-          onPressed: _isUpdatingStatus ? null : _updateStatus,
-          icon: _isUpdatingStatus
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Icon(Icons.update),
-          label: Text(_isUpdatingStatus ? '更新中...' : '更新状态'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue,
-            foregroundColor: Colors.white,
+    // Show only status update button if no completion available
+    if (canUpdate && availableTransitions.isNotEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(16.0),
+        child: SizedBox(
+          height: 50,
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: _isUpdatingStatus ? null : _updateStatus,
+            icon: _isUpdatingStatus
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.update),
+            label: Text(_isUpdatingStatus ? '更新中...' : '更新状态'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+            ),
           ),
         ),
-      ),
-    );
+      );
+    }
+
+    return const SizedBox.shrink();
   }
 
   String _getStatusDisplayName(WorkOrderStatus status) {

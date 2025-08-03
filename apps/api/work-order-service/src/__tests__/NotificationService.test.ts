@@ -6,6 +6,7 @@ import { CreateNotificationRequest } from '../types/notification';
 const mockPrisma = {
   user: {
     findUnique: jest.fn(),
+    findMany: jest.fn(),
   },
   notification: {
     create: jest.fn(),

@@ -7,7 +7,8 @@ import {
   WorkOrderQuerySchema,
   AssignWorkOrderSchema,
   UpdateWorkOrderStatusSchema,
-  IdParamSchema 
+  IdParamSchema,
+  CreateResolutionRecordSchema
 } from '../utils/validation';
 import { AppError, asyncHandler } from '../utils/errorHandler';
 import { getFileUrl, getFilenameFromUrl, deleteFile } from '../middleware/upload';
@@ -351,6 +352,111 @@ export class WorkOrderController {
       status: 'success',
       data: {
         statusHistory,
+      },
+    });
+  });
+
+  // Complete work order with resolution record
+  completeWorkOrder = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new AppError('用户未认证', 401);
+    }
+
+    const { id } = IdParamSchema.parse(req.params);
+    
+    // Validate resolution data using schema
+    const resolutionData = CreateResolutionRecordSchema.parse(req.body);
+
+    const workOrder = await this.workOrderService.completeWorkOrder(
+      id,
+      resolutionData,
+      req.user.id
+    );
+
+    res.json({
+      status: 'success',
+      message: '工单完成成功',
+      data: {
+        workOrder,
+      },
+    });
+  });
+
+  // Get work order with resolution record
+  getWorkOrderWithResolution = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = IdParamSchema.parse(req.params);
+
+    const workOrder = await this.workOrderService.getWorkOrderWithResolution(id);
+
+    if (!workOrder) {
+      throw new AppError('工单不存在', 404);
+    }
+
+    res.json({
+      status: 'success',
+      data: {
+        workOrder,
+      },
+    });
+  });
+
+  // Upload resolution photos
+  uploadResolutionPhotos = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new AppError('用户未认证', 401);
+    }
+
+    const { id } = IdParamSchema.parse(req.params);
+
+    if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
+      throw new AppError('请选择要上传的图片文件', 400);
+    }
+
+    const photoPaths = req.files.map(file => getFileUrl((file as Express.Multer.File).filename));
+
+    const resolutionRecord = await this.workOrderService.uploadResolutionPhotos(
+      id,
+      photoPaths,
+      req.user.id
+    );
+
+    if (!resolutionRecord) {
+      throw new AppError('图片上传失败', 400);
+    }
+
+    res.json({
+      status: 'success',
+      message: '解决方案图片上传成功',
+      data: {
+        resolutionRecord,
+        uploadedPhotos: photoPaths,
+      },
+    });
+  });
+
+  // Get asset maintenance history
+  getAssetMaintenanceHistory = asyncHandler(async (req: Request, res: Response) => {
+    const { assetId } = req.params;
+    const queryParams = WorkOrderQuerySchema.parse(req.query);
+
+    if (!assetId) {
+      throw new AppError('资产ID不能为空', 400);
+    }
+
+    const maintenanceHistory = await this.workOrderService.getAssetMaintenanceHistory(
+      assetId,
+      parseInt(queryParams.page),
+      parseInt(queryParams.limit)
+    );
+
+    if (!maintenanceHistory) {
+      throw new AppError('资产不存在', 404);
+    }
+
+    res.json({
+      status: 'success',
+      data: {
+        maintenanceHistory,
       },
     });
   });

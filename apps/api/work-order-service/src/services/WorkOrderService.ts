@@ -2,7 +2,7 @@ import { PrismaClient } from '@emaintanance/database';
 import { WorkOrderRepository } from '../repositories/WorkOrderRepository';
 import { AssignmentRuleService } from './AssignmentRuleService';
 import { NotificationService } from './NotificationService';
-import { CreateWorkOrderRequest, UpdateWorkOrderRequest, WorkOrderWithRelations, WorkOrderFilters, PaginatedWorkOrders, UpdateWorkOrderStatusRequest, WorkOrderStatusHistoryItem, WorkOrderWithStatusHistory } from '../types/work-order';
+import { CreateWorkOrderRequest, UpdateWorkOrderRequest, WorkOrderWithRelations, WorkOrderFilters, PaginatedWorkOrders, UpdateWorkOrderStatusRequest, WorkOrderStatusHistoryItem, WorkOrderWithStatusHistory, CreateResolutionRecordRequest, ResolutionRecordResponse, WorkOrderWithResolution, MaintenanceHistoryResponse, AssetMaintenanceHistory } from '../types/work-order';
 
 export class WorkOrderService {
   private workOrderRepository: WorkOrderRepository;
@@ -445,6 +445,353 @@ export class WorkOrderService {
     }
 
     return await this.getUserWorkOrders(technicianId, 'assigned', page, limit);
+  }
+
+  async completeWorkOrder(
+    workOrderId: string,
+    resolutionData: CreateResolutionRecordRequest,
+    userId: string
+  ): Promise<WorkOrderWithResolution> {
+    // Check if work order exists and user has permission
+    const existingWorkOrder = await this.workOrderRepository.findById(workOrderId);
+    
+    if (!existingWorkOrder) {
+      throw new Error('Work order not found');
+    }
+
+    // Verify user is assigned to this work order
+    if (existingWorkOrder.assignedToId !== userId) {
+      // Check if user is supervisor/admin
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true }
+      });
+
+      if (!user || !['SUPERVISOR', 'ADMIN'].includes(user.role)) {
+        throw new Error('Permission denied: only assigned technician or supervisors can complete work order');
+      }
+    }
+
+    // Verify work order is in progress and not already completed
+    if (existingWorkOrder.status === 'COMPLETED') {
+      throw new Error('Work order is already completed');
+    }
+
+    if (!['IN_PROGRESS', 'WAITING_PARTS', 'WAITING_EXTERNAL'].includes(existingWorkOrder.status)) {
+      throw new Error('Work order must be in progress to be completed');
+    }
+
+    // Validate required resolution data
+    if (!resolutionData.solutionDescription?.trim()) {
+      throw new Error('Solution description is required');
+    }
+
+    // Start transaction to complete work order, create resolution record, and maintenance history
+    return await this.prisma.$transaction(async (tx) => {
+      // Create resolution record
+      const resolutionRecord = await tx.resolutionRecord.create({
+        data: {
+          workOrderId,
+          solutionDescription: resolutionData.solutionDescription,
+          faultCode: resolutionData.faultCode,
+          resolvedById: userId,
+        },
+        include: {
+          resolvedBy: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            }
+          },
+          photos: true,
+        }
+      });
+
+      // Create photo records if photos provided
+      if (resolutionData.photos && resolutionData.photos.length > 0) {
+        // Validate photo count limit
+        if (resolutionData.photos.length > 5) {
+          throw new Error('Cannot upload more than 5 photos per resolution');
+        }
+
+        await tx.resolutionPhoto.createMany({
+          data: resolutionData.photos.map((photoPath, index) => {
+            const filename = photoPath.split('/').pop() || `photo_${index + 1}`;
+            return {
+              resolutionRecordId: resolutionRecord.id,
+              filename: filename,
+              originalName: filename,
+              filePath: photoPath,
+              fileSize: 0, // Will be updated by file upload handler
+              mimeType: 'image/jpeg', // Will be updated by file upload handler
+            };
+          })
+        });
+      }
+
+      // Update work order status to COMPLETED
+      const completedWorkOrder = await tx.workOrder.update({
+        where: { id: workOrderId },
+        data: { 
+          status: 'COMPLETED',
+          completedAt: new Date(),
+        },
+        include: {
+          asset: {
+            select: {
+              id: true,
+              assetCode: true,
+              name: true,
+              location: true,
+            }
+          },
+          createdBy: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            }
+          },
+          assignedTo: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            }
+          },
+          resolutionRecord: {
+            include: {
+              resolvedBy: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  email: true,
+                }
+              },
+              photos: true,
+            }
+          }
+        }
+      });
+
+      // Create status history record
+      await tx.workOrderStatusHistory.create({
+        data: {
+          workOrderId,
+          fromStatus: existingWorkOrder.status,
+          toStatus: 'COMPLETED',
+          changedById: userId,
+          notes: 'Work order completed with resolution record',
+        }
+      });
+
+      // Create maintenance history record for asset
+      const resolvedBy = await tx.user.findUnique({
+        where: { id: userId },
+        select: { firstName: true, lastName: true }
+      });
+
+      await tx.maintenanceHistory.create({
+        data: {
+          assetId: existingWorkOrder.assetId,
+          workOrderId,
+          workOrderTitle: existingWorkOrder.title,
+          resolutionSummary: resolutionData.solutionDescription,
+          faultCode: resolutionData.faultCode,
+          technician: `${resolvedBy?.firstName} ${resolvedBy?.lastName}`,
+          completedAt: new Date(),
+        }
+      });
+
+      // Send completion notification
+      try {
+        await this.notificationService.createWorkOrderStatusChangeNotification(
+          workOrderId,
+          existingWorkOrder.status,
+          'COMPLETED',
+          existingWorkOrder.title
+        );
+      } catch (error) {
+        console.warn(`Failed to send completion notification for work order ${workOrderId}:`, error);
+      }
+
+      return completedWorkOrder as WorkOrderWithResolution;
+    });
+  }
+
+  async getWorkOrderWithResolution(workOrderId: string): Promise<WorkOrderWithResolution | null> {
+    const workOrder = await this.prisma.workOrder.findUnique({
+      where: { id: workOrderId },
+      include: {
+        asset: {
+          select: {
+            id: true,
+            assetCode: true,
+            name: true,
+            location: true,
+          }
+        },
+        createdBy: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          }
+        },
+        assignedTo: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          }
+        },
+        resolutionRecord: {
+          include: {
+            resolvedBy: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              }
+            },
+            photos: true,
+          }
+        }
+      }
+    });
+
+    return workOrder as WorkOrderWithResolution | null;
+  }
+
+  async getAssetMaintenanceHistory(
+    assetId: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<AssetMaintenanceHistory | null> {
+    // Validate pagination parameters
+    if (page < 1) page = 1;
+    if (limit < 1 || limit > 100) limit = 20;
+
+    const offset = (page - 1) * limit;
+
+    // Get asset info
+    const asset = await this.prisma.asset.findUnique({
+      where: { id: assetId },
+      select: {
+        id: true,
+        assetCode: true,
+        name: true,
+      }
+    });
+
+    if (!asset) {
+      return null;
+    }
+
+    // Get maintenance history with pagination
+    const [maintenanceHistory, totalRecords] = await Promise.all([
+      this.prisma.maintenanceHistory.findMany({
+        where: { assetId },
+        orderBy: { completedAt: 'desc' },
+        skip: offset,
+        take: limit,
+      }),
+      this.prisma.maintenanceHistory.count({
+        where: { assetId }
+      })
+    ]);
+
+    return {
+      assetId: asset.id,
+      assetCode: asset.assetCode,
+      assetName: asset.name,
+      maintenanceHistory,
+      totalRecords,
+    };
+  }
+
+  async uploadResolutionPhotos(
+    workOrderId: string,
+    photoPaths: string[],
+    userId: string
+  ): Promise<ResolutionRecordResponse | null> {
+    // Check if work order exists and has resolution record
+    const workOrder = await this.prisma.workOrder.findUnique({
+      where: { id: workOrderId },
+      include: {
+        resolutionRecord: {
+          include: {
+            resolvedBy: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              }
+            },
+            photos: true,
+          }
+        }
+      }
+    });
+
+    if (!workOrder) {
+      throw new Error('Work order not found');
+    }
+
+    if (!workOrder.resolutionRecord) {
+      throw new Error('Work order does not have a resolution record yet');
+    }
+
+    // Verify user has permission (resolved by user or supervisor/admin)
+    if (workOrder.resolutionRecord.resolvedById !== userId) {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true }
+      });
+
+      if (!user || !['SUPERVISOR', 'ADMIN'].includes(user.role)) {
+        throw new Error('Permission denied: only the resolver or supervisors can upload photos');
+      }
+    }
+
+    // Add photos to resolution record
+    await this.prisma.resolutionPhoto.createMany({
+      data: photoPaths.map(photoPath => ({
+        resolutionRecordId: workOrder.resolutionRecord!.id,
+        filename: photoPath.split('/').pop() || 'unknown',
+        originalName: photoPath.split('/').pop() || 'unknown',
+        filePath: photoPath,
+        fileSize: 0, // Will be updated by file upload handler
+        mimeType: 'image/jpeg', // Will be updated by file upload handler
+      }))
+    });
+
+    // Return updated resolution record
+    const updatedResolution = await this.prisma.resolutionRecord.findUnique({
+      where: { id: workOrder.resolutionRecord.id },
+      include: {
+        resolvedBy: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          }
+        },
+        photos: true,
+      }
+    });
+
+    return updatedResolution as ResolutionRecordResponse;
   }
 
   // Helper methods for permission and validation logic

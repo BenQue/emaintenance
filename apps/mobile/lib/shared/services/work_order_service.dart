@@ -206,4 +206,76 @@ class WorkOrderService {
       throw Exception('Failed to upload attachment: $e');
     }
   }
+
+  /// Complete work order with resolution record
+  Future<WorkOrderWithResolution> completeWorkOrder(
+    String workOrderId,
+    CreateResolutionRequest request,
+  ) async {
+    try {
+      final response = await _apiClient.post<Map<String, dynamic>>(
+        '/api/work-orders/$workOrderId/complete',
+        data: request.toJson(),
+      );
+
+      if (response.data == null) {
+        throw Exception('Empty response from server');
+      }
+
+      final workOrderData = response.data!['data']['workOrder'] as Map<String, dynamic>;
+      return WorkOrderWithResolution.fromJson(workOrderData);
+    } catch (e) {
+      throw Exception('Failed to complete work order: $e');
+    }
+  }
+
+  /// Get work order with resolution record
+  Future<WorkOrderWithResolution> getWorkOrderWithResolution(String workOrderId) async {
+    try {
+      final response = await _apiClient.get<Map<String, dynamic>>(
+        '/api/work-orders/$workOrderId/resolution',
+      );
+
+      if (response.data == null) {
+        throw Exception('Empty response from server');
+      }
+
+      final workOrderData = response.data!['data']['workOrder'] as Map<String, dynamic>;
+      return WorkOrderWithResolution.fromJson(workOrderData);
+    } catch (e) {
+      throw Exception('Failed to get work order with resolution: $e');
+    }
+  }
+
+  /// Upload resolution photos
+  Future<ResolutionRecord> uploadResolutionPhotos(
+    String workOrderId,
+    List<String> photoPaths,
+  ) async {
+    try {
+      final formData = FormData.fromMap({
+        for (int i = 0; i < photoPaths.length; i++)
+          'attachments': await MultipartFile.fromFile(photoPaths[i]),
+      });
+
+      final response = await _apiClient.post<Map<String, dynamic>>(
+        '/api/work-orders/$workOrderId/photos',
+        data: formData,
+        options: Options(
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        ),
+      );
+
+      if (response.data == null) {
+        throw Exception('Empty response from server');
+      }
+
+      final resolutionData = response.data!['data']['resolutionRecord'] as Map<String, dynamic>;
+      return ResolutionRecord.fromJson(resolutionData);
+    } catch (e) {
+      throw Exception('Failed to upload resolution photos: $e');
+    }
+  }
 }

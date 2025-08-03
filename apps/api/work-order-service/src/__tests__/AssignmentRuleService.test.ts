@@ -2,6 +2,9 @@ import { PrismaClient, UserRole } from '@emaintanance/database';
 import { AssignmentRuleService } from '../services/AssignmentRuleService';
 import { CreateAssignmentRuleRequest, UpdateAssignmentRuleRequest } from '../types/assignment-rule';
 
+// Mock the repository
+jest.mock('../repositories/AssignmentRuleRepository');
+
 // Mock Prisma Client
 const mockPrisma = {
   user: {
@@ -175,6 +178,12 @@ describe('AssignmentRuleService', () => {
 
     beforeEach(() => {
       mockPrisma.assignmentRule.findMany.mockResolvedValue(mockRules);
+      
+      // Mock the repository method directly on the service instance
+      const mockRepository = {
+        findActiveRulesByPriority: jest.fn().mockResolvedValue(mockRules),
+      };
+      (service as any).assignmentRuleRepository = mockRepository;
     });
 
     it('should find matching rule based on category and priority', async () => {

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../shared/services/asset_service.dart';
-import '../../shared/models/asset.dart';
 
 class QRScannerScreen extends StatefulWidget {
   const QRScannerScreen({super.key});

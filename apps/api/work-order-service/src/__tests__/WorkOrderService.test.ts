@@ -22,6 +22,25 @@ describe('WorkOrderService', () => {
       findMany: jest.fn(),
       create: jest.fn(),
     } as any;
+    mockPrisma.user = {
+      findUnique: jest.fn(),
+    } as any;
+    mockPrisma.asset = {
+      findUnique: jest.fn(),
+    } as any;
+    mockPrisma.workOrder = {
+      findUnique: jest.fn(),
+    } as any;
+    mockPrisma.resolutionRecord = {
+      findUnique: jest.fn(),
+    } as any;
+    mockPrisma.resolutionPhoto = {
+      createMany: jest.fn(),
+    } as any;
+    mockPrisma.maintenanceHistory = {
+      findMany: jest.fn(),
+      count: jest.fn(),
+    } as any;
     
     // Replace the repository instance
     (workOrderService as any).workOrderRepository = mockRepository;
@@ -402,6 +421,286 @@ describe('WorkOrderService', () => {
           createdAt: 'desc'
         }
       });
+    });
+  });
+
+  describe('completeWorkOrder', () => {
+    it('should complete work order successfully', async () => {
+      const workOrderId = 'work-order-1';
+      const userId = 'user-1';
+      const resolutionData = {
+        solutionDescription: 'Fixed the electrical issue',
+        faultCode: 'ELECTRICAL_FAILURE' as any,
+        photos: ['photo1.jpg', 'photo2.jpg'],
+      };
+
+      const mockWorkOrder = {
+        id: workOrderId,
+        title: 'Test Work Order',
+        status: 'IN_PROGRESS',
+        assignedToId: userId,
+        assetId: 'asset-1',
+      };
+
+      const mockUser = {
+        id: userId,
+        firstName: 'John',
+        lastName: 'Doe',
+      };
+
+      const mockResolutionRecord = {
+        id: 'resolution-1',
+        workOrderId,
+        solutionDescription: resolutionData.solutionDescription,
+        faultCode: resolutionData.faultCode,
+        resolvedById: userId,
+        resolvedBy: mockUser,
+        photos: [],
+      };
+
+      const mockCompletedWorkOrder = {
+        ...mockWorkOrder,
+        status: 'COMPLETED',
+        completedAt: new Date(),
+        resolutionRecord: mockResolutionRecord,
+      };
+
+      mockRepository.findById.mockResolvedValue(mockWorkOrder as any);
+      mockPrisma.user.findUnique.mockResolvedValue(mockUser as any);
+      
+      mockPrisma.$transaction.mockImplementation(async (callback) => {
+        const tx = {
+          resolutionRecord: {
+            create: jest.fn().mockResolvedValue(mockResolutionRecord),
+          },
+          resolutionPhoto: {
+            createMany: jest.fn().mockResolvedValue({}),
+          },
+          workOrder: {
+            update: jest.fn().mockResolvedValue(mockCompletedWorkOrder),
+          },
+          workOrderStatusHistory: {
+            create: jest.fn().mockResolvedValue({}),
+          },
+          maintenanceHistory: {
+            create: jest.fn().mockResolvedValue({}),
+          },
+          user: {
+            findUnique: jest.fn().mockResolvedValue(mockUser),
+          },
+        };
+        return await callback(tx as any);
+      });
+
+      const result = await workOrderService.completeWorkOrder(workOrderId, resolutionData, userId);
+
+      expect(mockRepository.findById).toHaveBeenCalledWith(workOrderId);
+      expect(mockPrisma.$transaction).toHaveBeenCalled();
+      expect(result).toEqual(mockCompletedWorkOrder);
+    });
+
+    it('should throw error if work order not found', async () => {
+      const workOrderId = 'non-existent';
+      const userId = 'user-1';
+      const resolutionData = {
+        solutionDescription: 'Fixed the issue',
+      };
+
+      mockRepository.findById.mockResolvedValue(null);
+
+      await expect(
+        workOrderService.completeWorkOrder(workOrderId, resolutionData, userId)
+      ).rejects.toThrow('Work order not found');
+    });
+
+    it('should throw error if user is not assigned to work order', async () => {
+      const workOrderId = 'work-order-1';
+      const userId = 'user-1';
+      const resolutionData = {
+        solutionDescription: 'Fixed the issue',
+      };
+
+      const mockWorkOrder = {
+        id: workOrderId,
+        status: 'IN_PROGRESS',
+        assignedToId: 'different-user',
+      };
+
+      mockRepository.findById.mockResolvedValue(mockWorkOrder as any);
+      mockPrisma.user.findUnique.mockResolvedValue({ role: 'TECHNICIAN' } as any);
+
+      await expect(
+        workOrderService.completeWorkOrder(workOrderId, resolutionData, userId)
+      ).rejects.toThrow('Permission denied: only assigned technician or supervisors can complete work order');
+    });
+
+    it('should throw error if work order is already completed', async () => {
+      const workOrderId = 'work-order-1';
+      const userId = 'user-1';
+      const resolutionData = {
+        solutionDescription: 'Fixed the issue',
+      };
+
+      const mockWorkOrder = {
+        id: workOrderId,
+        status: 'COMPLETED',
+        assignedToId: userId,
+      };
+
+      mockRepository.findById.mockResolvedValue(mockWorkOrder as any);
+
+      await expect(
+        workOrderService.completeWorkOrder(workOrderId, resolutionData, userId)
+      ).rejects.toThrow('Work order is already completed');
+    });
+
+    it('should allow supervisor to complete work order', async () => {
+      const workOrderId = 'work-order-1';
+      const userId = 'supervisor-1';
+      const resolutionData = {
+        solutionDescription: 'Fixed the issue',
+      };
+
+      const mockWorkOrder = {
+        id: workOrderId,
+        status: 'IN_PROGRESS',
+        assignedToId: 'technician-1',
+        assetId: 'asset-1',
+        title: 'Test Work Order',
+      };
+
+      const mockUser = {
+        id: userId,
+        role: 'SUPERVISOR',
+        firstName: 'John',
+        lastName: 'Doe',
+      };
+
+      mockRepository.findById.mockResolvedValue(mockWorkOrder as any);
+      mockPrisma.user.findUnique.mockResolvedValue(mockUser as any);
+      
+      mockPrisma.$transaction.mockImplementation(async (callback) => {
+        const tx = {
+          resolutionRecord: { create: jest.fn().mockResolvedValue({}) },
+          resolutionPhoto: { createMany: jest.fn().mockResolvedValue({}) },
+          workOrder: { update: jest.fn().mockResolvedValue({ ...mockWorkOrder, status: 'COMPLETED' }) },
+          workOrderStatusHistory: { create: jest.fn().mockResolvedValue({}) },
+          maintenanceHistory: { create: jest.fn().mockResolvedValue({}) },
+          user: { findUnique: jest.fn().mockResolvedValue(mockUser) },
+        };
+        return await callback(tx as any);
+      });
+
+      await expect(
+        workOrderService.completeWorkOrder(workOrderId, resolutionData, userId)
+      ).resolves.not.toThrow();
+    });
+  });
+
+  describe('getAssetMaintenanceHistory', () => {
+    it('should get asset maintenance history successfully', async () => {
+      const assetId = 'asset-1';
+      const page = 1;
+      const limit = 20;
+
+      const mockAsset = {
+        id: assetId,
+        assetCode: 'A001',
+        name: 'Test Asset',
+      };
+
+      const mockMaintenanceHistory = [
+        {
+          id: 'history-1',
+          workOrderTitle: 'Test Work Order',
+          technician: 'John Doe',
+          completedAt: new Date(),
+        },
+      ];
+
+      mockPrisma.asset.findUnique.mockResolvedValue(mockAsset as any);
+      mockPrisma.maintenanceHistory.findMany.mockResolvedValue(mockMaintenanceHistory as any);
+      mockPrisma.maintenanceHistory.count.mockResolvedValue(1);
+
+      const result = await workOrderService.getAssetMaintenanceHistory(assetId, page, limit);
+
+      expect(result).toEqual({
+        assetId: mockAsset.id,
+        assetCode: mockAsset.assetCode,
+        assetName: mockAsset.name,
+        maintenanceHistory: mockMaintenanceHistory,
+        totalRecords: 1,
+      });
+    });
+
+    it('should return null if asset not found', async () => {
+      const assetId = 'non-existent';
+
+      mockPrisma.asset.findUnique.mockResolvedValue(null);
+
+      const result = await workOrderService.getAssetMaintenanceHistory(assetId);
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('uploadResolutionPhotos', () => {
+    it('should upload resolution photos successfully', async () => {
+      const workOrderId = 'work-order-1';
+      const userId = 'user-1';
+      const photoPaths = ['photo1.jpg', 'photo2.jpg'];
+
+      const mockWorkOrder = {
+        id: workOrderId,
+        resolutionRecord: {
+          id: 'resolution-1',
+          resolvedById: userId,
+          resolvedBy: { id: userId, firstName: 'John', lastName: 'Doe' },
+          photos: [],
+        },
+      };
+
+      const mockUpdatedResolution = {
+        ...mockWorkOrder.resolutionRecord,
+        photos: [
+          { id: 'photo-1', filename: 'photo1.jpg', filePath: 'photo1.jpg' },
+          { id: 'photo-2', filename: 'photo2.jpg', filePath: 'photo2.jpg' },
+        ],
+      };
+
+      mockPrisma.workOrder.findUnique.mockResolvedValue(mockWorkOrder as any);
+      mockPrisma.resolutionPhoto.createMany.mockResolvedValue({} as any);
+      mockPrisma.resolutionRecord.findUnique.mockResolvedValue(mockUpdatedResolution as any);
+
+      const result = await workOrderService.uploadResolutionPhotos(workOrderId, photoPaths, userId);
+
+      expect(mockPrisma.resolutionPhoto.createMany).toHaveBeenCalledWith({
+        data: expect.arrayContaining([
+          expect.objectContaining({
+            resolutionRecordId: 'resolution-1',
+            filename: 'photo1.jpg',
+            filePath: 'photo1.jpg',
+          }),
+        ]),
+      });
+      expect(result).toEqual(mockUpdatedResolution);
+    });
+
+    it('should throw error if work order has no resolution record', async () => {
+      const workOrderId = 'work-order-1';
+      const userId = 'user-1';
+      const photoPaths = ['photo1.jpg'];
+
+      const mockWorkOrder = {
+        id: workOrderId,
+        resolutionRecord: null,
+      };
+
+      mockPrisma.workOrder.findUnique.mockResolvedValue(mockWorkOrder as any);
+
+      await expect(
+        workOrderService.uploadResolutionPhotos(workOrderId, photoPaths, userId)
+      ).rejects.toThrow('Work order does not have a resolution record yet');
     });
   });
 });
