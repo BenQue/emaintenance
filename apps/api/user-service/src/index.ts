@@ -1,12 +1,15 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import authRoutes from './routes/auth';
+import { generalRateLimit } from './middleware/rateLimiter';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(helmet());
+app.use(generalRateLimit);
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
   credentials: true,
@@ -35,6 +38,8 @@ app.get('/health', (req: Request, res: Response) => {
 });
 
 // Routes
+app.use('/api/auth', authRoutes);
+
 app.get('/api/users', (req: Request, res: Response) => {
   res.json({ 
     message: 'User service running',
