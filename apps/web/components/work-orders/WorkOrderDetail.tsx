@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { 
@@ -13,16 +13,19 @@ import {
   FileText,
   Calendar,
   CheckCircle,
-  XCircle
+  XCircle,
+  Settings
 } from 'lucide-react';
 import Link from 'next/link';
 import { useWorkOrderStore } from '../../lib/stores/work-order-store';
-import { WorkOrderStatusLabels, PriorityLabels, StatusColors, PriorityColors } from '../../lib/types/work-order';
+import { WorkOrderStatusLabels, PriorityLabels, StatusColors, PriorityColors, WorkOrderStatus, CreateResolutionRequest } from '../../lib/types/work-order';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { StatusHistory } from './StatusHistory';
 import { StatusUpdateForm } from './StatusUpdateForm';
+import { ResolutionRecordForm } from './ResolutionRecordForm';
+import { ResolutionRecordDisplay } from './ResolutionRecordDisplay';
 import { cn } from '../../lib/utils';
 
 interface WorkOrderDetailProps {
@@ -30,27 +33,53 @@ interface WorkOrderDetailProps {
 }
 
 export function WorkOrderDetail({ workOrderId }: WorkOrderDetailProps) {
+  const [showCompletionForm, setShowCompletionForm] = useState(false);
+  
   const {
     currentWorkOrder,
+    currentWorkOrderWithResolution,
     statusHistory,
     loading,
     error,
     loadWorkOrderWithHistory,
+    loadWorkOrderWithResolution,
+    completeWorkOrder,
     clearError,
     clearCurrentWorkOrder,
   } = useWorkOrderStore();
 
   useEffect(() => {
     loadWorkOrderWithHistory(workOrderId);
+    loadWorkOrderWithResolution(workOrderId);
     
     return () => {
       clearCurrentWorkOrder();
     };
-  }, [workOrderId, loadWorkOrderWithHistory, clearCurrentWorkOrder]);
+  }, [workOrderId, loadWorkOrderWithHistory, loadWorkOrderWithResolution, clearCurrentWorkOrder]);
 
   const handleStatusUpdateSuccess = () => {
     // Reload the work order to get updated data
     loadWorkOrderWithHistory(workOrderId);
+    loadWorkOrderWithResolution(workOrderId);
+  };
+
+  const handleCompleteWorkOrder = async (resolutionData: CreateResolutionRequest) => {
+    try {
+      await completeWorkOrder(workOrderId, resolutionData);
+      setShowCompletionForm(false);
+      // Reload to get updated data
+      loadWorkOrderWithHistory(workOrderId);
+      loadWorkOrderWithResolution(workOrderId);
+    } catch (error) {
+      // Error is handled by the store
+      console.error('Failed to complete work order:', error);
+    }
+  };
+
+  const canCompleteWorkOrder = (workOrder: any) => {
+    return workOrder?.status === WorkOrderStatus.IN_PROGRESS || 
+           workOrder?.status === WorkOrderStatus.WAITING_PARTS || 
+           workOrder?.status === WorkOrderStatus.WAITING_EXTERNAL;
   };
 
   if (loading && !currentWorkOrder) {
@@ -230,12 +259,55 @@ export function WorkOrderDetail({ workOrderId }: WorkOrderDetailProps) {
 
         {/* Right Column */}
         <div className="space-y-6">
-          {/* Status Update Form */}
-          <StatusUpdateForm
-            workOrderId={currentWorkOrder.id}
-            currentStatus={currentWorkOrder.status}
-            onSuccess={handleStatusUpdateSuccess}
-          />
+          {/* Work Order Completion */}
+          {canCompleteWorkOrder(currentWorkOrder) && !showCompletionForm && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center text-green-700">
+                  <CheckCircle className="w-5 h-5 mr-2" />
+                  完成工单
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 mb-4">
+                  工单已完成维修，请记录解决方案并上传完成照片。
+                </p>
+                <Button
+                  onClick={() => setShowCompletionForm(true)}
+                  className="w-full"
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  完成工单
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Resolution Record Form */}
+          {showCompletionForm && (
+            <ResolutionRecordForm
+              workOrderId={currentWorkOrder.id}
+              onSubmit={handleCompleteWorkOrder}
+              onCancel={() => setShowCompletionForm(false)}
+              loading={loading}
+            />
+          )}
+
+          {/* Resolution Record Display */}
+          {currentWorkOrderWithResolution?.resolutionRecord && (
+            <ResolutionRecordDisplay 
+              resolutionRecord={currentWorkOrderWithResolution.resolutionRecord} 
+            />
+          )}
+
+          {/* Status Update Form - only show if not completed */}
+          {currentWorkOrder.status !== WorkOrderStatus.COMPLETED && !showCompletionForm && (
+            <StatusUpdateForm
+              workOrderId={currentWorkOrder.id}
+              currentStatus={currentWorkOrder.status}
+              onSuccess={handleStatusUpdateSuccess}
+            />
+          )}
 
           {/* Contact Information */}
           <Card>

@@ -14,6 +14,17 @@ export enum Priority {
   URGENT = 'URGENT',
 }
 
+export enum FaultCode {
+  MECHANICAL_FAILURE = 'MECHANICAL_FAILURE',
+  ELECTRICAL_FAILURE = 'ELECTRICAL_FAILURE',
+  SOFTWARE_ISSUE = 'SOFTWARE_ISSUE',
+  WEAR_AND_TEAR = 'WEAR_AND_TEAR',
+  USER_ERROR = 'USER_ERROR',
+  PREVENTIVE_MAINTENANCE = 'PREVENTIVE_MAINTENANCE',
+  EXTERNAL_FACTOR = 'EXTERNAL_FACTOR',
+  OTHER = 'OTHER',
+}
+
 export interface Asset {
   id: string;
   assetCode: string;
@@ -81,6 +92,59 @@ export interface PaginatedWorkOrders {
   totalPages: number;
 }
 
+export interface ResolutionPhoto {
+  id: string;
+  filename: string;
+  originalName: string;
+  filePath: string;
+  fileSize: number;
+  mimeType: string;
+  uploadedAt: Date;
+}
+
+export interface ResolutionRecord {
+  id: string;
+  workOrderId: string;
+  solutionDescription: string;
+  faultCode?: FaultCode | null;
+  resolvedById: string;
+  resolvedBy: User;
+  photos: ResolutionPhoto[];
+  completedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface WorkOrderWithResolution extends WorkOrder {
+  resolutionRecord?: ResolutionRecord | null;
+}
+
+export interface CreateResolutionRequest {
+  solutionDescription: string;
+  faultCode?: FaultCode;
+  photos?: string[];
+}
+
+export interface MaintenanceHistoryItem {
+  id: string;
+  assetId: string;
+  workOrderId: string;
+  workOrderTitle: string;
+  resolutionSummary?: string | null;
+  faultCode?: FaultCode | null;
+  technician: string;
+  completedAt: Date;
+  createdAt: Date;
+}
+
+export interface AssetMaintenanceHistory {
+  assetId: string;
+  assetCode: string;
+  assetName: string;
+  maintenanceHistory: MaintenanceHistoryItem[];
+  totalRecords: number;
+}
+
 export const WorkOrderStatusLabels = {
   [WorkOrderStatus.PENDING]: '待处理',
   [WorkOrderStatus.IN_PROGRESS]: '进行中',
@@ -111,4 +175,15 @@ export const PriorityColors = {
   [Priority.MEDIUM]: 'bg-blue-100 text-blue-800',
   [Priority.HIGH]: 'bg-orange-100 text-orange-800',
   [Priority.URGENT]: 'bg-red-100 text-red-800',
+};
+
+export const FaultCodeLabels = {
+  [FaultCode.MECHANICAL_FAILURE]: '机械故障',
+  [FaultCode.ELECTRICAL_FAILURE]: '电气故障',
+  [FaultCode.SOFTWARE_ISSUE]: '软件问题',
+  [FaultCode.WEAR_AND_TEAR]: '磨损老化',
+  [FaultCode.USER_ERROR]: '操作错误',
+  [FaultCode.PREVENTIVE_MAINTENANCE]: '预防性维护',
+  [FaultCode.EXTERNAL_FACTOR]: '外部因素',
+  [FaultCode.OTHER]: '其他',
 };

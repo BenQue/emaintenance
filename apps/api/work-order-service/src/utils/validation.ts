@@ -1,9 +1,10 @@
 import { z } from 'zod';
-import { Priority, WorkOrderStatus } from '@emaintanance/database';
+import { Priority, WorkOrderStatus, FaultCode } from '@emaintanance/database';
 
 // Enum validation schemas
 export const PrioritySchema = z.nativeEnum(Priority);
 export const WorkOrderStatusSchema = z.nativeEnum(WorkOrderStatus);
+export const FaultCodeSchema = z.nativeEnum(FaultCode);
 
 // Create work order request validation
 export const CreateWorkOrderSchema = z.object({
@@ -156,3 +157,18 @@ export type AssignWorkOrderInput = z.infer<typeof AssignWorkOrderSchema>;
 export type UpdateWorkOrderStatusInput = z.infer<typeof UpdateWorkOrderStatusSchema>;
 export type FileUploadInput = z.infer<typeof FileUploadSchema>;
 export type IdParamInput = z.infer<typeof IdParamSchema>;
+
+// Resolution record validation
+export const CreateResolutionRecordSchema = z.object({
+  solutionDescription: z.string()
+    .min(10, '解决方案描述至少需要10个字符')
+    .max(2000, '解决方案描述不能超过2000个字符'),
+  
+  faultCode: FaultCodeSchema.optional(),
+  
+  photos: z.array(z.string())
+    .max(5, '最多只能上传5张照片')
+    .optional(),
+});
+
+export type CreateResolutionRecordInput = z.infer<typeof CreateResolutionRecordSchema>;

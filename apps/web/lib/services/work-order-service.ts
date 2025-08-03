@@ -4,6 +4,10 @@ import {
   WorkOrderStatusHistoryItem,
   UpdateWorkOrderStatusRequest,
   PaginatedWorkOrders,
+  WorkOrderWithResolution,
+  CreateResolutionRequest,
+  ResolutionRecord,
+  AssetMaintenanceHistory,
 } from '../types/work-order';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
@@ -128,6 +132,59 @@ class WorkOrderService {
     }>(`/api/work-orders/statistics?${queryParams}`);
     
     return response.statistics;
+  }
+
+  async completeWorkOrder(
+    id: string,
+    resolutionData: CreateResolutionRequest
+  ): Promise<WorkOrderWithResolution> {
+    return this.request<WorkOrderWithResolution>(`/api/work-orders/${id}/complete`, {
+      method: 'POST',
+      body: JSON.stringify(resolutionData),
+    });
+  }
+
+  async getWorkOrderWithResolution(id: string): Promise<WorkOrderWithResolution> {
+    return this.request<WorkOrderWithResolution>(`/api/work-orders/${id}/resolution`);
+  }
+
+  async uploadResolutionPhotos(
+    id: string,
+    photos: File[]
+  ): Promise<{ resolutionRecord: ResolutionRecord; uploadedPhotos: string[] }> {
+    const formData = new FormData();
+    photos.forEach((photo) => {
+      formData.append('attachments', photo);
+    });
+
+    const token = localStorage.getItem('token');
+    
+    const response = await fetch(`${API_BASE_URL}/api/work-orders/${id}/photos`, {
+      method: 'POST',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Network error' }));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.data || data;
+  }
+
+  async getAssetMaintenanceHistory(
+    assetId: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<AssetMaintenanceHistory> {
+    const response = await this.request<{ maintenanceHistory: AssetMaintenanceHistory }>(
+      `/api/work-orders/assets/${assetId}/maintenance-history?page=${page}&limit=${limit}`
+    );
+    return response.maintenanceHistory;
   }
 }
 

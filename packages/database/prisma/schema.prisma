@@ -40,6 +40,17 @@ enum NotificationType {
   SYSTEM_ALERT
 }
 
+enum FaultCode {
+  MECHANICAL_FAILURE     // 机械故障
+  ELECTRICAL_FAILURE     // 电气故障
+  SOFTWARE_ISSUE         // 软件问题
+  WEAR_AND_TEAR         // 磨损老化
+  USER_ERROR            // 操作错误
+  PREVENTIVE_MAINTENANCE // 预防性维护
+  EXTERNAL_FACTOR       // 外部因素
+  OTHER                 // 其他
+}
+
 model User {
   id            String   @id @default(cuid())
   email         String   @unique
@@ -62,6 +73,7 @@ model User {
   assignmentRules      AssignmentRule[]
   notifications        Notification[]
   statusChanges        WorkOrderStatusHistory[]
+  resolutionRecords    ResolutionRecord[]
 
   @@index([role, isActive])
   @@index([employeeId])
@@ -91,6 +103,7 @@ model Asset {
   owner           User?       @relation("AssetOwner", fields: [ownerId], references: [id])
   administrator   User?       @relation("AssetAdministrator", fields: [administratorId], references: [id])
   workOrders      WorkOrder[]
+  maintenanceHistory MaintenanceHistory[]
 
   @@index([location, isActive])
   @@index([assetCode])
@@ -128,6 +141,8 @@ model WorkOrder {
   assignedTo      User?   @relation("AssignedTo", fields: [assignedToId], references: [id])
   notifications   Notification[]
   statusHistory   WorkOrderStatusHistory[]
+  resolutionRecord ResolutionRecord?
+  maintenanceHistory MaintenanceHistory?
 
   @@index([status, priority])
   @@index([assetId, status])
@@ -202,4 +217,67 @@ model Notification {
   @@index([workOrderId])
   @@index([createdAt])
   @@map("notifications")
+}
+
+model ResolutionRecord {
+  id              String   @id @default(cuid())
+  workOrderId     String   @unique // One-to-one relationship with WorkOrder
+  workOrder       WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+
+  solutionDescription  String   // Required description of solution
+  faultCode           FaultCode?  // Optional fault code classification
+
+  // Photo attachments
+  photos          ResolutionPhoto[]
+
+  resolvedById    String   // Technician who resolved the issue
+  resolvedBy      User     @relation(fields: [resolvedById], references: [id])
+
+  completedAt     DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([workOrderId])
+  @@index([resolvedById])
+  @@index([completedAt])
+  @@map("resolution_records")
+}
+
+model ResolutionPhoto {
+  id                String   @id @default(cuid())
+  resolutionRecordId String
+  resolutionRecord  ResolutionRecord @relation(fields: [resolutionRecordId], references: [id], onDelete: Cascade)
+
+  filename        String
+  originalName    String
+  filePath        String   // Storage path
+  fileSize        Int      // File size in bytes
+  mimeType        String   // Image MIME type
+
+  uploadedAt      DateTime @default(now())
+
+  @@index([resolutionRecordId])
+  @@map("resolution_photos")
+}
+
+model MaintenanceHistory {
+  id              String   @id @default(cuid())
+  assetId         String
+  asset           Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+
+  workOrderId     String   @unique
+  workOrder       WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+
+  // Denormalized data for quick access
+  workOrderTitle  String
+  resolutionSummary String?
+  faultCode       FaultCode?
+  technician      String   // Technician name
+
+  completedAt     DateTime
+  createdAt       DateTime @default(now())
+
+  @@index([assetId, completedAt])
+  @@index([workOrderId])
+  @@map("maintenance_history")
 }

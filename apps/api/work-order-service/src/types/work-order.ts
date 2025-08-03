@@ -1,4 +1,4 @@
-import { Priority, WorkOrderStatus } from '@emaintanance/database';
+import { Priority, WorkOrderStatus, FaultCode } from '@emaintanance/database';
 
 export interface CreateWorkOrderRequest {
   title: string;
@@ -107,4 +107,62 @@ export interface WorkOrderStatusHistoryItem {
 
 export interface WorkOrderWithStatusHistory extends WorkOrderWithRelations {
   statusHistory: WorkOrderStatusHistoryItem[];
+}
+
+export interface CreateResolutionRecordRequest {
+  solutionDescription: string;
+  faultCode?: FaultCode;
+  photos?: string[]; // File paths for uploaded photos
+}
+
+export interface ResolutionRecordResponse {
+  id: string;
+  workOrderId: string;
+  solutionDescription: string;
+  faultCode?: FaultCode | null;
+  resolvedById: string;
+  resolvedBy: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  photos: ResolutionPhotoResponse[];
+  completedAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ResolutionPhotoResponse {
+  id: string;
+  filename: string;
+  originalName: string;
+  filePath: string;
+  fileSize: number;
+  mimeType: string;
+  uploadedAt: Date;
+}
+
+export interface WorkOrderWithResolution extends WorkOrderWithRelations {
+  resolutionRecord?: ResolutionRecordResponse | null;
+}
+
+export interface MaintenanceHistoryResponse {
+  id: string;
+  assetId: string;
+  workOrderId: string;
+  workOrderTitle: string;
+  resolutionSummary?: string | null;
+  faultCode?: FaultCode | null;
+  technician: string;
+  completedAt: Date;
+  createdAt: Date;
+}
+
+export interface AssetMaintenanceHistory {
+  assetId: string;
+  assetCode: string;
+  assetName: string;
+  maintenanceHistory: MaintenanceHistoryResponse[];
+  totalRecords: number;
 }

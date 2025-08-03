@@ -6,6 +6,9 @@ import {
   WorkOrderStatusHistoryItem,
   UpdateWorkOrderStatusRequest,
   PaginatedWorkOrders,
+  WorkOrderWithResolution,
+  CreateResolutionRequest,
+  ResolutionRecord,
 } from '../types/work-order';
 import { workOrderService } from '../services/work-order-service';
 
@@ -13,6 +16,7 @@ interface WorkOrderState {
   // State
   assignedWorkOrders: WorkOrder[];
   currentWorkOrder: WorkOrderWithStatusHistory | null;
+  currentWorkOrderWithResolution: WorkOrderWithResolution | null;
   statusHistory: WorkOrderStatusHistoryItem[];
   loading: boolean;
   error: string | null;
@@ -26,8 +30,11 @@ interface WorkOrderState {
   // Actions
   loadAssignedWorkOrders: (page?: number, limit?: number) => Promise<void>;
   loadWorkOrderWithHistory: (id: string) => Promise<void>;
+  loadWorkOrderWithResolution: (id: string) => Promise<void>;
   loadWorkOrderStatusHistory: (id: string) => Promise<void>;
   updateWorkOrderStatus: (id: string, statusUpdate: UpdateWorkOrderStatusRequest) => Promise<void>;
+  completeWorkOrder: (id: string, resolutionData: CreateResolutionRequest) => Promise<void>;
+  uploadResolutionPhotos: (id: string, photos: File[]) => Promise<string[]>;
   clearCurrentWorkOrder: () => void;
   clearError: () => void;
   setLoading: (loading: boolean) => void;
@@ -39,6 +46,7 @@ export const useWorkOrderStore = create<WorkOrderState>()(
       // Initial state
       assignedWorkOrders: [],
       currentWorkOrder: null,
+      currentWorkOrderWithResolution: null,
       statusHistory: [],
       loading: false,
       error: null,
@@ -140,9 +148,77 @@ export const useWorkOrderStore = create<WorkOrderState>()(
         }
       },
 
+      loadWorkOrderWithResolution: async (id: string) => {
+        set({ loading: true, error: null });
+        try {
+          const workOrder = await workOrderService.getWorkOrderWithResolution(id);
+          set({
+            currentWorkOrderWithResolution: workOrder,
+            loading: false,
+          });
+        } catch (error) {
+          set({
+            error: error instanceof Error ? error.message : 'Failed to load work order with resolution',
+            loading: false,
+          });
+        }
+      },
+
+      completeWorkOrder: async (id: string, resolutionData: CreateResolutionRequest) => {
+        set({ loading: true, error: null });
+        try {
+          const completedWorkOrder = await workOrderService.completeWorkOrder(id, resolutionData);
+          
+          // Update the work order in the list
+          const { assignedWorkOrders } = get();
+          const updatedList = assignedWorkOrders.map(wo => 
+            wo.id === id ? completedWorkOrder : wo
+          );
+          
+          set({
+            assignedWorkOrders: updatedList,
+            currentWorkOrderWithResolution: completedWorkOrder,
+            loading: false,
+          });
+        } catch (error) {
+          set({
+            error: error instanceof Error ? error.message : 'Failed to complete work order',
+            loading: false,
+          });
+        }
+      },
+
+      uploadResolutionPhotos: async (id: string, photos: File[]): Promise<string[]> => {
+        set({ loading: true, error: null });
+        try {
+          const result = await workOrderService.uploadResolutionPhotos(id, photos);
+          
+          // Update the current work order with resolution if it's the same one
+          const { currentWorkOrderWithResolution } = get();
+          if (currentWorkOrderWithResolution?.id === id) {
+            set({
+              currentWorkOrderWithResolution: {
+                ...currentWorkOrderWithResolution,
+                resolutionRecord: result.resolutionRecord,
+              },
+            });
+          }
+          
+          set({ loading: false });
+          return result.uploadedPhotos;
+        } catch (error) {
+          set({
+            error: error instanceof Error ? error.message : 'Failed to upload resolution photos',
+            loading: false,
+          });
+          throw error;
+        }
+      },
+
       clearCurrentWorkOrder: () => {
         set({
           currentWorkOrder: null,
+          currentWorkOrderWithResolution: null,
           statusHistory: [],
         });
       },
