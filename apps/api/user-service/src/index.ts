@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import authRoutes from './routes/auth';
 import assetRoutes from './routes/assets';
+import userRoutes from './routes/users';
 import { generalRateLimit } from './middleware/rateLimiter';
 
 const app = express();
@@ -41,14 +42,7 @@ app.get('/health', (req: Request, res: Response) => {
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/assets', assetRoutes);
-
-app.get('/api/users', (req: Request, res: Response) => {
-  res.json({ 
-    message: 'User service running',
-    service: 'user-service',
-    timestamp: new Date().toISOString(),
-  });
-});
+app.use('/api/users', userRoutes);
 
 // 404 handler
 app.use('*', (req: Request, res: Response) => {

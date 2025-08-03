@@ -235,4 +235,94 @@ export class AssetRepository {
 
     return createdAssets;
   }
+
+  /**
+   * Check if user exists (for ownership validation)
+   */
+  async userExists(userId: string): Promise<boolean> {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true },
+    });
+    return !!user;
+  }
+
+  /**
+   * Check if asset has active work orders
+   */
+  async hasActiveWorkOrders(assetId: string): Promise<boolean> {
+    const activeWorkOrders = await prisma.workOrder.count({
+      where: {
+        assetId: assetId,
+        status: {
+          in: ['PENDING', 'IN_PROGRESS', 'WAITING_PARTS', 'WAITING_EXTERNAL'],
+        },
+      },
+    });
+
+    return activeWorkOrders > 0;
+  }
+
+  /**
+   * Search assets by query
+   */
+  async search(query: string, limit: number): Promise<Asset[]> {
+    return prisma.asset.findMany({
+      where: {
+        isActive: true,
+        OR: [
+          { name: { contains: query, mode: 'insensitive' } },
+          { assetCode: { contains: query, mode: 'insensitive' } },
+          { description: { contains: query, mode: 'insensitive' } },
+          { model: { contains: query, mode: 'insensitive' } },
+          { manufacturer: { contains: query, mode: 'insensitive' } },
+          { serialNumber: { contains: query, mode: 'insensitive' } },
+          { location: { contains: query, mode: 'insensitive' } },
+        ],
+      },
+      take: limit,
+      orderBy: [
+        { name: 'asc' },
+        { assetCode: 'asc' },
+      ],
+      include: {
+        owner: true,
+        administrator: true,
+      },
+    });
+  }
+
+  /**
+   * Find assets by location
+   */
+  async findByLocation(location: string): Promise<Asset[]> {
+    return prisma.asset.findMany({
+      where: { 
+        location: { contains: location, mode: 'insensitive' },
+        isActive: true,
+      },
+      orderBy: [
+        { name: 'asc' },
+        { assetCode: 'asc' },
+      ],
+      include: {
+        owner: true,
+        administrator: true,
+      },
+    });
+  }
+
+  /**
+   * Get distinct locations
+   */
+  async getDistinctLocations(): Promise<string[]> {
+    const result = await prisma.asset.findMany({
+      where: { isActive: true },
+      select: { location: true },
+      distinct: ['location'],
+      orderBy: { location: 'asc' },
+    });
+
+    return result.map(asset => asset.location);
+  }
 }

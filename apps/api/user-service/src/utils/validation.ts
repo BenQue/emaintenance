@@ -57,9 +57,75 @@ export const bulkCreateAssetsSchema = z.object({
   assets: z.array(createAssetSchema).min(1, 'At least one asset is required').max(100, 'Cannot create more than 100 assets at once'),
 });
 
+// User management validation schemas
+export const createUserSchema = z.object({
+  email: z.string().email('Invalid email format'),
+  username: z.string().min(3, 'Username must be at least 3 characters').max(50, 'Username must be less than 50 characters'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+  firstName: z.string().min(1, 'First name is required').max(100, 'First name must be less than 100 characters'),
+  lastName: z.string().min(1, 'Last name is required').max(100, 'Last name must be less than 100 characters'),
+  employeeId: z.string().max(50, 'Employee ID must be less than 50 characters').optional(),
+  role: z.nativeEnum(UserRole).optional(),
+});
+
+export const updateUserSchema = z.object({
+  email: z.string().email('Invalid email format').optional(),
+  username: z.string().min(3, 'Username must be at least 3 characters').max(50, 'Username must be less than 50 characters').optional(),
+  firstName: z.string().min(1, 'First name is required').max(100, 'First name must be less than 100 characters').optional(),
+  lastName: z.string().min(1, 'Last name is required').max(100, 'Last name must be less than 100 characters').optional(),
+  employeeId: z.string().max(50, 'Employee ID must be less than 50 characters').optional(),
+  role: z.nativeEnum(UserRole).optional(),
+  isActive: z.boolean().optional(),
+});
+
+export const userListQuerySchema = z.object({
+  page: z.string().regex(/^\d+$/, 'Page must be a positive integer').transform(Number).optional(),
+  limit: z.string().regex(/^\d+$/, 'Limit must be a positive integer').transform(Number).optional(),
+  search: z.string().optional(),
+  role: z.nativeEnum(UserRole).optional(),
+  isActive: z.string().transform((val) => val === 'true').optional(),
+});
+
+export const updateUserRoleSchema = z.object({
+  role: z.nativeEnum(UserRole),
+});
+
+export const updateUserStatusSchema = z.object({
+  isActive: z.boolean(),
+});
+
+export const bulkUserOperationSchema = z.object({
+  userIds: z.array(z.string().cuid()).min(1, 'At least one user ID is required').max(50, 'Cannot perform bulk operation on more than 50 users at once'),
+  operation: z.enum(['activate', 'deactivate', 'delete']),
+});
+
+// Asset management validation schemas
+export const updateAssetOwnershipSchema = z.object({
+  ownerId: z.string().cuid().optional(),
+  administratorId: z.string().cuid().optional(),
+});
+
+export const updateAssetStatusSchema = z.object({
+  isActive: z.boolean(),
+});
+
+export const bulkAssetOperationSchema = z.object({
+  assetIds: z.array(z.string().cuid()).min(1, 'At least one asset ID is required').max(50, 'Cannot perform bulk operation on more than 50 assets at once'),
+  operation: z.enum(['activate', 'deactivate', 'delete']),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type CreateAssetInput = z.infer<typeof createAssetSchema>;
 export type UpdateAssetInput = z.infer<typeof updateAssetSchema>;
 export type AssetListQuery = z.infer<typeof assetListQuerySchema>;
 export type BulkCreateAssetsInput = z.infer<typeof bulkCreateAssetsSchema>;
+export type CreateUserInput = z.infer<typeof createUserSchema>;
+export type UpdateUserInput = z.infer<typeof updateUserSchema>;
+export type UserListQuery = z.infer<typeof userListQuerySchema>;
+export type UpdateUserRoleInput = z.infer<typeof updateUserRoleSchema>;
+export type UpdateUserStatusInput = z.infer<typeof updateUserStatusSchema>;
+export type BulkUserOperationInput = z.infer<typeof bulkUserOperationSchema>;
+export type UpdateAssetOwnershipInput = z.infer<typeof updateAssetOwnershipSchema>;
+export type UpdateAssetStatusInput = z.infer<typeof updateAssetStatusSchema>;
+export type BulkAssetOperationInput = z.infer<typeof bulkAssetOperationSchema>;
