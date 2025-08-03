@@ -33,6 +33,12 @@ enum Priority {
   URGENT
 }
 
+enum NotificationType {
+  WORK_ORDER_ASSIGNED
+  WORK_ORDER_UPDATED
+  SYSTEM_ALERT
+}
+
 model User {
   id            String   @id @default(cuid())
   email         String   @unique
@@ -52,6 +58,8 @@ model User {
   assignedWorkOrders   WorkOrder[] @relation("AssignedTo")
   ownedAssets          Asset[]     @relation("AssetOwner")
   administeredAssets   Asset[]     @relation("AssetAdministrator")
+  assignmentRules      AssignmentRule[]
+  notifications        Notification[]
 
   @@index([role, isActive])
   @@index([employeeId])
@@ -116,6 +124,7 @@ model WorkOrder {
   asset           Asset   @relation(fields: [assetId], references: [id])
   createdBy       User    @relation("CreatedBy", fields: [createdById], references: [id])
   assignedTo      User?   @relation("AssignedTo", fields: [assignedToId], references: [id])
+  notifications   Notification[]
 
   @@index([status, priority])
   @@index([assetId, status])
@@ -124,4 +133,50 @@ model WorkOrder {
   @@index([reportedAt])
   @@index([category])
   @@map("work_orders")
+}
+
+model AssignmentRule {
+  id              String   @id @default(cuid())
+  name            String   // Rule description
+  priority        Int      @default(0) // Rule priority for conflict resolution
+  isActive        Boolean  @default(true)
+  
+  // Matching conditions
+  assetTypes      String[] // Asset type filter
+  categories      String[] // Work order category filter
+  locations       String[] // Location filter
+  priorities      String[] // Priority filter
+  
+  // Assignment target
+  assignToId      String   // Target technician
+  assignTo        User     @relation(fields: [assignToId], references: [id])
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([isActive, priority])
+  @@index([assignToId])
+  @@map("assignment_rules")
+}
+
+model Notification {
+  id              String   @id @default(cuid())
+  userId          String   // Target user
+  user            User     @relation(fields: [userId], references: [id])
+  
+  type            NotificationType
+  title           String
+  message         String
+  isRead          Boolean  @default(false)
+  
+  // Optional reference to related entity
+  workOrderId     String?
+  workOrder       WorkOrder? @relation(fields: [workOrderId], references: [id])
+  
+  createdAt       DateTime @default(now())
+
+  @@index([userId, isRead])
+  @@index([workOrderId])
+  @@index([createdAt])
+  @@map("notifications")
 }

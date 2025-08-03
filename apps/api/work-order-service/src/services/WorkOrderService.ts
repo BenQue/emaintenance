@@ -1,12 +1,18 @@
 import { PrismaClient } from '@emaintanance/database';
 import { WorkOrderRepository } from '../repositories/WorkOrderRepository';
+import { AssignmentRuleService } from './AssignmentRuleService';
+import { NotificationService } from './NotificationService';
 import { CreateWorkOrderRequest, UpdateWorkOrderRequest, WorkOrderWithRelations, WorkOrderFilters, PaginatedWorkOrders } from '../types/work-order';
 
 export class WorkOrderService {
   private workOrderRepository: WorkOrderRepository;
+  private assignmentRuleService: AssignmentRuleService;
+  private notificationService: NotificationService;
 
   constructor(private prisma: PrismaClient) {
     this.workOrderRepository = new WorkOrderRepository(prisma);
+    this.assignmentRuleService = new AssignmentRuleService(prisma);
+    this.notificationService = new NotificationService(prisma);
   }
 
   async createWorkOrder(
@@ -33,10 +39,41 @@ export class WorkOrderService {
       location: data.location || asset.location,
     };
 
+    // Create the work order first
     const workOrder = await this.workOrderRepository.create({
       ...workOrderData,
       createdById,
     });
+
+    // Attempt automatic assignment based on rules
+    try {
+      const assignmentMatch = await this.assignmentRuleService.findMatchingRule({
+        category: workOrder.category,
+        location: workOrder.location || undefined,
+        priority: workOrder.priority,
+      });
+
+      if (assignmentMatch) {
+        // Assign the work order to the matched technician
+        const assignedWorkOrder = await this.workOrderRepository.update(workOrder.id, {
+          assignedToId: assignmentMatch.assignToId,
+        });
+
+        // Send notification to assigned technician
+        if (assignedWorkOrder?.assignedToId) {
+          await this.notificationService.createWorkOrderAssignmentNotification(
+            workOrder.id,
+            assignedWorkOrder.assignedToId,
+            workOrder.title
+          );
+        }
+
+        return assignedWorkOrder || workOrder;
+      }
+    } catch (error) {
+      // Log assignment error but don't fail work order creation
+      console.warn(`Auto-assignment failed for work order ${workOrder.id}:`, error);
+    }
 
     return workOrder;
   }
@@ -136,6 +173,18 @@ export class WorkOrderService {
 
     if (!updatedWorkOrder) {
       throw new Error('Failed to assign work order');
+    }
+
+    // Send notification to assigned technician
+    try {
+      await this.notificationService.createWorkOrderAssignmentNotification(
+        id,
+        assignedToId,
+        updatedWorkOrder.title
+      );
+    } catch (error) {
+      // Log notification error but don't fail assignment
+      console.warn(`Failed to send assignment notification for work order ${id}:`, error);
     }
 
     return updatedWorkOrder;

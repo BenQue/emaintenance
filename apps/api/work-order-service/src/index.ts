@@ -4,6 +4,8 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import path from 'path';
 import workOrderRoutes from './routes/workOrders';
+import assignmentRuleRoutes from './routes/assignmentRules';
+import notificationRoutes from './routes/notifications';
 import { globalErrorHandler } from './utils/errorHandler';
 
 const app = express();
@@ -38,6 +40,8 @@ app.get('/health', (req, res) => {
 
 // API Routes
 app.use('/api/work-orders', workOrderRoutes);
+app.use('/api/assignment-rules', assignmentRuleRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // 404 handler
 app.all('*', (req, res) => {
