@@ -1,0 +1,206 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+E-Maintenance System (企业设备维修管理程序) - A comprehensive enterprise equipment maintenance management system built as a Turborepo monorepo with microservices architecture.
+
+## Development Commands
+
+### Common Development Tasks
+```bash
+# Install all dependencies (including Flutter)
+npm run install:all
+
+# Start all services in development mode
+npm run dev
+
+# Build all applications
+npm run build
+
+# Run linting across all packages
+npm run lint
+
+# Run tests across all packages  
+npm run test
+
+# Run specific service tests
+cd apps/api/user-service && npm test
+cd apps/api/work-order-service && npm test
+cd apps/api/asset-service && npm test
+
+# Clean all build artifacts
+npm run clean
+```
+
+### Database Operations
+```bash
+# Generate Prisma client (run after schema changes)
+npm run db:generate
+
+# Push schema changes to database (development)
+npm run db:push
+
+# Run database migrations (production)
+npm run db:migrate
+
+# Reset database (destructive)
+npm run db:reset
+
+# Seed database with initial data
+npm run db:seed
+
+# Open Prisma Studio for database inspection
+npm run db:studio
+```
+
+### Individual Service Development
+```bash
+# Web application (Next.js)
+cd apps/web && npm run dev
+
+# Mobile application (Flutter)
+cd apps/mobile && flutter run
+
+# Microservices
+cd apps/api/user-service && npm run dev      # Port 3001
+cd apps/api/work-order-service && npm run dev # Port 3002  
+cd apps/api/asset-service && npm run dev      # Port 3003
+```
+
+## Architecture Overview
+
+### High-Level Structure
+- **Monorepo**: Turborepo-based with shared packages and multiple applications
+- **Frontend**: Next.js 14+ web app with App Router and React 18+
+- **Mobile**: Flutter 3.22+ mobile application
+- **Backend**: Microservices architecture with Node.js/Express services
+- **Database**: Centralized PostgreSQL 16+ with Prisma ORM
+- **Authentication**: JWT-based stateless authentication with role-based authorization
+
+### Microservices Architecture
+Each backend service follows **Controller-Service-Repository** pattern:
+- **Controllers**: Handle HTTP requests/responses with validation
+- **Services**: Contain business logic and orchestration
+- **Repositories**: Encapsulate Prisma database operations
+
+### Frontend Architecture (Next.js Web App)
+- **Component Structure**: Layered approach (ui, layout, features, forms)
+- **State Management**: Zustand with domain-specific stores (work-order-store, user-management-store, supervisor-store, etc.)
+- **Routing**: Next.js App Router with layout-based authentication protection
+- **Service Layer**: Unified API clients separate from UI components
+
+### Key Data Models
+- **User**: Role-based system (EMPLOYEE, TECHNICIAN, SUPERVISOR, ADMIN)
+- **WorkOrder**: Core maintenance request entity with status tracking
+- **Asset**: Equipment/device management with QR code integration
+- **Notification**: System alerts and work order updates
+
+### Role-Based Access Control
+- **EMPLOYEE**: Basic work order creation and viewing
+- **TECHNICIAN**: Work order assignment and technical updates
+- **SUPERVISOR**: Team management, KPI dashboard, user/asset management
+- **ADMIN**: Full system administration
+
+## Project Structure Patterns
+
+### Monorepo Organization
+```
+apps/
+├── web/                    # Next.js web application
+├── mobile/                 # Flutter mobile app
+└── api/
+    ├── user-service/       # User management microservice
+    ├── work-order-service/ # Work order management microservice
+    └── asset-service/      # Asset management microservice
+
+packages/
+├── database/               # Shared Prisma schema and migrations
+├── typescript-config/      # Shared TypeScript configuration
+└── eslint-config/         # Shared linting rules
+```
+
+### Backend Service Structure
+Each microservice follows consistent patterns:
+```
+src/
+├── controllers/           # HTTP request handlers
+├── services/             # Business logic layer
+├── repositories/         # Data access layer (Prisma)
+├── routes/              # Express route definitions
+├── utils/               # Shared utilities (validation, crypto, etc.)
+├── types/               # TypeScript type definitions
+└── __tests__/           # Integration tests
+```
+
+### Frontend Application Structure
+```
+apps/web/
+├── src/app/             # Next.js App Router pages
+├── components/          # React components (ui, features, forms)
+├── lib/
+│   ├── services/        # API client services
+│   └── stores/          # Zustand state management stores
+└── hooks/               # Custom React hooks
+```
+
+## Development Workflow
+
+### Story-Driven Development
+- Stories tracked in `docs/stories/` with comprehensive technical documentation
+- Each story includes acceptance criteria, dev notes, file structure guidance, and testing requirements
+- Stories move through statuses: Planning → Development → Review → Done
+
+### Database Schema Changes
+1. Modify `packages/database/prisma/schema.prisma`
+2. Run `npm run db:generate` to update Prisma client
+3. Run `npm run db:push` for development or `npm run db:migrate` for production
+4. Update TypeScript types and services accordingly
+
+### State Management Pattern
+- Use domain-specific Zustand stores (e.g., `work-order-store.ts`, `user-management-store.ts`)
+- Stores handle API communication, loading states, and optimistic updates
+- Components consume stores via hooks and focus on UI rendering
+
+### Testing Strategy
+- Unit tests for services and repositories using Jest
+- Component tests for React components using React Testing Library
+- Integration tests for complete workflows
+- Tests co-located with source files using `.test.ts` extension
+
+## Environment Setup
+
+### Required Environment Variables
+```bash
+DATABASE_URL="postgresql://username:password@localhost:5432/emaintanance"
+JWT_SECRET="your-jwt-secret"
+NEXT_PUBLIC_API_URL="http://localhost:3001"
+```
+
+### Service Ports
+- Web Application: http://localhost:3000
+- User Service: http://localhost:3001
+- Work Order Service: http://localhost:3002
+- Asset Service: http://localhost:3003
+
+## Important Implementation Notes
+
+### Authentication Flow
+- JWT tokens issued by user-service
+- Stateless authentication across all services
+- Role-based route protection in Next.js layouts
+- Middleware validation for API endpoints
+
+### Data Relationships
+- Users can create and be assigned work orders
+- Assets are linked to work orders for maintenance tracking
+- Work orders have status transitions with business rule validation
+- Notifications are generated for work order lifecycle events
+
+### QR Code Integration
+- Assets have unique `assetCode` fields for QR code scanning
+- Mobile app integrates QR scanning for quick asset identification
+- Work orders can be created directly from QR code scans
+
+When working with this codebase, always consider the microservices architecture, maintain consistency with established patterns, and ensure proper role-based access control is implemented for any new features.
