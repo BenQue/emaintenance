@@ -460,4 +460,60 @@ export class WorkOrderController {
       },
     });
   });
+
+  // KPI Endpoints
+  getMTTRStatistics = asyncHandler(async (req: Request, res: Response) => {
+    const filters = this.parseKPIFilters(req.query);
+    
+    const mttrStats = await this.workOrderService.getMTTRStatistics(filters);
+
+    res.json({
+      status: 'success',
+      data: {
+        mttrStatistics: mttrStats,
+      },
+    });
+  });
+
+  getWorkOrderTrends = asyncHandler(async (req: Request, res: Response) => {
+    const filters = this.parseKPIFilters(req.query);
+    
+    const trends = await this.workOrderService.getWorkOrderTrends(filters);
+
+    res.json({
+      status: 'success',
+      data: {
+        trends,
+      },
+    });
+  });
+
+  private parseKPIFilters(query: any) {
+    const filters: any = {};
+
+    if (query.status) filters.status = query.status;
+    if (query.priority) filters.priority = query.priority;
+    if (query.assetId) filters.assetId = query.assetId;
+    if (query.createdById) filters.createdById = query.createdById;
+    if (query.assignedToId) filters.assignedToId = query.assignedToId;
+    if (query.category) filters.category = query.category;
+
+    if (query.startDate) {
+      filters.startDate = new Date(query.startDate);
+    }
+
+    if (query.endDate) {
+      filters.endDate = new Date(query.endDate);
+    }
+
+    if (query.timeRange && ['week', 'month', 'quarter', 'year'].includes(query.timeRange)) {
+      filters.timeRange = query.timeRange;
+    }
+
+    if (query.granularity && ['day', 'week', 'month'].includes(query.granularity)) {
+      filters.granularity = query.granularity;
+    }
+
+    return filters;
+  }
 }

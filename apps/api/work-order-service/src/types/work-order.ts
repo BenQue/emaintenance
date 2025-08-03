@@ -166,3 +166,39 @@ export interface AssetMaintenanceHistory {
   maintenanceHistory: MaintenanceHistoryResponse[];
   totalRecords: number;
 }
+
+export interface MTTRStatistics {
+  averageMTTR: number; // in hours
+  mttrTrend: {
+    period: string;
+    mttr: number;
+  }[];
+  byPriority: {
+    priority: Priority;
+    mttr: number;
+  }[];
+  byCategory: {
+    category: string;
+    mttr: number;
+  }[];
+}
+
+export interface WorkOrderTrends {
+  creationTrend: {
+    date: string;
+    count: number;
+  }[];
+  completionTrend: {
+    date: string;
+    count: number;
+  }[];
+  averageResolutionTime: {
+    date: string;
+    hours: number;
+  }[];
+}
+
+export interface KPIFilters extends WorkOrderFilters {
+  timeRange?: 'week' | 'month' | 'quarter' | 'year';
+  granularity?: 'day' | 'week' | 'month';
+}

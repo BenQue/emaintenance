@@ -186,6 +186,49 @@ class WorkOrderService {
     );
     return response.maintenanceHistory;
   }
+
+  // Statistics Methods
+  async getStatistics(filters: {
+    timeRange?: string;
+    startDate?: string;
+    endDate?: string;
+  } = {}): Promise<any> {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) params.append(key, value);
+    });
+    
+    return this.request<any>(`/api/work-orders/statistics?${params.toString()}`);
+  }
+
+  // KPI Methods
+  async getMTTRStatistics(filters: {
+    timeRange?: string;
+    granularity?: string;
+    startDate?: string;
+    endDate?: string;
+  } = {}): Promise<any> {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) params.append(key, value);
+    });
+    
+    return this.request<any>(`/api/work-orders/kpi/mttr?${params.toString()}`);
+  }
+
+  async getWorkOrderTrends(filters: {
+    timeRange?: string;
+    granularity?: string;
+    startDate?: string;
+    endDate?: string;
+  } = {}): Promise<any> {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value) params.append(key, value);
+    });
+    
+    return this.request<any>(`/api/work-orders/kpi/trends?${params.toString()}`);
+  }
 }
 
 export const workOrderService = new WorkOrderService();

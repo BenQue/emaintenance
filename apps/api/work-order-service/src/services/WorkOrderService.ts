@@ -2,7 +2,7 @@ import { PrismaClient } from '@emaintanance/database';
 import { WorkOrderRepository } from '../repositories/WorkOrderRepository';
 import { AssignmentRuleService } from './AssignmentRuleService';
 import { NotificationService } from './NotificationService';
-import { CreateWorkOrderRequest, UpdateWorkOrderRequest, WorkOrderWithRelations, WorkOrderFilters, PaginatedWorkOrders, UpdateWorkOrderStatusRequest, WorkOrderStatusHistoryItem, WorkOrderWithStatusHistory, CreateResolutionRecordRequest, ResolutionRecordResponse, WorkOrderWithResolution, MaintenanceHistoryResponse, AssetMaintenanceHistory } from '../types/work-order';
+import { CreateWorkOrderRequest, UpdateWorkOrderRequest, WorkOrderWithRelations, WorkOrderFilters, PaginatedWorkOrders, UpdateWorkOrderStatusRequest, WorkOrderStatusHistoryItem, WorkOrderWithStatusHistory, CreateResolutionRecordRequest, ResolutionRecordResponse, WorkOrderWithResolution, MaintenanceHistoryResponse, AssetMaintenanceHistory, MTTRStatistics, WorkOrderTrends, KPIFilters } from '../types/work-order';
 
 export class WorkOrderService {
   private workOrderRepository: WorkOrderRepository;
@@ -850,4 +850,261 @@ export class WorkOrderService {
 
     return validTransitions[fromStatus]?.includes(toStatus) || false;
   }
+
+  // KPI-related methods
+  async getMTTRStatistics(filters: KPIFilters = {}): Promise<MTTRStatistics> {
+    const where = this.buildKPIWhereClause(filters);
+    const completedWorkOrders = await this.prisma.workOrder.findMany({
+      where: {
+        ...where,
+        status: 'COMPLETED',
+        completedAt: { not: null },
+        reportedAt: { not: null },
+      },
+      select: {
+        reportedAt: true,
+        completedAt: true,
+        priority: true,
+        category: true,
+      },
+    });
+
+    if (completedWorkOrders.length === 0) {
+      return {
+        averageMTTR: 0,
+        mttrTrend: [],
+        byPriority: [],
+        byCategory: [],
+      };
+    }
+
+    // Calculate overall average MTTR
+    const totalResolutionTime = completedWorkOrders.reduce((sum, wo) => {
+      const resolutionTime = new Date(wo.completedAt!).getTime() - new Date(wo.reportedAt).getTime();
+      return sum + resolutionTime;
+    }, 0);
+    const averageMTTR = totalResolutionTime / completedWorkOrders.length / (1000 * 60 * 60); // Convert to hours
+
+    // Calculate MTTR by priority
+    const priorityGroups = this.groupBy(completedWorkOrders, 'priority');
+    const byPriority = Object.entries(priorityGroups).map(([priority, workOrders]) => {
+      const totalTime = workOrders.reduce((sum, wo) => {
+        const resolutionTime = new Date(wo.completedAt!).getTime() - new Date(wo.reportedAt).getTime();
+        return sum + resolutionTime;
+      }, 0);
+      const avgTime = totalTime / workOrders.length / (1000 * 60 * 60);
+      return { priority: priority as any, mttr: avgTime };
+    });
+
+    // Calculate MTTR by category
+    const categoryGroups = this.groupBy(completedWorkOrders, 'category');
+    const byCategory = Object.entries(categoryGroups).map(([category, workOrders]) => {
+      const totalTime = workOrders.reduce((sum, wo) => {
+        const resolutionTime = new Date(wo.completedAt!).getTime() - new Date(wo.reportedAt).getTime();
+        return sum + resolutionTime;
+      }, 0);
+      const avgTime = totalTime / workOrders.length / (1000 * 60 * 60);
+      return { category, mttr: avgTime };
+    });
+
+    // Calculate MTTR trend
+    const mttrTrend = this.calculateMTTRTrend(completedWorkOrders, filters.granularity || 'week');
+
+    return {
+      averageMTTR,
+      mttrTrend,
+      byPriority,
+      byCategory,
+    };
+  }
+
+  async getWorkOrderTrends(filters: KPIFilters = {}): Promise<WorkOrderTrends> {
+    const where = this.buildKPIWhereClause(filters);
+    const granularity = filters.granularity || 'day';
+
+    // Get creation trend
+    const createdWorkOrders = await this.prisma.workOrder.findMany({
+      where,
+      select: {
+        reportedAt: true,
+      },
+      orderBy: {
+        reportedAt: 'asc',
+      },
+    });
+
+    const creationTrend = this.calculateTimeTrend(
+      createdWorkOrders.map(wo => wo.reportedAt),
+      granularity
+    );
+
+    // Get completion trend
+    const completedWorkOrders = await this.prisma.workOrder.findMany({
+      where: {
+        ...where,
+        status: 'COMPLETED',
+        completedAt: { not: null },
+      },
+      select: {
+        completedAt: true,
+        reportedAt: true,
+      },
+      orderBy: {
+        completedAt: 'asc',
+      },
+    });
+
+    const completionTrend = this.calculateTimeTrend(
+      completedWorkOrders.map(wo => wo.completedAt!),
+      granularity
+    );
+
+    // Calculate average resolution time trend
+    const resolutionTimeTrend = this.calculateResolutionTimeTrend(completedWorkOrders, granularity);
+
+    return {
+      creationTrend,
+      completionTrend,
+      averageResolutionTime: resolutionTimeTrend,
+    };
+  }
+
+  private buildKPIWhereClause(filters: KPIFilters): any {
+    const where: any = {};
+
+    if (filters.status) where.status = filters.status;
+    if (filters.priority) where.priority = filters.priority;
+    if (filters.assetId) where.assetId = filters.assetId;
+    if (filters.createdById) where.createdById = filters.createdById;
+    if (filters.assignedToId) where.assignedToId = filters.assignedToId;
+    if (filters.category) where.category = filters.category;
+
+    // Handle time range
+    if (filters.timeRange || filters.startDate || filters.endDate) {
+      where.reportedAt = {};
+      
+      if (filters.startDate) {
+        where.reportedAt.gte = filters.startDate;
+      } else if (filters.timeRange) {
+        const now = new Date();
+        const startDate = new Date();
+        
+        switch (filters.timeRange) {
+          case 'week':
+            startDate.setDate(now.getDate() - 7);
+            break;
+          case 'month':
+            startDate.setMonth(now.getMonth() - 1);
+            break;
+          case 'quarter':
+            startDate.setMonth(now.getMonth() - 3);
+            break;
+          case 'year':
+            startDate.setFullYear(now.getFullYear() - 1);
+            break;
+        }
+        
+        where.reportedAt.gte = startDate;
+      }
+
+      if (filters.endDate) {
+        where.reportedAt.lte = filters.endDate;
+      }
+    }
+
+    return where;
+  }
+
+  private groupBy<T>(array: T[], key: keyof T): Record<string, T[]> {
+    return array.reduce((groups, item) => {
+      const group = String(item[key]);
+      groups[group] = groups[group] || [];
+      groups[group].push(item);
+      return groups;
+    }, {} as Record<string, T[]>);
+  }
+
+  private calculateMTTRTrend(
+    workOrders: Array<{ reportedAt: Date; completedAt: Date | null; priority: any; category: string }>,
+    granularity: 'day' | 'week' | 'month'
+  ): { period: string; mttr: number }[] {
+    const grouped = this.groupWorkOrdersByPeriod(workOrders, granularity, 'completedAt');
+    
+    return Object.entries(grouped).map(([period, orders]) => {
+      const totalTime = orders.reduce((sum, wo) => {
+        const resolutionTime = new Date(wo.completedAt!).getTime() - new Date(wo.reportedAt).getTime();
+        return sum + resolutionTime;
+      }, 0);
+      const avgTime = orders.length > 0 ? totalTime / orders.length / (1000 * 60 * 60) : 0;
+      return { period, mttr: avgTime };
+    });
+  }
+
+  private calculateTimeTrend(dates: Date[], granularity: 'day' | 'week' | 'month'): { date: string; count: number }[] {
+    const grouped = this.groupDatesByPeriod(dates, granularity);
+    
+    return Object.entries(grouped)
+      .map(([date, count]) => ({ date, count }))
+      .sort((a, b) => a.date.localeCompare(b.date));
+  }
+
+  private calculateResolutionTimeTrend(
+    workOrders: Array<{ reportedAt: Date; completedAt: Date | null }>,
+    granularity: 'day' | 'week' | 'month'
+  ): { date: string; hours: number }[] {
+    const grouped = this.groupWorkOrdersByPeriod(workOrders, granularity, 'completedAt');
+    
+    return Object.entries(grouped).map(([date, orders]) => {
+      const totalTime = orders.reduce((sum, wo) => {
+        const resolutionTime = new Date(wo.completedAt!).getTime() - new Date(wo.reportedAt).getTime();
+        return sum + resolutionTime;
+      }, 0);
+      const avgHours = orders.length > 0 ? totalTime / orders.length / (1000 * 60 * 60) : 0;
+      return { date, hours: avgHours };
+    });
+  }
+
+  private groupWorkOrdersByPeriod<T extends { [K in DateField]: Date | null }>(
+    workOrders: T[],
+    granularity: 'day' | 'week' | 'month',
+    dateField: DateField
+  ): Record<string, T[]> {
+    return workOrders.reduce((groups, wo) => {
+      const date = wo[dateField];
+      if (!date) return groups;
+      
+      const periodKey = this.getPeriodKey(date, granularity);
+      groups[periodKey] = groups[periodKey] || [];
+      groups[periodKey].push(wo);
+      return groups;
+    }, {} as Record<string, T[]>);
+  }
+
+  private groupDatesByPeriod(dates: Date[], granularity: 'day' | 'week' | 'month'): Record<string, number> {
+    return dates.reduce((groups, date) => {
+      const periodKey = this.getPeriodKey(date, granularity);
+      groups[periodKey] = (groups[periodKey] || 0) + 1;
+      return groups;
+    }, {} as Record<string, number>);
+  }
+
+  private getPeriodKey(date: Date, granularity: 'day' | 'week' | 'month'): string {
+    const d = new Date(date);
+    
+    switch (granularity) {
+      case 'day':
+        return d.toISOString().split('T')[0]; // YYYY-MM-DD
+      case 'week':
+        // Get Monday of the week
+        const monday = new Date(d);
+        monday.setDate(d.getDate() - d.getDay() + 1);
+        return monday.toISOString().split('T')[0];
+      case 'month':
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      default:
+        return d.toISOString().split('T')[0];
+    }
+  }
 }
+
+type DateField = 'reportedAt' | 'completedAt';

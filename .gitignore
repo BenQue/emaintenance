@@ -44,4 +44,6 @@ yarn-error.log*
 /build/
 *.iml
 *.ipr
-*.iws
+*.iws.env
+.env.*
+!.env.example

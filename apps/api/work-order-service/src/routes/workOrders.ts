@@ -41,4 +41,8 @@ router.post('/:id/photos', checkWorkOrderAccess, uploadMultiple, workOrderContro
 // Asset maintenance history routes
 router.get('/assets/:assetId/maintenance-history', workOrderController.getAssetMaintenanceHistory);
 
+// KPI routes (supervisors and admins only)
+router.get('/kpi/mttr', authorize('SUPERVISOR', 'ADMIN'), workOrderController.getMTTRStatistics);
+router.get('/kpi/trends', authorize('SUPERVISOR', 'ADMIN'), workOrderController.getWorkOrderTrends);
+
 export default router;
