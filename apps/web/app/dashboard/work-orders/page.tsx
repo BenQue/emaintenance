@@ -1,5 +1,5 @@
-import { SupervisorDashboard } from '../../../components/supervisor/SupervisorDashboard';
+import { WorkOrderManagement } from '../../../components/work-orders/WorkOrderManagement';
 
 export default function WorkOrdersManagementPage() {
-  return <SupervisorDashboard />;
+  return <WorkOrderManagement />;
 }

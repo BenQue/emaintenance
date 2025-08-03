@@ -1,5 +1,5 @@
 import { PrismaClient, WorkOrder, Priority, WorkOrderStatus } from '@emaintanance/database';
-import { CreateWorkOrderRequest, UpdateWorkOrderRequest, WorkOrderWithRelations, WorkOrderFilters, PaginatedWorkOrders } from '../types/work-order';
+import { CreateWorkOrderRequest, UpdateWorkOrderRequest, WorkOrderWithRelations, WorkOrderFilters, PaginatedWorkOrders, FilterOptionsResponse, WorkOrderForCSV } from '../types/work-order';
 
 export class WorkOrderRepository {
   constructor(private prisma: PrismaClient) {}
@@ -87,50 +87,15 @@ export class WorkOrderRepository {
     page: number = 1,
     limit: number = 20
   ): Promise<PaginatedWorkOrders> {
-    const where: any = {};
-
-    if (filters.status) {
-      where.status = filters.status;
-    }
-
-    if (filters.priority) {
-      where.priority = filters.priority;
-    }
-
-    if (filters.assetId) {
-      where.assetId = filters.assetId;
-    }
-
-    if (filters.createdById) {
-      where.createdById = filters.createdById;
-    }
-
-    if (filters.assignedToId) {
-      where.assignedToId = filters.assignedToId;
-    }
-
-    if (filters.category) {
-      where.category = filters.category;
-    }
-
-    if (filters.startDate || filters.endDate) {
-      where.reportedAt = {};
-      if (filters.startDate) {
-        where.reportedAt.gte = filters.startDate;
-      }
-      if (filters.endDate) {
-        where.reportedAt.lte = filters.endDate;
-      }
-    }
+    const where: any = this.buildWhereClause(filters);
+    const orderBy = this.buildOrderByClause(filters.sortBy, filters.sortOrder);
 
     const [workOrders, total] = await Promise.all([
       this.prisma.workOrder.findMany({
         where,
         skip: (page - 1) * limit,
         take: limit,
-        orderBy: {
-          reportedAt: 'desc',
-        },
+        orderBy,
         include: {
           asset: {
             select: {
@@ -336,5 +301,202 @@ export class WorkOrderRepository {
       byPriority,
       averageResolutionTime,
     };
+  }
+
+  async getFilterOptions(): Promise<FilterOptionsResponse> {
+    const [categoriesResult, assetsResult, usersResult] = await Promise.all([
+      this.prisma.workOrder.findMany({
+        select: { category: true },
+        distinct: ['category'],
+      }),
+      this.prisma.asset.findMany({
+        where: { isActive: true },
+        select: {
+          id: true,
+          assetCode: true,
+          name: true,
+        },
+        orderBy: { assetCode: 'asc' },
+      }),
+      this.prisma.user.findMany({
+        where: { 
+          isActive: true,
+          role: { in: ['TECHNICIAN', 'SUPERVISOR', 'ADMIN'] }
+        },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+        },
+        orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }],
+      }),
+    ]);
+
+    return {
+      statuses: Object.values(WorkOrderStatus),
+      priorities: Object.values(Priority),
+      categories: categoriesResult.map(item => item.category),
+      assets: assetsResult,
+      users: usersResult.map(user => ({
+        id: user.id,
+        name: `${user.firstName} ${user.lastName}`,
+        role: user.role,
+      })),
+    };
+  }
+
+  async findManyForCSV(filters: WorkOrderFilters = {}): Promise<WorkOrderForCSV[]> {
+    const where: any = this.buildWhereClause(filters);
+    const orderBy = this.buildOrderByClause(filters.sortBy, filters.sortOrder);
+
+    const workOrders = await this.prisma.workOrder.findMany({
+      where,
+      orderBy,
+      include: {
+        asset: {
+          select: {
+            assetCode: true,
+            name: true,
+          },
+        },
+        createdBy: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+        assignedTo: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+        resolutionRecord: {
+          select: {
+            solutionDescription: true,
+          },
+        },
+      },
+    });
+
+    return workOrders.map(wo => ({
+      id: wo.id,
+      title: wo.title,
+      description: wo.description,
+      category: wo.category,
+      reason: wo.reason,
+      location: wo.location,
+      priority: wo.priority,
+      status: wo.status,
+      reportedAt: wo.reportedAt,
+      startedAt: wo.startedAt,
+      completedAt: wo.completedAt,
+      solution: wo.solution,
+      faultCode: wo.faultCode,
+      assetCode: wo.asset.assetCode,
+      assetName: wo.asset.name,
+      createdBy: `${wo.createdBy.firstName} ${wo.createdBy.lastName}`,
+      assignedTo: wo.assignedTo ? `${wo.assignedTo.firstName} ${wo.assignedTo.lastName}` : null,
+      resolutionDescription: wo.resolutionRecord?.solutionDescription || null,
+    }));
+  }
+
+  private buildWhereClause(filters: WorkOrderFilters): any {
+    const where: any = {};
+
+    if (filters.status) {
+      where.status = filters.status;
+    }
+
+    if (filters.priority) {
+      where.priority = filters.priority;
+    }
+
+    if (filters.assetId) {
+      where.assetId = filters.assetId;
+    }
+
+    if (filters.createdById) {
+      where.createdById = filters.createdById;
+    }
+
+    if (filters.assignedToId) {
+      where.assignedToId = filters.assignedToId;
+    }
+
+    if (filters.category) {
+      where.category = { contains: filters.category, mode: 'insensitive' };
+    }
+
+    if (filters.startDate || filters.endDate) {
+      where.reportedAt = {};
+      if (filters.startDate) {
+        where.reportedAt.gte = filters.startDate;
+      }
+      if (filters.endDate) {
+        where.reportedAt.lte = filters.endDate;
+      }
+    }
+
+    // Full-text search across multiple fields
+    if (filters.search && filters.search.trim()) {
+      where.OR = this.buildSearchConditions(filters.search.trim());
+    }
+
+    return where;
+  }
+
+  private buildOrderByClause(sortBy?: string, sortOrder?: string): any {
+    const order = sortOrder === 'asc' ? 'asc' : 'desc';
+    
+    switch (sortBy) {
+      case 'title':
+        return { title: order };
+      case 'priority':
+        return { priority: order };
+      case 'status':
+        return { status: order };
+      case 'completedAt':
+        return { completedAt: order };
+      case 'reportedAt':
+      default:
+        return { reportedAt: order };
+    }
+  }
+
+  /**
+   * Build search conditions for full-text search across multiple fields.
+   * Optimized to minimize database query complexity and improve performance.
+   */
+  private buildSearchConditions(searchTerm: string): any[] {
+    const searchMode = 'insensitive';
+    const containsCondition = { contains: searchTerm, mode: searchMode };
+
+    return [
+      // Direct work order fields (most common searches)
+      { title: containsCondition },
+      { description: containsCondition },
+      { category: containsCondition },
+      { reason: containsCondition },
+      { solution: containsCondition },
+      
+      // Related asset fields
+      { 
+        asset: {
+          OR: [
+            { assetCode: containsCondition },
+            { name: containsCondition },
+          ]
+        }
+      },
+      
+      // Resolution record (may not always exist)
+      {
+        resolutionRecord: {
+          solutionDescription: containsCondition
+        }
+      },
+    ];
   }
 }

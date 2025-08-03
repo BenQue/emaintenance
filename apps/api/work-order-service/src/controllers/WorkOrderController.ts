@@ -8,7 +8,8 @@ import {
   AssignWorkOrderSchema,
   UpdateWorkOrderStatusSchema,
   IdParamSchema,
-  CreateResolutionRecordSchema
+  CreateResolutionRecordSchema,
+  CSVExportQuerySchema
 } from '../utils/validation';
 import { AppError, asyncHandler } from '../utils/errorHandler';
 import { getFileUrl, getFilenameFromUrl, deleteFile } from '../middleware/upload';
@@ -75,6 +76,9 @@ export class WorkOrderController {
       category: queryParams.category,
       startDate: queryParams.startDate,
       endDate: queryParams.endDate,
+      search: queryParams.search,
+      sortBy: queryParams.sortBy,
+      sortOrder: queryParams.sortOrder,
     };
 
     const result = await this.workOrderService.getWorkOrders(
@@ -486,6 +490,99 @@ export class WorkOrderController {
         trends,
       },
     });
+  });
+
+  // Get filter options for dropdown menus
+  getFilterOptions = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new AppError('用户未认证', 401);
+    }
+
+    // Check if user is supervisor/admin
+    if (!['SUPERVISOR', 'ADMIN'].includes(req.user.role)) {
+      throw new AppError('权限不足：只有主管和管理员可以访问筛选选项', 403);
+    }
+
+    const filterOptions = await this.workOrderService.getFilterOptions();
+
+    res.json({
+      status: 'success',
+      data: filterOptions,
+    });
+  });
+
+  // Export work orders to CSV
+  exportWorkOrdersCSV = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new AppError('用户未认证', 401);
+    }
+
+    // Check if user is supervisor/admin
+    if (!['SUPERVISOR', 'ADMIN'].includes(req.user.role)) {
+      throw new AppError('权限不足：只有主管和管理员可以导出工单', 403);
+    }
+
+    // Validate and sanitize query parameters
+    const queryParams = CSVExportQuerySchema.parse(req.query);
+    
+    // Security: Limit export size to prevent abuse
+    const MAX_EXPORT_LIMIT = 10000;
+    if (!queryParams.startDate && !queryParams.endDate) {
+      // If no date range specified, apply a reasonable default to prevent exporting all data
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      queryParams.startDate = thirtyDaysAgo;
+    }
+    
+    const filters = {
+      status: queryParams.status,
+      priority: queryParams.priority,
+      assetId: queryParams.assetId,
+      createdById: queryParams.createdById,
+      assignedToId: queryParams.assignedToId,
+      category: queryParams.category,
+      startDate: queryParams.startDate,
+      endDate: queryParams.endDate,
+      search: queryParams.search,
+      sortBy: queryParams.sortBy,
+      sortOrder: queryParams.sortOrder,
+    };
+
+    // Get work orders for CSV export
+    const workOrders = await this.workOrderService.getWorkOrdersForCSV(filters);
+    
+    if (workOrders.length === 0) {
+      throw new AppError('没有找到符合条件的工单', 404);
+    }
+
+    // Security: Check export size limit
+    if (workOrders.length > MAX_EXPORT_LIMIT) {
+      throw new AppError(`导出数据量过大 (${workOrders.length}条)，请缩小查询范围。最大允许导出${MAX_EXPORT_LIMIT}条记录。`, 400);
+    }
+
+    // Generate CSV content
+    const csvContent = await this.workOrderService.generateCSVContent(workOrders, queryParams.columns);
+
+    // Audit log: Record export activity
+    console.info(`Work order CSV export by user ${req.user.id} (${req.user.role}): ${workOrders.length} records`, {
+      userId: req.user.id,
+      userRole: req.user.role,
+      recordCount: workOrders.length,
+      filters: Object.fromEntries(Object.entries(filters).filter(([_, v]) => v !== undefined)),
+      timestamp: new Date().toISOString(),
+    });
+
+    // Set response headers for CSV download
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = `work-orders-export-${timestamp}.csv`;
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Cache-Control', 'no-cache');
+
+    // Add BOM for proper UTF-8 encoding in Excel
+    res.write('\uFEFF');
+    res.end(csvContent);
   });
 
   private parseKPIFilters(query: any) {

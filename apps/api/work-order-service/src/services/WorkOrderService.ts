@@ -2,7 +2,8 @@ import { PrismaClient } from '@emaintanance/database';
 import { WorkOrderRepository } from '../repositories/WorkOrderRepository';
 import { AssignmentRuleService } from './AssignmentRuleService';
 import { NotificationService } from './NotificationService';
-import { CreateWorkOrderRequest, UpdateWorkOrderRequest, WorkOrderWithRelations, WorkOrderFilters, PaginatedWorkOrders, UpdateWorkOrderStatusRequest, WorkOrderStatusHistoryItem, WorkOrderWithStatusHistory, CreateResolutionRecordRequest, ResolutionRecordResponse, WorkOrderWithResolution, MaintenanceHistoryResponse, AssetMaintenanceHistory, MTTRStatistics, WorkOrderTrends, KPIFilters } from '../types/work-order';
+import { CreateWorkOrderRequest, UpdateWorkOrderRequest, WorkOrderWithRelations, WorkOrderFilters, PaginatedWorkOrders, UpdateWorkOrderStatusRequest, WorkOrderStatusHistoryItem, WorkOrderWithStatusHistory, CreateResolutionRecordRequest, ResolutionRecordResponse, WorkOrderWithResolution, MaintenanceHistoryResponse, AssetMaintenanceHistory, MTTRStatistics, WorkOrderTrends, KPIFilters, FilterOptionsResponse, WorkOrderForCSV } from '../types/work-order';
+import { CSVGenerator } from '../utils/csv-generator';
 
 export class WorkOrderService {
   private workOrderRepository: WorkOrderRepository;
@@ -916,6 +917,18 @@ export class WorkOrderService {
       byPriority,
       byCategory,
     };
+  }
+
+  async getFilterOptions(): Promise<FilterOptionsResponse> {
+    return await this.workOrderRepository.getFilterOptions();
+  }
+
+  async getWorkOrdersForCSV(filters: WorkOrderFilters = {}): Promise<WorkOrderForCSV[]> {
+    return await this.workOrderRepository.findManyForCSV(filters);
+  }
+
+  generateCSVContent(workOrders: WorkOrderForCSV[], columns?: string[]): string {
+    return CSVGenerator.generateWorkOrderCSV(workOrders, columns);
   }
 
   async getWorkOrderTrends(filters: KPIFilters = {}): Promise<WorkOrderTrends> {

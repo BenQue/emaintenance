@@ -121,6 +121,18 @@ export const WorkOrderQuerySchema = z.object({
     .datetime('结束日期格式无效')
     .transform(val => new Date(val))
     .optional(),
+  
+  search: z.string()
+    .max(200, '搜索词不能超过200个字符')
+    .optional(),
+  
+  sortBy: z.enum(['reportedAt', 'completedAt', 'title', 'priority', 'status'])
+    .optional()
+    .default('reportedAt'),
+  
+  sortOrder: z.enum(['asc', 'desc'])
+    .optional()
+    .default('desc'),
 });
 
 // Assignment validation
@@ -172,3 +184,36 @@ export const CreateResolutionRecordSchema = z.object({
 });
 
 export type CreateResolutionRecordInput = z.infer<typeof CreateResolutionRecordSchema>;
+
+// CSV Export validation
+export const CSVExportQuerySchema = z.object({
+  // All the same filters as WorkOrderQuerySchema but without pagination
+  status: WorkOrderStatusSchema.optional(),
+  priority: PrioritySchema.optional(),
+  assetId: z.string().optional(),
+  createdById: z.string().optional(),
+  assignedToId: z.string().optional(),
+  category: z.string().optional(),
+  startDate: z.string()
+    .datetime('开始日期格式无效')
+    .transform(val => new Date(val))
+    .optional(),
+  endDate: z.string()
+    .datetime('结束日期格式无效')
+    .transform(val => new Date(val))
+    .optional(),
+  search: z.string()
+    .max(200, '搜索词不能超过200个字符')
+    .optional(),
+  sortBy: z.enum(['reportedAt', 'completedAt', 'title', 'priority', 'status'])
+    .optional()
+    .default('reportedAt'),
+  sortOrder: z.enum(['asc', 'desc'])
+    .optional()
+    .default('desc'),
+  columns: z.string()
+    .optional()
+    .transform(val => val ? val.split(',').map(col => col.trim()) : undefined),
+});
+
+export type CSVExportQueryInput = z.infer<typeof CSVExportQuerySchema>;

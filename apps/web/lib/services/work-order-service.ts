@@ -88,6 +88,9 @@ class WorkOrderService {
       category?: string;
       startDate?: string;
       endDate?: string;
+      search?: string;
+      sortBy?: string;
+      sortOrder?: string;
     } = {},
     page: number = 1,
     limit: number = 20
@@ -228,6 +231,68 @@ class WorkOrderService {
     });
     
     return this.request<any>(`/api/work-orders/kpi/trends?${params.toString()}`);
+  }
+
+  // Advanced Filtering Methods
+  async getFilterOptions(): Promise<{
+    statuses: string[];
+    priorities: string[];
+    categories: string[];
+    assets: { id: string; assetCode: string; name: string }[];
+    users: { id: string; name: string; role: string }[];
+  }> {
+    return this.request('/api/work-orders/filter-options');
+  }
+
+  async exportWorkOrdersCSV(filters: {
+    status?: string;
+    priority?: string;
+    assetId?: string;
+    createdById?: string;
+    assignedToId?: string;
+    category?: string;
+    startDate?: string;
+    endDate?: string;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: string;
+    columns?: string;
+  } = {}): Promise<void> {
+    const queryParams = new URLSearchParams(
+      Object.fromEntries(
+        Object.entries(filters).filter(([_, value]) => value !== undefined && value !== '')
+      )
+    );
+
+    const token = localStorage.getItem('token');
+    
+    const response = await fetch(`${API_BASE_URL}/api/work-orders/export?${queryParams}`, {
+      method: 'GET',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Export failed' }));
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    // Download the CSV file
+    const blob = await response.blob();
+    const contentDisposition = response.headers.get('Content-Disposition');
+    const filename = contentDisposition
+      ? contentDisposition.split('filename=')[1]?.replace(/"/g, '')
+      : 'work-orders-export.csv';
+
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
   }
 }
 

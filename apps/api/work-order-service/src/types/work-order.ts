@@ -74,6 +74,9 @@ export interface WorkOrderFilters {
   category?: string;
   startDate?: Date;
   endDate?: Date;
+  search?: string; // Full-text search across title, description, and resolution
+  sortBy?: 'reportedAt' | 'completedAt' | 'title' | 'priority' | 'status';
+  sortOrder?: 'asc' | 'desc';
 }
 
 export interface PaginatedWorkOrders {
@@ -201,4 +204,46 @@ export interface WorkOrderTrends {
 export interface KPIFilters extends WorkOrderFilters {
   timeRange?: 'week' | 'month' | 'quarter' | 'year';
   granularity?: 'day' | 'week' | 'month';
+}
+
+export interface FilterOptionsResponse {
+  statuses: WorkOrderStatus[];
+  priorities: Priority[];
+  categories: string[];
+  assets: {
+    id: string;
+    assetCode: string;
+    name: string;
+  }[];
+  users: {
+    id: string;
+    name: string;
+    role: string;
+  }[];
+}
+
+export interface CSVExportRequest {
+  filters?: WorkOrderFilters;
+  columns?: string[];
+}
+
+export interface WorkOrderForCSV {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  reason: string;
+  location?: string | null;
+  priority: Priority;
+  status: WorkOrderStatus;
+  reportedAt: Date;
+  startedAt?: Date | null;
+  completedAt?: Date | null;
+  solution?: string | null;
+  faultCode?: string | null;
+  assetCode: string;
+  assetName: string;
+  createdBy: string;
+  assignedTo?: string | null;
+  resolutionDescription?: string | null;
 }

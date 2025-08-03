@@ -45,4 +45,8 @@ router.get('/assets/:assetId/maintenance-history', workOrderController.getAssetM
 router.get('/kpi/mttr', authorize('SUPERVISOR', 'ADMIN'), workOrderController.getMTTRStatistics);
 router.get('/kpi/trends', authorize('SUPERVISOR', 'ADMIN'), workOrderController.getWorkOrderTrends);
 
+// Advanced filtering routes (supervisors and admins only)
+router.get('/filter-options', authorize('SUPERVISOR', 'ADMIN'), workOrderController.getFilterOptions);
+router.get('/export', authorize('SUPERVISOR', 'ADMIN'), workOrderController.exportWorkOrdersCSV);
+
 export default router;
