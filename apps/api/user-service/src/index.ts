@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import authRoutes from './routes/auth';
+import assetRoutes from './routes/assets';
 import { generalRateLimit } from './middleware/rateLimiter';
 
 const app = express();
@@ -39,6 +40,7 @@ app.get('/health', (req: Request, res: Response) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/assets', assetRoutes);
 
 app.get('/api/users', (req: Request, res: Response) => {
   res.json({ 
