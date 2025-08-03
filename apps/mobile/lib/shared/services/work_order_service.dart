@@ -77,6 +77,90 @@ class WorkOrderService {
     }
   }
 
+  /// Get assigned work orders for current technician
+  Future<PaginatedWorkOrders> getAssignedWorkOrders({
+    int page = 1,
+    int limit = 20,
+  }) async {
+    try {
+      final response = await _apiClient.get<Map<String, dynamic>>(
+        '/api/work-orders/assigned',
+        queryParameters: {
+          'page': page.toString(),
+          'limit': limit.toString(),
+        },
+      );
+
+      if (response.data == null) {
+        throw Exception('Empty response from server');
+      }
+
+      return PaginatedWorkOrders.fromJson(response.data!['data']);
+    } catch (e) {
+      throw Exception('Failed to get assigned work orders: $e');
+    }
+  }
+
+  /// Get work order with status history
+  Future<WorkOrderWithRelations> getWorkOrderWithHistory(String workOrderId) async {
+    try {
+      final response = await _apiClient.get<Map<String, dynamic>>(
+        '/api/work-orders/$workOrderId/history',
+      );
+
+      if (response.data == null) {
+        throw Exception('Empty response from server');
+      }
+
+      final workOrderData = response.data!['data']['workOrder'] as Map<String, dynamic>;
+      return WorkOrderWithRelations.fromJson(workOrderData);
+    } catch (e) {
+      throw Exception('Failed to get work order with history: $e');
+    }
+  }
+
+  /// Get work order status history
+  Future<List<WorkOrderStatusHistory>> getWorkOrderStatusHistory(String workOrderId) async {
+    try {
+      final response = await _apiClient.get<Map<String, dynamic>>(
+        '/api/work-orders/$workOrderId/status-history',
+      );
+
+      if (response.data == null) {
+        throw Exception('Empty response from server');
+      }
+
+      final historyData = response.data!['data']['statusHistory'] as List;
+      return historyData
+          .map((item) => WorkOrderStatusHistory.fromJson(item as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      throw Exception('Failed to get work order status history: $e');
+    }
+  }
+
+  /// Update work order status
+  Future<WorkOrderWithRelations> updateWorkOrderStatus(
+    String workOrderId,
+    UpdateWorkOrderStatusRequest request,
+  ) async {
+    try {
+      final response = await _apiClient.put<Map<String, dynamic>>(
+        '/api/work-orders/$workOrderId/status',
+        data: request.toJson(),
+      );
+
+      if (response.data == null) {
+        throw Exception('Empty response from server');
+      }
+
+      final workOrderData = response.data!['data']['workOrder'] as Map<String, dynamic>;
+      return WorkOrderWithRelations.fromJson(workOrderData);
+    } catch (e) {
+      throw Exception('Failed to update work order status: $e');
+    }
+  }
+
   /// Update work order
   Future<WorkOrder> updateWorkOrder(String workOrderId, Map<String, dynamic> updates) async {
     try {

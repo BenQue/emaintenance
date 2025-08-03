@@ -19,11 +19,12 @@ enum UserRole {
 }
 
 enum WorkOrderStatus {
-  PENDING      // 待处理
-  IN_PROGRESS  // 进行中
-  WAITING_PARTS // 等待备件
-  COMPLETED    // 已完成
-  CANCELLED    // 已取消
+  PENDING         // 待处理
+  IN_PROGRESS     // 进行中
+  WAITING_PARTS   // 等待备件
+  WAITING_EXTERNAL // 等待外部
+  COMPLETED       // 已完成
+  CANCELLED       // 已取消
 }
 
 enum Priority {
@@ -60,6 +61,7 @@ model User {
   administeredAssets   Asset[]     @relation("AssetAdministrator")
   assignmentRules      AssignmentRule[]
   notifications        Notification[]
+  statusChanges        WorkOrderStatusHistory[]
 
   @@index([role, isActive])
   @@index([employeeId])
@@ -125,6 +127,7 @@ model WorkOrder {
   createdBy       User    @relation("CreatedBy", fields: [createdById], references: [id])
   assignedTo      User?   @relation("AssignedTo", fields: [assignedToId], references: [id])
   notifications   Notification[]
+  statusHistory   WorkOrderStatusHistory[]
 
   @@index([status, priority])
   @@index([assetId, status])
@@ -133,6 +136,26 @@ model WorkOrder {
   @@index([reportedAt])
   @@index([category])
   @@map("work_orders")
+}
+
+model WorkOrderStatusHistory {
+  id              String   @id @default(cuid())
+  workOrderId     String
+  workOrder       WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+
+  fromStatus      WorkOrderStatus?
+  toStatus        WorkOrderStatus
+
+  changedById     String
+  changedBy       User     @relation(fields: [changedById], references: [id])
+
+  notes           String?
+
+  createdAt       DateTime @default(now())
+
+  @@index([workOrderId, createdAt])
+  @@index([changedById])
+  @@map("work_order_status_history")
 }
 
 model AssignmentRule {

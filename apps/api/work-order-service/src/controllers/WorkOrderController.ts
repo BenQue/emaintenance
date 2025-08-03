@@ -6,6 +6,7 @@ import {
   UpdateWorkOrderSchema, 
   WorkOrderQuerySchema,
   AssignWorkOrderSchema,
+  UpdateWorkOrderStatusSchema,
   IdParamSchema 
 } from '../utils/validation';
 import { AppError, asyncHandler } from '../utils/errorHandler';
@@ -270,6 +271,86 @@ export class WorkOrderController {
       message: '文件删除成功',
       data: {
         workOrder,
+      },
+    });
+  });
+
+  // Get assigned work orders for current technician
+  getAssignedWorkOrders = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new AppError('用户未认证', 401);
+    }
+
+    const queryParams = WorkOrderQuerySchema.parse(req.query);
+
+    const result = await this.workOrderService.getAssignedWorkOrders(
+      req.user.id,
+      parseInt(queryParams.page),
+      parseInt(queryParams.limit)
+    );
+
+    res.json({
+      status: 'success',
+      data: result,
+    });
+  });
+
+  // Update work order status
+  updateWorkOrderStatus = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new AppError('用户未认证', 401);
+    }
+
+    const { id } = IdParamSchema.parse(req.params);
+    const validatedData = UpdateWorkOrderStatusSchema.parse(req.body);
+
+    const workOrder = await this.workOrderService.updateWorkOrderStatus(
+      id,
+      validatedData,
+      req.user.id
+    );
+
+    if (!workOrder) {
+      throw new AppError('工单状态更新失败', 400);
+    }
+
+    res.json({
+      status: 'success',
+      message: '工单状态更新成功',
+      data: {
+        workOrder,
+      },
+    });
+  });
+
+  // Get work order with status history
+  getWorkOrderWithHistory = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = IdParamSchema.parse(req.params);
+
+    const workOrder = await this.workOrderService.getWorkOrderWithStatusHistory(id);
+
+    if (!workOrder) {
+      throw new AppError('工单不存在', 404);
+    }
+
+    res.json({
+      status: 'success',
+      data: {
+        workOrder,
+      },
+    });
+  });
+
+  // Get work order status history
+  getWorkOrderStatusHistory = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = IdParamSchema.parse(req.params);
+
+    const statusHistory = await this.workOrderService.getWorkOrderStatusHistory(id);
+
+    res.json({
+      status: 'success',
+      data: {
+        statusHistory,
       },
     });
   });

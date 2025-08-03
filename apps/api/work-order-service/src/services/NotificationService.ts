@@ -54,6 +54,40 @@ export class NotificationService {
     return this.createNotification(notificationData);
   }
 
+  async createWorkOrderStatusChangeNotification(
+    workOrderId: string,
+    fromStatus: string,
+    toStatus: string,
+    workOrderTitle: string
+  ): Promise<void> {
+    // Get all supervisors and admins to notify about status changes
+    const supervisors = await this.prisma.user.findMany({
+      where: {
+        role: { in: ['SUPERVISOR', 'ADMIN'] },
+        isActive: true,
+      },
+      select: { id: true },
+    });
+
+    // Create notifications for all supervisors
+    const notifications = supervisors.map(supervisor => ({
+      userId: supervisor.id,
+      type: NotificationType.WORK_ORDER_UPDATED,
+      title: '工单状态变更',
+      message: `工单 "${workOrderTitle}" 状态从 ${fromStatus} 更新为 ${toStatus}`,
+      workOrderId,
+    }));
+
+    // Create all notifications
+    for (const notification of notifications) {
+      try {
+        await this.createNotification(notification);
+      } catch (error) {
+        console.warn(`Failed to create notification for supervisor ${notification.userId}:`, error);
+      }
+    }
+  }
+
   async getUserNotifications(
     userId: string,
     filter: Omit<NotificationFilter, 'userId'>

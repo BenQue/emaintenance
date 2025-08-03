@@ -14,12 +14,16 @@ router.use(authenticate);
 // Public routes (authenticated users)
 router.post('/', workOrderController.createWorkOrder);
 router.get('/my', workOrderController.getMyWorkOrders);
+router.get('/assigned', workOrderController.getAssignedWorkOrders);
 router.get('/statistics', authorize('SUPERVISOR', 'ADMIN'), workOrderController.getStatistics);
 router.get('/', workOrderController.getWorkOrders);
 
 // Protected routes (require work order access check)
 router.get('/:id', checkWorkOrderAccess, workOrderController.getWorkOrder);
+router.get('/:id/history', checkWorkOrderAccess, workOrderController.getWorkOrderWithHistory);
+router.get('/:id/status-history', checkWorkOrderAccess, workOrderController.getWorkOrderStatusHistory);
 router.put('/:id', checkWorkOrderAccess, workOrderController.updateWorkOrder);
+router.put('/:id/status', checkWorkOrderAccess, workOrderController.updateWorkOrderStatus);
 router.delete('/:id', checkWorkOrderAccess, workOrderController.deleteWorkOrder);
 
 // File upload routes

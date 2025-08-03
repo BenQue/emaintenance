@@ -83,3 +83,28 @@ export interface PaginatedWorkOrders {
   limit: number;
   totalPages: number;
 }
+
+export interface UpdateWorkOrderStatusRequest {
+  status: WorkOrderStatus;
+  notes?: string;
+}
+
+export interface WorkOrderStatusHistoryItem {
+  id: string;
+  workOrderId: string;
+  fromStatus?: WorkOrderStatus | null;
+  toStatus: WorkOrderStatus;
+  changedById: string;
+  changedBy: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  notes?: string | null;
+  createdAt: Date;
+}
+
+export interface WorkOrderWithStatusHistory extends WorkOrderWithRelations {
+  statusHistory: WorkOrderStatusHistoryItem[];
+}

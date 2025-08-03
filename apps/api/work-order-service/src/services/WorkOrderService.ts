@@ -2,7 +2,7 @@ import { PrismaClient } from '@emaintanance/database';
 import { WorkOrderRepository } from '../repositories/WorkOrderRepository';
 import { AssignmentRuleService } from './AssignmentRuleService';
 import { NotificationService } from './NotificationService';
-import { CreateWorkOrderRequest, UpdateWorkOrderRequest, WorkOrderWithRelations, WorkOrderFilters, PaginatedWorkOrders } from '../types/work-order';
+import { CreateWorkOrderRequest, UpdateWorkOrderRequest, WorkOrderWithRelations, WorkOrderFilters, PaginatedWorkOrders, UpdateWorkOrderStatusRequest, WorkOrderStatusHistoryItem, WorkOrderWithStatusHistory } from '../types/work-order';
 
 export class WorkOrderService {
   private workOrderRepository: WorkOrderRepository;
@@ -262,6 +262,191 @@ export class WorkOrderService {
     });
   }
 
+  async updateWorkOrderStatus(
+    id: string,
+    statusUpdate: UpdateWorkOrderStatusRequest,
+    userId: string
+  ): Promise<WorkOrderWithRelations | null> {
+    // Check if work order exists
+    const existingWorkOrder = await this.workOrderRepository.findById(id);
+    
+    if (!existingWorkOrder) {
+      throw new Error('Work order not found');
+    }
+
+    // Check if user has permission to update status (only assigned technician or supervisors)
+    if (!(await this.canUserUpdateStatus(existingWorkOrder, userId))) {
+      throw new Error('Permission denied: only assigned technician or supervisors can update work order status');
+    }
+
+    // Validate status transition
+    if (!this.isValidStatusTransition(existingWorkOrder.status, statusUpdate.status)) {
+      throw new Error(`Invalid status transition from ${existingWorkOrder.status} to ${statusUpdate.status}`);
+    }
+
+    const { status, notes } = statusUpdate;
+
+    // Start transaction to update work order and create history record
+    return await this.prisma.$transaction(async (tx) => {
+      // Update work order status
+      const updatedWorkOrder = await tx.workOrder.update({
+        where: { id },
+        data: { 
+          status,
+          startedAt: status === 'IN_PROGRESS' && !existingWorkOrder.startedAt ? new Date() : existingWorkOrder.startedAt,
+          completedAt: status === 'COMPLETED' ? new Date() : null,
+        },
+        include: {
+          asset: {
+            select: {
+              id: true,
+              assetCode: true,
+              name: true,
+              location: true,
+            }
+          },
+          createdBy: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            }
+          },
+          assignedTo: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            }
+          }
+        }
+      });
+
+      // Create status history record
+      await tx.workOrderStatusHistory.create({
+        data: {
+          workOrderId: id,
+          fromStatus: existingWorkOrder.status,
+          toStatus: status,
+          changedById: userId,
+          notes,
+        }
+      });
+
+      // Send notification to supervisors about status change
+      try {
+        await this.notificationService.createWorkOrderStatusChangeNotification(
+          id,
+          existingWorkOrder.status,
+          status,
+          existingWorkOrder.title
+        );
+      } catch (error) {
+        console.warn(`Failed to send status change notification for work order ${id}:`, error);
+      }
+
+      return updatedWorkOrder;
+    });
+  }
+
+  async getWorkOrderWithStatusHistory(id: string): Promise<WorkOrderWithStatusHistory | null> {
+    const workOrder = await this.prisma.workOrder.findUnique({
+      where: { id },
+      include: {
+        asset: {
+          select: {
+            id: true,
+            assetCode: true,
+            name: true,
+            location: true,
+          }
+        },
+        createdBy: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          }
+        },
+        assignedTo: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          }
+        },
+        statusHistory: {
+          include: {
+            changedBy: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              }
+            }
+          },
+          orderBy: {
+            createdAt: 'desc'
+          }
+        }
+      }
+    });
+
+    return workOrder;
+  }
+
+  async getWorkOrderStatusHistory(id: string): Promise<WorkOrderStatusHistoryItem[]> {
+    const statusHistory = await this.prisma.workOrderStatusHistory.findMany({
+      where: { workOrderId: id },
+      include: {
+        changedBy: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    return statusHistory;
+  }
+
+  async getAssignedWorkOrders(
+    technicianId: string,
+    page: number = 1,
+    limit: number = 20
+  ): Promise<PaginatedWorkOrders> {
+    // Validate technician role
+    const user = await this.prisma.user.findUnique({
+      where: { id: technicianId },
+      select: { role: true, isActive: true }
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    if (!user.isActive) {
+      throw new Error('User is not active');
+    }
+
+    if (!['TECHNICIAN', 'SUPERVISOR', 'ADMIN'].includes(user.role)) {
+      throw new Error('User role not authorized to view assigned work orders');
+    }
+
+    return await this.getUserWorkOrders(technicianId, 'assigned', page, limit);
+  }
+
   // Helper methods for permission and validation logic
   private canUserUpdateWorkOrder(workOrder: WorkOrderWithRelations, userId: string): boolean {
     return workOrder.createdById === userId || workOrder.assignedToId === userId;
@@ -288,5 +473,34 @@ export class WorkOrderService {
 
   private canUserAccessAttachment(workOrder: WorkOrderWithRelations, userId: string): boolean {
     return this.canUserUpdateWorkOrder(workOrder, userId);
+  }
+
+  private async canUserUpdateStatus(workOrder: WorkOrderWithRelations, userId: string): Promise<boolean> {
+    // Check if user is assigned to the work order
+    if (workOrder.assignedToId === userId) {
+      return true;
+    }
+
+    // Check if user is a supervisor or admin
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true }
+    });
+
+    return user?.role === 'SUPERVISOR' || user?.role === 'ADMIN';
+  }
+
+  private isValidStatusTransition(fromStatus: string, toStatus: string): boolean {
+    // Define valid status transitions
+    const validTransitions: Record<string, string[]> = {
+      'PENDING': ['IN_PROGRESS', 'CANCELLED'],
+      'IN_PROGRESS': ['WAITING_PARTS', 'WAITING_EXTERNAL', 'COMPLETED', 'CANCELLED'],
+      'WAITING_PARTS': ['IN_PROGRESS', 'CANCELLED'],
+      'WAITING_EXTERNAL': ['IN_PROGRESS', 'CANCELLED'],
+      'COMPLETED': [], // Cannot transition from completed
+      'CANCELLED': [], // Cannot transition from cancelled
+    };
+
+    return validTransitions[fromStatus]?.includes(toStatus) || false;
   }
 }

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@emaintanance/database';
 import { AssignmentRuleController } from '../controllers/AssignmentRuleController';
 
 // Mock dependencies

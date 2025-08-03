@@ -1,0 +1,162 @@
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
+import {
+  WorkOrder,
+  WorkOrderWithStatusHistory,
+  WorkOrderStatusHistoryItem,
+  UpdateWorkOrderStatusRequest,
+  PaginatedWorkOrders,
+} from '../types/work-order';
+import { workOrderService } from '../services/work-order-service';
+
+interface WorkOrderState {
+  // State
+  assignedWorkOrders: WorkOrder[];
+  currentWorkOrder: WorkOrderWithStatusHistory | null;
+  statusHistory: WorkOrderStatusHistoryItem[];
+  loading: boolean;
+  error: string | null;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+
+  // Actions
+  loadAssignedWorkOrders: (page?: number, limit?: number) => Promise<void>;
+  loadWorkOrderWithHistory: (id: string) => Promise<void>;
+  loadWorkOrderStatusHistory: (id: string) => Promise<void>;
+  updateWorkOrderStatus: (id: string, statusUpdate: UpdateWorkOrderStatusRequest) => Promise<void>;
+  clearCurrentWorkOrder: () => void;
+  clearError: () => void;
+  setLoading: (loading: boolean) => void;
+}
+
+export const useWorkOrderStore = create<WorkOrderState>()(
+  devtools(
+    (set, get) => ({
+      // Initial state
+      assignedWorkOrders: [],
+      currentWorkOrder: null,
+      statusHistory: [],
+      loading: false,
+      error: null,
+      pagination: {
+        page: 1,
+        limit: 20,
+        total: 0,
+        totalPages: 0,
+      },
+
+      // Actions
+      loadAssignedWorkOrders: async (page = 1, limit = 20) => {
+        set({ loading: true, error: null });
+        try {
+          const result = await workOrderService.getAssignedWorkOrders(page, limit);
+          set({
+            assignedWorkOrders: result.workOrders,
+            pagination: {
+              page: result.page,
+              limit: result.limit,
+              total: result.total,
+              totalPages: result.totalPages,
+            },
+            loading: false,
+          });
+        } catch (error) {
+          set({
+            error: error instanceof Error ? error.message : 'Failed to load assigned work orders',
+            loading: false,
+          });
+        }
+      },
+
+      loadWorkOrderWithHistory: async (id: string) => {
+        set({ loading: true, error: null });
+        try {
+          const workOrder = await workOrderService.getWorkOrderWithHistory(id);
+          set({
+            currentWorkOrder: workOrder,
+            statusHistory: workOrder.statusHistory,
+            loading: false,
+          });
+        } catch (error) {
+          set({
+            error: error instanceof Error ? error.message : 'Failed to load work order',
+            loading: false,
+          });
+        }
+      },
+
+      loadWorkOrderStatusHistory: async (id: string) => {
+        set({ loading: true, error: null });
+        try {
+          const statusHistory = await workOrderService.getWorkOrderStatusHistory(id);
+          set({
+            statusHistory,
+            loading: false,
+          });
+        } catch (error) {
+          set({
+            error: error instanceof Error ? error.message : 'Failed to load status history',
+            loading: false,
+          });
+        }
+      },
+
+      updateWorkOrderStatus: async (id: string, statusUpdate: UpdateWorkOrderStatusRequest) => {
+        set({ loading: true, error: null });
+        try {
+          const updatedWorkOrder = await workOrderService.updateWorkOrderStatus(id, statusUpdate);
+          
+          // Update the work order in the list
+          const { assignedWorkOrders } = get();
+          const updatedList = assignedWorkOrders.map(wo => 
+            wo.id === id ? updatedWorkOrder : wo
+          );
+          
+          // Update current work order if it's the same one
+          const { currentWorkOrder } = get();
+          const updatedCurrentWorkOrder = currentWorkOrder?.id === id 
+            ? { ...currentWorkOrder, ...updatedWorkOrder }
+            : currentWorkOrder;
+
+          set({
+            assignedWorkOrders: updatedList,
+            currentWorkOrder: updatedCurrentWorkOrder,
+            loading: false,
+          });
+
+          // Reload status history if current work order is updated
+          if (currentWorkOrder?.id === id) {
+            get().loadWorkOrderStatusHistory(id);
+          }
+        } catch (error) {
+          set({
+            error: error instanceof Error ? error.message : 'Failed to update work order status',
+            loading: false,
+          });
+        }
+      },
+
+      clearCurrentWorkOrder: () => {
+        set({
+          currentWorkOrder: null,
+          statusHistory: [],
+        });
+      },
+
+      clearError: () => {
+        set({ error: null });
+      },
+
+      setLoading: (loading: boolean) => {
+        set({ loading });
+      },
+    }),
+    {
+      name: 'work-order-store',
+    }
+  )
+);

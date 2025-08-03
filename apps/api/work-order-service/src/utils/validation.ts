@@ -128,6 +128,14 @@ export const AssignWorkOrderSchema = z.object({
     .min(1, '分配用户ID不能为空'),
 });
 
+// Status update validation
+export const UpdateWorkOrderStatusSchema = z.object({
+  status: WorkOrderStatusSchema,
+  notes: z.string()
+    .max(500, '备注不能超过500个字符')
+    .optional(),
+});
+
 // File upload validation
 export const FileUploadSchema = z.object({
   workOrderId: z.string()
@@ -145,5 +153,6 @@ export type CreateWorkOrderInput = z.infer<typeof CreateWorkOrderSchema>;
 export type UpdateWorkOrderInput = z.infer<typeof UpdateWorkOrderSchema>;
 export type WorkOrderQueryInput = z.infer<typeof WorkOrderQuerySchema>;
 export type AssignWorkOrderInput = z.infer<typeof AssignWorkOrderSchema>;
+export type UpdateWorkOrderStatusInput = z.infer<typeof UpdateWorkOrderStatusSchema>;
 export type FileUploadInput = z.infer<typeof FileUploadSchema>;
 export type IdParamInput = z.infer<typeof IdParamSchema>;
