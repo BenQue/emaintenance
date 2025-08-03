@@ -1,0 +1,127 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/@prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  EMPLOYEE     // 一线员工
+  TECHNICIAN   // 维修技术员
+  SUPERVISOR   // 设备主管
+  ADMIN        // 系统管理员
+}
+
+enum WorkOrderStatus {
+  PENDING      // 待处理
+  IN_PROGRESS  // 进行中
+  WAITING_PARTS // 等待备件
+  COMPLETED    // 已完成
+  CANCELLED    // 已取消
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  username      String   @unique
+  password      String
+  employeeId    String?  @unique
+  domainAccount String?  @unique
+  firstName     String
+  lastName      String
+  role          UserRole @default(EMPLOYEE)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  createdWorkOrders    WorkOrder[] @relation("CreatedBy")
+  assignedWorkOrders   WorkOrder[] @relation("AssignedTo")
+  ownedAssets          Asset[]     @relation("AssetOwner")
+  administeredAssets   Asset[]     @relation("AssetAdministrator")
+
+  @@index([role, isActive])
+  @@index([employeeId])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model Asset {
+  id              String   @id @default(cuid())
+  assetCode       String   @unique
+  name            String
+  description     String?
+  model           String?
+  manufacturer    String?
+  serialNumber    String?
+  location        String
+  installDate     DateTime?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Foreign keys
+  ownerId         String?
+  administratorId String?
+
+  // Relations
+  owner           User?       @relation("AssetOwner", fields: [ownerId], references: [id])
+  administrator   User?       @relation("AssetAdministrator", fields: [administratorId], references: [id])
+  workOrders      WorkOrder[]
+
+  @@index([location, isActive])
+  @@index([assetCode])
+  @@index([ownerId])
+  @@index([administratorId])
+  @@map("assets")
+}
+
+model WorkOrder {
+  id              String          @id @default(cuid())
+  title           String
+  description     String
+  category        String
+  reason          String
+  location        String?
+  priority        Priority        @default(MEDIUM)
+  status          WorkOrderStatus @default(PENDING)
+  reportedAt      DateTime        @default(now())
+  startedAt       DateTime?
+  completedAt     DateTime?
+  solution        String?
+  faultCode       String?
+  attachments     String[]        // JSON array of file URLs
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  // Foreign keys
+  assetId         String
+  createdById     String
+  assignedToId    String?
+
+  // Relations
+  asset           Asset   @relation(fields: [assetId], references: [id])
+  createdBy       User    @relation("CreatedBy", fields: [createdById], references: [id])
+  assignedTo      User?   @relation("AssignedTo", fields: [assignedToId], references: [id])
+
+  @@index([status, priority])
+  @@index([assetId, status])
+  @@index([assignedToId, status])
+  @@index([createdById])
+  @@index([reportedAt])
+  @@index([category])
+  @@map("work_orders")
+}

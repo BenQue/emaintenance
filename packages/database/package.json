@@ -1,0 +1,32 @@
+{
+  "name": "@emaintanance/database",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:reset": "prisma migrate reset",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma studio",
+    "lint": "eslint src/**/*.ts",
+    "format": "prettier --write src/ prisma/"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.7.0",
+    "bcryptjs": "^2.4.3"
+  },
+  "devDependencies": {
+    "@emaintanance/eslint-config": "*",
+    "@emaintanance/typescript-config": "*",
+    "@types/bcryptjs": "^2.4.0",
+    "@types/node": "^20.0.0",
+    "prisma": "^5.7.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}
