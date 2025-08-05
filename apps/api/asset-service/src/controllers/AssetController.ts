@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { PrismaClient } from '@emaintanance/database';
 import { AssetService } from '../services/AssetService';
 import { AssetKPIFilters } from '../types/asset';
+import { CreateAssetData, UpdateAssetData, AssetListFilters } from '../repositories/AssetRepository';
+import logger from '../utils/logger';
 
 export class AssetController {
   private assetService: AssetService;
@@ -20,10 +22,15 @@ export class AssetController {
         data: ranking,
       });
     } catch (error) {
-      console.error('Error fetching asset downtime ranking:', error);
+      const correlationId = req.headers['x-correlation-id'];
+      logger.error('Error fetching asset downtime ranking', {
+        correlationId,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
       res.status(500).json({
         success: false,
         error: 'Failed to fetch asset downtime ranking',
+        timestamp: new Date().toISOString(),
       });
     }
   }
@@ -38,10 +45,309 @@ export class AssetController {
         data: ranking,
       });
     } catch (error) {
-      console.error('Error fetching fault frequency ranking:', error);
+      const correlationId = req.headers['x-correlation-id'];
+      logger.error('Error fetching fault frequency ranking', {
+        correlationId,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
       res.status(500).json({
         success: false,
         error: 'Failed to fetch fault frequency ranking',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  /**
+   * Create a new asset
+   */
+  async createAsset(req: Request, res: Response): Promise<void> {
+    try {
+      const data: CreateAssetData = req.body;
+      const asset = await this.assetService.createAsset(data);
+
+      const correlationId = req.headers['x-correlation-id'];
+      logger.info('Asset created successfully', {
+        correlationId,
+        assetId: asset.id,
+        assetCode: asset.assetCode
+      });
+
+      res.status(201).json({
+        success: true,
+        data: asset,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      const correlationId = req.headers['x-correlation-id'];
+      logger.error('Error creating asset', {
+        correlationId,
+        body: req.body,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+
+      const statusCode = error instanceof Error && error.message.includes('already exists') ? 409 : 500;
+      res.status(statusCode).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to create asset',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  /**
+   * Get asset by ID
+   */
+  async getAssetById(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const asset = await this.assetService.getAssetById(id);
+
+      res.json({
+        success: true,
+        data: asset,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      const correlationId = req.headers['x-correlation-id'];
+      logger.error('Error fetching asset by ID', {
+        correlationId,
+        assetId: req.params.id,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+
+      const statusCode = error instanceof Error && error.message === 'Asset not found' ? 404 : 500;
+      res.status(statusCode).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch asset',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  /**
+   * Update asset
+   */
+  async updateAsset(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const data: UpdateAssetData = req.body;
+      const asset = await this.assetService.updateAsset(id, data);
+
+      const correlationId = req.headers['x-correlation-id'];
+      logger.info('Asset updated successfully', {
+        correlationId,
+        assetId: id,
+        updatedFields: Object.keys(data)
+      });
+
+      res.json({
+        success: true,
+        data: asset,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      const correlationId = req.headers['x-correlation-id'];
+      logger.error('Error updating asset', {
+        correlationId,
+        assetId: req.params.id,
+        body: req.body,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+
+      let statusCode = 500;
+      if (error instanceof Error) {
+        if (error.message === 'Asset not found') statusCode = 404;
+        else if (error.message.includes('already exists')) statusCode = 409;
+      }
+
+      res.status(statusCode).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to update asset',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  /**
+   * Delete asset
+   */
+  async deleteAsset(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      await this.assetService.deleteAsset(id);
+
+      const correlationId = req.headers['x-correlation-id'];
+      logger.info('Asset deleted successfully', {
+        correlationId,
+        assetId: id
+      });
+
+      res.json({
+        success: true,
+        message: 'Asset deleted successfully',
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      const correlationId = req.headers['x-correlation-id'];
+      logger.error('Error deleting asset', {
+        correlationId,
+        assetId: req.params.id,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+
+      let statusCode = 500;
+      if (error instanceof Error) {
+        if (error.message === 'Asset not found') statusCode = 404;
+        else if (error.message.includes('active work orders')) statusCode = 409;
+      }
+
+      res.status(statusCode).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to delete asset',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  /**
+   * List assets with pagination and filtering
+   */
+  async listAssets(req: Request, res: Response): Promise<void> {
+    try {
+      const filters = this.parseListFilters(req.query);
+      const result = await this.assetService.listAssets(filters);
+
+      res.json({
+        success: true,
+        data: result.assets,
+        pagination: {
+          page: result.page,
+          limit: result.limit,
+          total: result.total,
+          totalPages: result.totalPages,
+        },
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      const correlationId = req.headers['x-correlation-id'];
+      logger.error('Error listing assets', {
+        correlationId,
+        query: req.query,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+
+      res.status(500).json({
+        success: false,
+        error: 'Failed to list assets',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  /**
+   * Search assets
+   */
+  async searchAssets(req: Request, res: Response): Promise<void> {
+    try {
+      const { q, category, location, status, limit } = req.query;
+      
+      if (!q || typeof q !== 'string') {
+        res.status(400).json({
+          success: false,
+          error: 'Search query parameter "q" is required',
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+
+      const filters = {
+        category: category as string,
+        location: location as string,
+        isActive: status === 'ACTIVE' ? true : status === 'INACTIVE' ? false : undefined,
+        limit: limit ? parseInt(limit as string, 10) : undefined,
+      };
+
+      const assets = await this.assetService.searchAssets(q, filters);
+
+      res.json({
+        success: true,
+        data: assets,
+        query: q,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      const correlationId = req.headers['x-correlation-id'];
+      logger.error('Error searching assets', {
+        correlationId,
+        query: req.query,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to search assets',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  /**
+   * Generate QR code for asset
+   */
+  async generateQRCode(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const qrCodeDataURL = await this.assetService.generateAssetQRCode(id);
+
+      res.json({
+        success: true,
+        data: { qrCode: qrCodeDataURL },
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      const correlationId = req.headers['x-correlation-id'];
+      logger.error('Error generating QR code', {
+        correlationId,
+        assetId: req.params.id,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+
+      const statusCode = error instanceof Error && error.message === 'Asset not found' ? 404 : 500;
+      res.status(statusCode).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to generate QR code',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  /**
+   * Get asset maintenance history
+   */
+  async getMaintenanceHistory(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const history = await this.assetService.getAssetMaintenanceHistory(id);
+
+      res.json({
+        success: true,
+        data: history,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      const correlationId = req.headers['x-correlation-id'];
+      logger.error('Error fetching maintenance history', {
+        correlationId,
+        assetId: req.params.id,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+
+      const statusCode = error instanceof Error && error.message === 'Asset not found' ? 404 : 500;
+      res.status(statusCode).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch maintenance history',
+        timestamp: new Date().toISOString(),
       });
     }
   }
@@ -56,10 +362,15 @@ export class AssetController {
         data: analysis,
       });
     } catch (error) {
-      console.error('Error fetching maintenance cost analysis:', error);
+      const correlationId = req.headers['x-correlation-id'];
+      logger.error('Error fetching maintenance cost analysis', {
+        correlationId,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
       res.status(500).json({
         success: false,
         error: 'Failed to fetch maintenance cost analysis',
+        timestamp: new Date().toISOString(),
       });
     }
   }
@@ -74,10 +385,15 @@ export class AssetController {
         data: overview,
       });
     } catch (error) {
-      console.error('Error fetching asset health overview:', error);
+      const correlationId = req.headers['x-correlation-id'];
+      logger.error('Error fetching asset health overview', {
+        correlationId,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
       res.status(500).json({
         success: false,
         error: 'Failed to fetch asset health overview',
+        timestamp: new Date().toISOString(),
       });
     }
   }
@@ -92,10 +408,15 @@ export class AssetController {
         data: ranking,
       });
     } catch (error) {
-      console.error('Error fetching asset performance ranking:', error);
+      const correlationId = req.headers['x-correlation-id'];
+      logger.error('Error fetching asset performance ranking', {
+        correlationId,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
       res.status(500).json({
         success: false,
         error: 'Failed to fetch asset performance ranking',
+        timestamp: new Date().toISOString(),
       });
     }
   }
@@ -110,10 +431,15 @@ export class AssetController {
         data: criticalAssets,
       });
     } catch (error) {
-      console.error('Error fetching critical assets:', error);
+      const correlationId = req.headers['x-correlation-id'];
+      logger.error('Error fetching critical assets', {
+        correlationId,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
       res.status(500).json({
         success: false,
         error: 'Failed to fetch critical assets',
+        timestamp: new Date().toISOString(),
       });
     }
   }
@@ -146,6 +472,50 @@ export class AssetController {
       if (!isNaN(limit) && limit > 0 && limit <= 100) {
         filters.limit = limit;
       }
+    }
+
+    return filters;
+  }
+
+  private parseListFilters(query: any): AssetListFilters {
+    const filters: AssetListFilters = {};
+
+    if (query.page) {
+      const page = parseInt(query.page, 10);
+      if (!isNaN(page) && page > 0) {
+        filters.page = page;
+      }
+    }
+
+    if (query.limit) {
+      const limit = parseInt(query.limit, 10);
+      if (!isNaN(limit) && limit > 0 && limit <= 100) {
+        filters.limit = limit;
+      }
+    }
+
+    if (query.search && typeof query.search === 'string') {
+      filters.search = query.search.trim();
+    }
+
+    if (query.category && typeof query.category === 'string') {
+      filters.category = query.category;
+    }
+
+    if (query.location && typeof query.location === 'string') {
+      filters.location = query.location;
+    }
+
+    if (query.status && ['ACTIVE', 'INACTIVE'].includes(query.status)) {
+      filters.isActive = query.status === 'ACTIVE';
+    }
+
+    if (query.sortBy && ['name', 'assetCode', 'createdAt', 'updatedAt'].includes(query.sortBy)) {
+      filters.sortBy = query.sortBy;
+    }
+
+    if (query.sortOrder && ['asc', 'desc'].includes(query.sortOrder)) {
+      filters.sortOrder = query.sortOrder;
     }
 
     return filters;

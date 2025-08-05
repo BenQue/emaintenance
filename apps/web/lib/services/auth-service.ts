@@ -1,0 +1,113 @@
+interface LoginRequest {
+  emailOrUsername: string;
+  password: string;
+}
+
+interface LoginResponse {
+  token: string;
+  user: {
+    id: string;
+    email: string;
+    username: string;
+    firstName: string;
+    lastName: string;
+    role: 'EMPLOYEE' | 'TECHNICIAN' | 'SUPERVISOR' | 'ADMIN';
+    isActive: boolean;
+  };
+}
+
+interface AuthError {
+  message: string;
+  code?: string;
+}
+
+class AuthService {
+  private baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+  async login(credentials: LoginRequest): Promise<LoginResponse> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: credentials.emailOrUsername.includes('@') ? credentials.emailOrUsername : undefined,
+          username: !credentials.emailOrUsername.includes('@') ? credentials.emailOrUsername : undefined,
+          password: credentials.password,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        
+        // Provide more specific error messages based on status code
+        switch (response.status) {
+          case 401:
+            throw new Error(errorData.message || '用户名或密码错误');
+          case 403:
+            throw new Error('账户已被禁用，请联系管理员');
+          case 429:
+            throw new Error('登录尝试过于频繁，请稍后再试');
+          case 500:
+            throw new Error('服务器内部错误，请稍后再试');
+          default:
+            throw new Error(errorData.message || '登录失败，请重试');
+        }
+      }
+
+      const data: LoginResponse = await response.json();
+      
+      if (!data.token || !data.user) {
+        throw new Error('服务器响应格式错误');
+      }
+
+      return data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('网络连接失败，请检查网络设置');
+    }
+  }
+
+  storeToken(token: string): void {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('auth_token', token);
+    }
+  }
+
+  getToken(): string | null {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('auth_token');
+    }
+    return null;
+  }
+
+  removeToken(): void {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('auth_token');
+    }
+  }
+
+  logout(): void {
+    this.removeToken();
+  }
+
+  isTokenExpired(token: string): boolean {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.exp * 1000 < Date.now();
+    } catch {
+      return true;
+    }
+  }
+
+  isAuthenticated(): boolean {
+    const token = this.getToken();
+    return token !== null && !this.isTokenExpired(token);
+  }
+}
+
+export const authService = new AuthService();
+export type { LoginRequest, LoginResponse, AuthError };
