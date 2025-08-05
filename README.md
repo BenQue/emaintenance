@@ -33,6 +33,7 @@
 - Docker 和 Docker Compose
 - PostgreSQL 16+ (推荐通过 Docker)
 - Flutter SDK 3.22+
+- Redis (用于缓存，可选)
 - Git
 
 ## 快速开始
@@ -118,12 +119,23 @@ cd apps/mobile && flutter run
 - `npm run db:seed` - 种子数据
 - `npm run db:studio` - 打开 Prisma Studio
 
-## 端口配置
+## 访问地址
 
 - Web 应用: http://localhost:3000
-- 用户服务: http://localhost:3001
-- 工单服务: http://localhost:3002
-- 资产服务: http://localhost:3003
+- 用户服务 API: http://localhost:3001
+- 工单服务 API: http://localhost:3002
+- 资产服务 API: http://localhost:3003
+
+## 默认登录账号
+
+系统提供以下默认账号用于测试：
+
+| 角色 | 邮箱 | 密码 | 权限说明 |
+|------|------|------|----------|
+| 管理员 | admin@example.com | password123 | 完整系统管理权限 |
+| 主管 | supervisor@example.com | password123 | 团队管理、KPI查看、用户/资产管理 |
+| 技术员 | technician@example.com | password123 | 工单处理、技术更新 |
+| 员工 | employee@example.com | password123 | 基础工单创建和查看 |
 
 ## 项目架构
 
@@ -144,3 +156,49 @@ cd apps/mobile && flutter run
 - **故事文档**: `docs/stories/` - 开发故事和任务追踪
 
 更多详细信息请参考 `docs/` 目录下的文档。
+
+## 已知问题和注意事项
+
+### 当前状态
+✅ **已完成功能**
+- 用户管理和身份验证系统
+- 工单管理和完整生命周期
+- KPI 仪表板和数据分析
+- 用户和资产管理界面
+- 高级工单过滤和 CSV 导出
+
+⚠️ **需要注意的问题**
+- 资产服务 (asset-service) 实现不完整，缺少部分路由和中间件
+- 构建产物 (`dist/`, `coverage/`) 被提交到版本控制中，需要清理
+- 生产代码中存在 console.log 语句，建议使用结构化日志
+- JWT 令牌处理存在安全改进空间
+
+### 测试覆盖率
+- 当前测试覆盖率约 63% (119 个测试文件 vs 188 个源文件)
+- 资产服务缺少测试用例
+- 移动应用测试覆盖率有限
+
+### 开发建议
+- 完成资产服务的实现和测试
+- 实施结构化日志记录 (Winston/Pino)
+- 添加速率限制和 CSRF 保护
+- 实施 Redis 缓存机制
+- 清理版本控制中的构建产物
+
+## 贡献指南
+
+1. Fork 项目
+2. 创建功能分支 (`git checkout -b feature/amazing-feature`)
+3. 提交更改 (`git commit -m 'Add some amazing feature'`)
+4. 推送到分支 (`git push origin feature/amazing-feature`)
+5. 打开 Pull Request
+
+请确保：
+- 遵循现有的代码风格和模式
+- 添加适当的测试用例
+- 更新相关文档
+- 通过所有 lint 和测试检查
+
+## 许可证
+
+本项目采用 MIT 许可证 - 详见 [LICENSE](LICENSE) 文件。

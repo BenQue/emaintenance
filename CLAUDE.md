@@ -178,6 +178,10 @@ JWT_SECRET="your-jwt-secret"
 NEXT_PUBLIC_API_URL="http://localhost:3001"
 ```
 
+### Required Dependencies
+- Redis server for caching (configured but not fully implemented)
+- Winston/Pino for structured logging (recommended for production)
+
 ### Service Ports
 - Web Application: http://localhost:3000
 - User Service: http://localhost:3001
@@ -202,5 +206,27 @@ NEXT_PUBLIC_API_URL="http://localhost:3001"
 - Assets have unique `assetCode` fields for QR code scanning
 - Mobile app integrates QR scanning for quick asset identification
 - Work orders can be created directly from QR code scans
+
+## Known Issues and Technical Debt
+
+### Critical Issues Requiring Attention
+- **Asset Service Incomplete**: The asset service lacks complete route definitions, middleware integration, and comprehensive tests
+- **Build Artifacts in Version Control**: Build outputs (`dist/`, `coverage/`) are committed and should be in `.gitignore`
+- **Console Logging in Production**: Replace all `console.log/console.error` statements with structured logging
+- **Client-Side JWT Decoding**: JWT payload extraction should be moved to server-side for security
+
+### Development Best Practices
+- Use structured logging (Winston/Pino) instead of console statements
+- Implement proper error handling and monitoring
+- Follow the established Controller-Service-Repository pattern
+- Maintain proper test coverage (currently ~63% across the codebase)
+- Use TypeScript strictly and avoid `any` types
+
+## Security Considerations
+- JWT tokens should include refresh token mechanism
+- Implement CSRF protection for web application
+- Add input sanitization and validation middleware
+- Rate limiting should be implemented for authentication endpoints
+- Ensure all sensitive data is properly excluded from version control
 
 When working with this codebase, always consider the microservices architecture, maintain consistency with established patterns, and ensure proper role-based access control is implemented for any new features.
