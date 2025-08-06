@@ -8,7 +8,7 @@ import { Label } from '../ui/label';
 import { useAuthStore } from '../../lib/stores/auth-store';
 
 interface LoginFormData {
-  emailOrUsername: string;
+  identifier: string;
   password: string;
 }
 
@@ -17,7 +17,7 @@ export function LoginForm() {
   const { login, error, isLoading, clearError, user, checkAuth } = useAuthStore();
   
   const [formData, setFormData] = useState<LoginFormData>({
-    emailOrUsername: '',
+    identifier: '',
     password: '',
   });
   const [fieldErrors, setFieldErrors] = useState<Partial<LoginFormData>>({});
@@ -30,19 +30,24 @@ export function LoginForm() {
   // Redirect if already authenticated
   useEffect(() => {
     if (user) {
+      console.log('User found, redirecting...', user);
       // Role-based redirect
       switch (user.role) {
         case 'EMPLOYEE':
+          console.log('Redirecting to work-orders');
           router.push('/dashboard/work-orders');
           break;
         case 'TECHNICIAN':
+          console.log('Redirecting to my-tasks');
           router.push('/dashboard/my-tasks');
           break;
         case 'SUPERVISOR':
         case 'ADMIN':
+          console.log('Redirecting to dashboard');
           router.push('/dashboard');
           break;
         default:
+          console.log('Redirecting to default dashboard');
           router.push('/dashboard');
       }
     }
@@ -51,13 +56,13 @@ export function LoginForm() {
   const validateForm = (): boolean => {
     const newErrors: Partial<LoginFormData> = {};
 
-    if (!formData.emailOrUsername.trim()) {
-      newErrors.emailOrUsername = '请输入邮箱或用户名';
-    } else if (formData.emailOrUsername.includes('@')) {
+    if (!formData.identifier.trim()) {
+      newErrors.identifier = '请输入邮箱或用户名';
+    } else if (formData.identifier.includes('@')) {
       // Basic email validation if user entered an email
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.emailOrUsername)) {
-        newErrors.emailOrUsername = '请输入有效的邮箱地址';
+      if (!emailRegex.test(formData.identifier)) {
+        newErrors.identifier = '请输入有效的邮箱地址';
       }
     }
 
@@ -81,12 +86,15 @@ export function LoginForm() {
     clearError();
 
     try {
+      console.log('Attempting login...');
       await login({
-        emailOrUsername: formData.emailOrUsername,
+        identifier: formData.identifier,
         password: formData.password,
       });
+      console.log('Login successful, waiting for navigation...');
       // Navigation will be handled by the useEffect above
     } catch (err) {
+      console.log('Login failed:', err);
       // Error is handled by the store
     }
   };
@@ -114,25 +122,25 @@ export function LoginForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6" role="form" aria-label="用户登录表单">
       <div>
-        <Label htmlFor="emailOrUsername">
+        <Label htmlFor="identifier">
           邮箱或用户名
         </Label>
         <div className="mt-1">
           <Input
-            id="emailOrUsername"
-            name="emailOrUsername"
+            id="identifier"
+            name="identifier"
             type="text"
             autoComplete="username"
-            value={formData.emailOrUsername}
-            onChange={handleInputChange('emailOrUsername')}
-            error={!!fieldErrors.emailOrUsername}
+            value={formData.identifier}
+            onChange={handleInputChange('identifier')}
+            error={!!fieldErrors.identifier}
             placeholder="请输入邮箱或用户名"
-            aria-describedby={fieldErrors.emailOrUsername ? 'emailOrUsername-error' : undefined}
-            aria-invalid={!!fieldErrors.emailOrUsername}
+            aria-describedby={fieldErrors.identifier ? 'identifier-error' : undefined}
+            aria-invalid={!!fieldErrors.identifier}
           />
-          {fieldErrors.emailOrUsername && (
-            <p id="emailOrUsername-error" className="mt-1 text-sm text-red-600" role="alert">
-              {fieldErrors.emailOrUsername}
+          {fieldErrors.identifier && (
+            <p id="identifier-error" className="mt-1 text-sm text-red-600" role="alert">
+              {fieldErrors.identifier}
             </p>
           )}
         </div>

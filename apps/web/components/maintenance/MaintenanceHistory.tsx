@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { 
   History, 
@@ -18,6 +18,20 @@ import { workOrderService } from '../../lib/services/work-order-service';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
+
+// Safe date formatting utility
+const safeFormatDate = (dateValue: string | Date | null | undefined, formatString: string): string => {
+  if (!dateValue) return '未设置';
+  
+  const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
+  
+  if (!isValid(date)) {
+    console.warn('Invalid date value in maintenance history:', dateValue);
+    return '无效日期';
+  }
+  
+  return format(date, formatString, { locale: zhCN });
+};
 
 interface MaintenanceHistoryProps {
   assetId: string;
@@ -57,7 +71,7 @@ export function MaintenanceHistory({ assetId }: MaintenanceHistoryProps) {
         item.faultCode ? FaultCodeLabels[item.faultCode] : '',
         `"${item.technician}"`,
         `"${item.resolutionSummary || ''}"`,
-        format(new Date(item.completedAt), 'yyyy-MM-dd HH:mm', { locale: zhCN })
+        safeFormatDate(item.completedAt, 'yyyy-MM-dd HH:mm')
       ].join(','))
     ].join('\n');
 
@@ -65,7 +79,7 @@ export function MaintenanceHistory({ assetId }: MaintenanceHistoryProps) {
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `维护历史_${maintenanceHistory.assetCode}_${format(new Date(), 'yyyyMMdd')}.csv`);
+    link.setAttribute('download', `维护历史_${maintenanceHistory.assetCode}_${safeFormatDate(new Date(), 'yyyyMMdd')}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -216,7 +230,7 @@ function MaintenanceHistoryItem({ item, isLast }: MaintenanceHistoryItemProps) {
               <div className="flex items-center space-x-4 text-sm text-gray-600">
                 <div className="flex items-center">
                   <Calendar className="w-3 h-3 mr-1" />
-                  {format(new Date(item.completedAt), 'yyyy年MM月dd日 HH:mm', { locale: zhCN })}
+                  {safeFormatDate(item.completedAt, 'yyyy年MM月dd日 HH:mm')}
                 </div>
                 <div className="flex items-center">
                   <User className="w-3 h-3 mr-1" />

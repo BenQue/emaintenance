@@ -20,25 +20,53 @@ export class WorkOrderService {
     data: CreateWorkOrderRequest,
     createdById: string
   ): Promise<WorkOrderWithRelations> {
-    // Validate that the asset exists and is active
-    const asset = await this.prisma.asset.findUnique({
-      where: { id: data.assetId },
-      select: { id: true, isActive: true, location: true }
-    });
+    let workOrderData = { ...data };
+    let assetId = data.assetId;
 
-    if (!asset) {
-      throw new Error('Asset not found');
+    // If assetId is provided, validate the asset
+    if (data.assetId) {
+      const asset = await this.prisma.asset.findUnique({
+        where: { id: data.assetId },
+        select: { id: true, isActive: true, location: true }
+      });
+
+      if (!asset) {
+        throw new Error('Asset not found');
+      }
+
+      if (!asset.isActive) {
+        throw new Error('Cannot create work order for inactive asset');
+      }
+
+      // Use asset location if no location provided
+      workOrderData.location = data.location || asset.location;
+    } else {
+      // If no assetId provided, create or find a default "General" asset
+      let defaultAsset = await this.prisma.asset.findFirst({
+        where: { assetCode: 'GENERAL-DEFAULT' },
+        select: { id: true, location: true }
+      });
+
+      if (!defaultAsset) {
+        // Create default asset if it doesn't exist
+        defaultAsset = await this.prisma.asset.create({
+          data: {
+            assetCode: 'GENERAL-DEFAULT',
+            name: '通用设备',
+            description: '用于非特定设备的工单',
+            location: data.location || '未指定位置',
+            isActive: true,
+          },
+          select: { id: true, location: true }
+        });
+      }
+
+      assetId = defaultAsset.id;
+      workOrderData.location = data.location || defaultAsset.location;
     }
 
-    if (!asset.isActive) {
-      throw new Error('Cannot create work order for inactive asset');
-    }
-
-    // Use asset location if no location provided
-    const workOrderData = {
-      ...data,
-      location: data.location || asset.location,
-    };
+    // Ensure assetId is set
+    workOrderData.assetId = assetId;
 
     // Create the work order first
     const workOrder = await this.workOrderRepository.create({
@@ -855,13 +883,24 @@ export class WorkOrderService {
   // KPI-related methods
   async getMTTRStatistics(filters: KPIFilters = {}): Promise<MTTRStatistics> {
     const where = this.buildKPIWhereClause(filters);
+    
+    // reportedAt is non-nullable in schema, so we don't need to check for not null
+    // Only merge time-based filters if they exist
+    const reportedAtCondition = where.reportedAt ? where.reportedAt : undefined;
+    
+    const finalWhere = {
+      ...where,
+      status: 'COMPLETED',
+      completedAt: { not: null }, // completedAt is nullable, so this is valid
+    };
+    
+    // Only add reportedAt condition if there are time filters
+    if (reportedAtCondition) {
+      finalWhere.reportedAt = reportedAtCondition;
+    }
+    
     const completedWorkOrders = await this.prisma.workOrder.findMany({
-      where: {
-        ...where,
-        status: 'COMPLETED',
-        completedAt: { not: null },
-        reportedAt: { not: null },
-      },
+      where: finalWhere,
       select: {
         reportedAt: true,
         completedAt: true,

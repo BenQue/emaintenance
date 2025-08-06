@@ -4,7 +4,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AssetRepository = void 0;
-const database_1 = require("@emaintanance/database");
 const logger_1 = __importDefault(require("../utils/logger"));
 class AssetRepository {
     prisma;
@@ -19,7 +18,7 @@ class AssetRepository {
             const asset = await this.prisma.asset.create({
                 data: {
                     ...data,
-                    status: data.status || database_1.AssetStatus.ACTIVE,
+                    isActive: data.isActive ?? true,
                 },
             });
             logger_1.default.info('Asset created successfully', {
@@ -135,7 +134,7 @@ class AssetRepository {
      */
     async listAssets(filters = {}) {
         try {
-            const { page = 1, limit = 20, search, category, location, status, sortBy = 'name', sortOrder = 'asc' } = filters;
+            const { page = 1, limit = 20, search, location, isActive, sortBy = 'name', sortOrder = 'asc' } = filters;
             const skip = (page - 1) * limit;
             // Build where clause
             const where = {};
@@ -146,14 +145,11 @@ class AssetRepository {
                     { description: { contains: search, mode: 'insensitive' } },
                 ];
             }
-            if (category) {
-                where.category = category;
-            }
             if (location) {
                 where.location = { contains: location, mode: 'insensitive' };
             }
-            if (status) {
-                where.status = status;
+            if (isActive !== undefined) {
+                where.isActive = isActive;
             }
             // Get total count and assets
             const [total, assets] = await Promise.all([
@@ -194,7 +190,7 @@ class AssetRepository {
      */
     async searchAssets(query, filters = {}) {
         try {
-            const { category, location, status, limit = 20 } = filters;
+            const { location, isActive, limit = 20 } = filters;
             const where = {
                 OR: [
                     { name: { contains: query, mode: 'insensitive' } },
@@ -203,14 +199,11 @@ class AssetRepository {
                     { serialNumber: { contains: query, mode: 'insensitive' } },
                 ],
             };
-            if (category) {
-                where.category = category;
-            }
             if (location) {
                 where.location = { contains: location, mode: 'insensitive' };
             }
-            if (status) {
-                where.status = status;
+            if (isActive !== undefined) {
+                where.isActive = isActive;
             }
             const assets = await this.prisma.asset.findMany({
                 where,
@@ -242,11 +235,15 @@ class AssetRepository {
                 where: { assetId },
                 orderBy: { completedAt: 'desc' },
                 include: {
-                    technician: {
-                        select: {
-                            id: true,
-                            firstName: true,
-                            lastName: true,
+                    workOrder: {
+                        include: {
+                            assignedTo: {
+                                select: {
+                                    id: true,
+                                    firstName: true,
+                                    lastName: true,
+                                },
+                            },
                         },
                     },
                 },

@@ -173,14 +173,15 @@ export class UserRepository {
         id: true,
         email: true,
         username: true,
+        password: true, // Include password field
         firstName: true,
         lastName: true,
         employeeId: true,
+        domainAccount: true, // Include domainAccount field
         role: true,
         isActive: true,
         createdAt: true,
         updatedAt: true,
-        password: false, // Exclude password from results
       },
     }) as Promise<User>;
   }

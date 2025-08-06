@@ -1,11 +1,25 @@
 'use client';
 
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { CheckCircle, User, Calendar, Tag, Image as ImageIcon } from 'lucide-react';
 import { ResolutionRecord, FaultCodeLabels } from '../../lib/types/work-order';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
+
+// Safe date formatting utility
+const safeFormatDate = (dateValue: string | Date | null | undefined, formatString: string): string => {
+  if (!dateValue) return '未设置';
+  
+  const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
+  
+  if (!isValid(date)) {
+    console.warn('Invalid date value in resolution record:', dateValue);
+    return '无效日期';
+  }
+  
+  return format(date, formatString, { locale: zhCN });
+};
 
 interface ResolutionRecordDisplayProps {
   resolutionRecord: ResolutionRecord;
@@ -46,10 +60,15 @@ export function ResolutionRecordDisplay({ resolutionRecord }: ResolutionRecordDi
           <div className="flex items-center space-x-2">
             <User className="w-4 h-4 text-gray-400" />
             <span className="text-gray-700">
-              {resolutionRecord.resolvedBy.firstName} {resolutionRecord.resolvedBy.lastName}
+              {resolutionRecord.resolvedBy ? 
+                `${resolutionRecord.resolvedBy.firstName || '未知'} ${resolutionRecord.resolvedBy.lastName || ''}`.trim() 
+                : '解决人员信息不可用'
+              }
             </span>
           </div>
-          <p className="text-sm text-gray-600 ml-6">{resolutionRecord.resolvedBy.email}</p>
+          <p className="text-sm text-gray-600 ml-6">
+            {resolutionRecord.resolvedBy?.email || '邮箱信息不可用'}
+          </p>
         </div>
 
         {/* Completion Time */}
@@ -58,7 +77,7 @@ export function ResolutionRecordDisplay({ resolutionRecord }: ResolutionRecordDi
           <div className="flex items-center space-x-2">
             <Calendar className="w-4 h-4 text-gray-400" />
             <span className="text-gray-700">
-              {format(new Date(resolutionRecord.completedAt), 'yyyy年MM月dd日 HH:mm', { locale: zhCN })}
+              {safeFormatDate(resolutionRecord.completedAt, 'yyyy年MM月dd日 HH:mm')}
             </span>
           </div>
         </div>

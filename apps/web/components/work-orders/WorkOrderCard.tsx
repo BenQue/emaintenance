@@ -1,6 +1,6 @@
 'use client';
 
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { Clock, MapPin, User, Wrench } from 'lucide-react';
 import Link from 'next/link';
@@ -8,6 +8,20 @@ import { WorkOrder, WorkOrderStatusLabels, PriorityLabels, StatusColors, Priorit
 import { Badge } from '../ui/badge';
 import { Card, CardContent, CardHeader } from '../ui/card';
 import { cn } from '../../lib/utils';
+
+// Safe date formatting utility
+const safeFormatDate = (dateValue: string | Date | null | undefined, formatString: string): string => {
+  if (!dateValue) return '未设置';
+  
+  const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
+  
+  if (!isValid(date)) {
+    console.warn('Invalid date value in work order card:', dateValue);
+    return '无效日期';
+  }
+  
+  return format(date, formatString, { locale: zhCN });
+};
 
 interface WorkOrderCardProps {
   workOrder: WorkOrder;
@@ -53,13 +67,16 @@ export function WorkOrderCard({ workOrder }: WorkOrderCardProps) {
             
             <div className="flex items-center text-sm text-gray-600">
               <User className="w-4 h-4 mr-2" />
-              <span>报修人: {workOrder.createdBy.firstName} {workOrder.createdBy.lastName}</span>
+              <span>报修人: {workOrder.createdBy ? 
+                `${workOrder.createdBy.firstName || '未知'} ${workOrder.createdBy.lastName || ''}`.trim() 
+                : '报修人信息不可用'
+              }</span>
             </div>
             
             <div className="flex items-center text-sm text-gray-600">
               <Clock className="w-4 h-4 mr-2" />
               <span>
-                报修时间: {format(new Date(workOrder.reportedAt), 'yyyy年MM月dd日 HH:mm', { locale: zhCN })}
+                报修时间: {safeFormatDate(workOrder.reportedAt, 'yyyy年MM月dd日 HH:mm')}
               </span>
             </div>
             
@@ -70,7 +87,7 @@ export function WorkOrderCard({ workOrder }: WorkOrderCardProps) {
               
               {workOrder.startedAt && (
                 <div className="text-xs text-gray-500">
-                  开始时间: {format(new Date(workOrder.startedAt), 'MM/dd HH:mm', { locale: zhCN })}
+                  开始时间: {safeFormatDate(workOrder.startedAt, 'MM/dd HH:mm')}
                 </div>
               )}
             </div>

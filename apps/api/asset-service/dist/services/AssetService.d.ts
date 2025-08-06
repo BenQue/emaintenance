@@ -1,4 +1,4 @@
-import { PrismaClient, Asset, AssetStatus } from '@emaintanance/database';
+import { PrismaClient, Asset } from '@emaintanance/database';
 import { CreateAssetData, UpdateAssetData, AssetListFilters, AssetListResult } from '../repositories/AssetRepository';
 import { AssetDowntimeStatistics, AssetPerformanceRanking, AssetKPIFilters, AssetHealthMetrics } from '../types/asset';
 export declare class AssetService {
@@ -33,9 +33,8 @@ export declare class AssetService {
      * Search assets
      */
     searchAssets(query: string, filters?: {
-        category?: string;
         location?: string;
-        status?: AssetStatus;
+        isActive?: boolean;
         limit?: number;
     }): Promise<Asset[]>;
     /**
@@ -53,5 +52,20 @@ export declare class AssetService {
     getHealthOverview(filters?: AssetKPIFilters): Promise<AssetHealthMetrics>;
     getPerformanceRanking(filters?: AssetKPIFilters): Promise<AssetPerformanceRanking[]>;
     getCriticalAssets(filters?: AssetKPIFilters): Promise<AssetPerformanceRanking[]>;
+    /**
+     * Get unique asset locations
+     */
+    getUniqueLocations(): Promise<string[]>;
+    /**
+     * Get general asset statistics for dashboard
+     */
+    getAssetStatistics(): Promise<{
+        total: number;
+        active: number;
+        inactive: number;
+        locations: number;
+        byLocation: Record<string, number>;
+        byManufacturer: Record<string, number>;
+    }>;
 }
 //# sourceMappingURL=AssetService.d.ts.map

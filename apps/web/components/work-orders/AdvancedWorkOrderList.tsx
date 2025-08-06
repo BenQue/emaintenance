@@ -227,7 +227,7 @@ export function AdvancedWorkOrderList({
                 <User className="h-4 w-4" />
                 <span>
                   {workOrder.assignedTo 
-                    ? `${workOrder.assignedTo.firstName} ${workOrder.assignedTo.lastName}`
+                    ? `${workOrder.assignedTo.firstName || '未知'} ${workOrder.assignedTo.lastName || ''}`.trim()
                     : '未分配'
                   }
                 </span>
@@ -251,7 +251,10 @@ export function AdvancedWorkOrderList({
 
             <div className="mt-3 flex justify-between items-center text-xs text-gray-500">
               <span>类别: {workOrder.category} | 原因: {workOrder.reason}</span>
-              <span>创建人: {workOrder.createdBy.firstName} {workOrder.createdBy.lastName}</span>
+              <span>创建人: {workOrder.createdBy ? 
+                `${workOrder.createdBy.firstName || '未知'} ${workOrder.createdBy.lastName || ''}`.trim() 
+                : '创建人信息不可用'
+              }</span>
             </div>
           </Card>
         ))}

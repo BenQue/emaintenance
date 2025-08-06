@@ -1,30 +1,33 @@
-import { PrismaClient, Asset, AssetStatus } from '@emaintanance/database';
+import { PrismaClient, Asset } from '@emaintanance/database';
 import { AssetDowntimeStatistics, AssetPerformanceRanking, AssetKPIFilters, AssetHealthMetrics } from '../types/asset';
 export interface CreateAssetData {
     assetCode: string;
     name: string;
     description?: string;
     location: string;
-    category: string;
+    model?: string;
+    manufacturer?: string;
     serialNumber?: string;
-    status?: AssetStatus;
+    installDate?: Date;
+    isActive?: boolean;
 }
 export interface UpdateAssetData {
     assetCode?: string;
     name?: string;
     description?: string;
     location?: string;
-    category?: string;
+    model?: string;
+    manufacturer?: string;
     serialNumber?: string;
-    status?: AssetStatus;
+    installDate?: Date;
+    isActive?: boolean;
 }
 export interface AssetListFilters {
     page?: number;
     limit?: number;
     search?: string;
-    category?: string;
     location?: string;
-    status?: AssetStatus;
+    isActive?: boolean;
     sortBy?: 'name' | 'assetCode' | 'createdAt' | 'updatedAt';
     sortOrder?: 'asc' | 'desc';
 }
@@ -66,9 +69,8 @@ export declare class AssetRepository {
      * Search assets
      */
     searchAssets(query: string, filters?: {
-        category?: string;
         location?: string;
-        status?: AssetStatus;
+        isActive?: boolean;
         limit?: number;
     }): Promise<Asset[]>;
     /**

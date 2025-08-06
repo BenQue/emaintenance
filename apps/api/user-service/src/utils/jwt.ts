@@ -13,10 +13,11 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
  * Generate a JWT token for a user
  */
 export function generateToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): string {
-  return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: JWT_EXPIRES_IN,
+  const options: jwt.SignOptions = {
+    expiresIn: JWT_EXPIRES_IN as any,
     issuer: 'emaintanance-user-service',
-  });
+  };
+  return jwt.sign(payload as any, JWT_SECRET as string, options);
 }
 
 /**
@@ -24,7 +25,7 @@ export function generateToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): string 
  */
 export function verifyToken(token: string): JWTPayload {
   try {
-    return jwt.verify(token, JWT_SECRET) as JWTPayload;
+    return jwt.verify(token, JWT_SECRET as string) as JWTPayload;
   } catch (error) {
     throw new Error('Invalid or expired token');
   }

@@ -1,5 +1,5 @@
 interface LoginRequest {
-  emailOrUsername: string;
+  identifier: string; // Changed from emailOrUsername to match backend
   password: string;
 }
 
@@ -32,8 +32,7 @@ class AuthService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: credentials.emailOrUsername.includes('@') ? credentials.emailOrUsername : undefined,
-          username: !credentials.emailOrUsername.includes('@') ? credentials.emailOrUsername : undefined,
+          identifier: credentials.identifier,
           password: credentials.password,
         }),
       });
@@ -56,11 +55,16 @@ class AuthService {
         }
       }
 
-      const data: LoginResponse = await response.json();
+      const result = await response.json();
       
-      if (!data.token || !data.user) {
+      if (!result.success || !result.data?.token || !result.data?.user) {
         throw new Error('服务器响应格式错误');
       }
+
+      const data: LoginResponse = {
+        token: result.data.token,
+        user: result.data.user
+      };
 
       return data;
     } catch (error) {
@@ -106,6 +110,46 @@ class AuthService {
   isAuthenticated(): boolean {
     const token = this.getToken();
     return token !== null && !this.isTokenExpired(token);
+  }
+
+  async fetchProfile(): Promise<LoginResponse['user']> {
+    const token = this.getToken();
+    if (!token) {
+      throw new Error('No authentication token found');
+    }
+
+    try {
+      const response = await fetch(`${this.baseUrl}/api/auth/profile`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Token is invalid, remove it
+          this.removeToken();
+          throw new Error('Authentication expired');
+        }
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to fetch profile');
+      }
+
+      const result = await response.json();
+      
+      if (!result.success || !result.data) {
+        throw new Error('Invalid server response');
+      }
+
+      return result.data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('Network error while fetching profile');
+    }
   }
 }
 

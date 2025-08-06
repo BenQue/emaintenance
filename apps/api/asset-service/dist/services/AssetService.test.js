@@ -15,7 +15,7 @@ describe('AssetService', () => {
                 assetCode: 'TEST-001',
                 name: 'Test Asset',
                 location: 'Test Location',
-                category: 'Test Category',
+                model: 'Test Model',
             };
             const mockAsset = {
                 id: '123e4567-e89b-12d3-a456-426614174000',
@@ -23,9 +23,13 @@ describe('AssetService', () => {
                 name: 'Test Asset',
                 description: null,
                 location: 'Test Location',
-                category: 'Test Category',
+                model: 'Test Model',
+                manufacturer: null,
                 serialNumber: null,
-                status: database_1.AssetStatus.ACTIVE,
+                installDate: null,
+                isActive: true,
+                ownerId: null,
+                administratorId: null,
                 createdAt: new Date(),
                 updatedAt: new Date(),
             };

@@ -191,7 +191,7 @@ export class AssetService {
   /**
    * Search assets
    */
-  async searchAssets(query: string, filters: { category?: string; location?: string; status?: AssetStatus; limit?: number } = {}): Promise<Asset[]> {
+  async searchAssets(query: string, filters: { location?: string; isActive?: boolean; limit?: number } = {}): Promise<Asset[]> {
     try {
       if (!query || query.trim().length === 0) {
         throw new Error('Search query is required');
@@ -311,5 +311,101 @@ export class AssetService {
       .filter(asset => asset.healthScore < 50)
       .sort((a, b) => a.healthScore - b.healthScore)
       .slice(0, filters.limit || 5);
+  }
+
+  /**
+   * Get unique asset locations
+   */
+  async getUniqueLocations(): Promise<string[]> {
+    try {
+      const locations = await this.prisma.asset.findMany({
+        select: { location: true },
+        distinct: ['location'],
+        orderBy: { location: 'asc' }
+      });
+
+      const uniqueLocations = locations.map(item => item.location);
+
+      logger.debug('Unique locations retrieved via service', {
+        count: uniqueLocations.length
+      });
+
+      return uniqueLocations;
+    } catch (error) {
+      logger.error('Asset service: Failed to get unique locations', {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Get general asset statistics for dashboard
+   */
+  async getAssetStatistics(): Promise<{
+    total: number;
+    active: number;
+    inactive: number;
+    locations: number;
+    byLocation: Record<string, number>;
+    byManufacturer: Record<string, number>;
+  }> {
+    try {
+      const [
+        totalCount,
+        activeCount,
+        inactiveCount,
+        locationStats,
+        manufacturerStats
+      ] = await Promise.all([
+        this.prisma.asset.count(),
+        this.prisma.asset.count({ where: { isActive: true } }),
+        this.prisma.asset.count({ where: { isActive: false } }),
+        this.prisma.asset.groupBy({
+          by: ['location'],
+          _count: { location: true }
+        }),
+        this.prisma.asset.groupBy({
+          by: ['manufacturer'],
+          _count: { manufacturer: true },
+          where: { manufacturer: { not: null } }
+        })
+      ]);
+
+      const byLocation: Record<string, number> = {};
+      locationStats.forEach(stat => {
+        byLocation[stat.location] = stat._count.location;
+      });
+
+      const byManufacturer: Record<string, number> = {};
+      manufacturerStats.forEach(stat => {
+        if (stat.manufacturer) {
+          byManufacturer[stat.manufacturer] = stat._count.manufacturer;
+        }
+      });
+
+      const uniqueLocations = locationStats.length;
+
+      logger.debug('Asset statistics retrieved via service', {
+        total: totalCount,
+        active: activeCount,
+        inactive: inactiveCount,
+        locations: uniqueLocations
+      });
+
+      return {
+        total: totalCount,
+        active: activeCount,
+        inactive: inactiveCount,
+        locations: uniqueLocations,
+        byLocation,
+        byManufacturer
+      };
+    } catch (error) {
+      logger.error('Asset service: Failed to get asset statistics', {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      throw error;
+    }
   }
 }

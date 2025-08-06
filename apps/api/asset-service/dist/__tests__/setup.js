@@ -22,12 +22,6 @@ jest.mock('@emaintanance/database', () => ({
         },
         $disconnect: jest.fn(),
     })),
-    AssetStatus: {
-        ACTIVE: 'ACTIVE',
-        INACTIVE: 'INACTIVE',
-        MAINTENANCE: 'MAINTENANCE',
-        RETIRED: 'RETIRED',
-    },
     UserRole: {
         EMPLOYEE: 'EMPLOYEE',
         TECHNICIAN: 'TECHNICIAN',

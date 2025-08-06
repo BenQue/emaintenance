@@ -42,6 +42,14 @@ export declare class AssetController {
     getHealthOverview(req: Request, res: Response): Promise<void>;
     getPerformanceRanking(req: Request, res: Response): Promise<void>;
     getCriticalAssets(req: Request, res: Response): Promise<void>;
+    /**
+     * Get unique asset locations
+     */
+    getLocations(req: Request, res: Response): Promise<void>;
+    /**
+     * Get general asset statistics for dashboard
+     */
+    getAssetStats(req: Request, res: Response): Promise<void>;
     private parseKPIFilters;
     private parseListFilters;
 }

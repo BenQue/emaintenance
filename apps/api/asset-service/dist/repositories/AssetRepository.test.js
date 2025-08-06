@@ -15,11 +15,15 @@ describe('AssetRepository', () => {
             name: 'Test Asset',
             description: 'Test Description',
             location: 'Test Location',
-            category: 'Test Category',
+            model: null,
+            manufacturer: null,
             serialNumber: 'SN-123',
-            status: database_1.AssetStatus.ACTIVE,
+            installDate: null,
+            isActive: true,
             createdAt: new Date(),
             updatedAt: new Date(),
+            ownerId: null,
+            administratorId: null,
         };
     });
     describe('createAsset', () => {
@@ -29,16 +33,17 @@ describe('AssetRepository', () => {
                 name: 'Test Asset',
                 description: 'Test Description',
                 location: 'Test Location',
-                category: 'Test Category',
+                model: 'Test Model',
+                manufacturer: 'Test Manufacturer',
                 serialNumber: 'SN-123',
-                status: database_1.AssetStatus.ACTIVE,
+                isActive: true,
             };
             prisma.asset.create.mockResolvedValue(mockAsset);
             const result = await repository.createAsset(createData);
             expect(prisma.asset.create).toHaveBeenCalledWith({
                 data: {
                     ...createData,
-                    status: database_1.AssetStatus.ACTIVE,
+                    isActive: true,
                 },
             });
             expect(result).toEqual(mockAsset);
@@ -55,7 +60,7 @@ describe('AssetRepository', () => {
             expect(prisma.asset.create).toHaveBeenCalledWith({
                 data: {
                     ...createData,
-                    status: database_1.AssetStatus.ACTIVE,
+                    isActive: true,
                 },
             });
         });
@@ -110,7 +115,7 @@ describe('AssetRepository', () => {
         it('should update asset successfully', async () => {
             const updateData = {
                 name: 'Updated Asset Name',
-                status: database_1.AssetStatus.MAINTENANCE,
+                isActive: false,
             };
             const updatedAsset = { ...mockAsset, ...updateData };
             prisma.asset.update.mockResolvedValue(updatedAsset);
@@ -177,8 +182,8 @@ describe('AssetRepository', () => {
             prisma.asset.findMany.mockResolvedValue(assets);
             await repository.listAssets({
                 search: 'test',
-                category: 'Test Category',
-                status: database_1.AssetStatus.ACTIVE,
+                location: 'Test Location',
+                isActive: true,
             });
             expect(prisma.asset.count).toHaveBeenCalledWith({
                 where: {
@@ -187,8 +192,11 @@ describe('AssetRepository', () => {
                         { assetCode: { contains: 'test', mode: 'insensitive' } },
                         { description: { contains: 'test', mode: 'insensitive' } },
                     ],
-                    category: 'Test Category',
-                    status: database_1.AssetStatus.ACTIVE,
+                    location: {
+                        contains: 'Test Location',
+                        mode: 'insensitive',
+                    },
+                    isActive: true,
                 },
             });
         });
@@ -216,8 +224,8 @@ describe('AssetRepository', () => {
             const assets = [mockAsset];
             prisma.asset.findMany.mockResolvedValue(assets);
             await repository.searchAssets('test', {
-                category: 'Electronics',
-                status: database_1.AssetStatus.ACTIVE,
+                location: 'Electronics',
+                isActive: true,
                 limit: 5,
             });
             expect(prisma.asset.findMany).toHaveBeenCalledWith({
@@ -228,8 +236,11 @@ describe('AssetRepository', () => {
                         { description: { contains: 'test', mode: 'insensitive' } },
                         { serialNumber: { contains: 'test', mode: 'insensitive' } },
                     ],
-                    category: 'Electronics',
-                    status: database_1.AssetStatus.ACTIVE,
+                    location: {
+                        contains: 'Electronics',
+                        mode: 'insensitive',
+                    },
+                    isActive: true,
                 },
                 take: 5,
                 orderBy: { name: 'asc' },
@@ -256,11 +267,15 @@ describe('AssetRepository', () => {
                 where: { assetId: mockAsset.id },
                 orderBy: { completedAt: 'desc' },
                 include: {
-                    technician: {
-                        select: {
-                            id: true,
-                            firstName: true,
-                            lastName: true,
+                    workOrder: {
+                        include: {
+                            assignedTo: {
+                                select: {
+                                    id: true,
+                                    firstName: true,
+                                    lastName: true,
+                                },
+                            },
                         },
                     },
                 },

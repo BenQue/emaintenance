@@ -16,7 +16,7 @@ const assetController = new AssetController_1.AssetController(prisma);
 // Rate limiting configuration
 const generalRateLimit = (0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
+    max: process.env.NODE_ENV === 'development' ? 1000 : 100, // Higher limit for development
     message: {
         success: false,
         error: 'Too many requests from this IP, please try again later.',
@@ -25,7 +25,7 @@ const generalRateLimit = (0, express_rate_limit_1.default)({
 });
 const strictRateLimit = (0, express_rate_limit_1.default)({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 20, // limit create/update/delete operations
+    max: process.env.NODE_ENV === 'development' ? 200 : 20, // Higher limit for development
     message: {
         success: false,
         error: 'Too many modification requests from this IP, please try again later.',
@@ -48,8 +48,14 @@ router.post('/assets', strictRateLimit, auth_middleware_1.authenticate, auth_mid
 validation_middleware_1.validateCreateAsset, assetController.createAsset.bind(assetController));
 router.get('/assets', auth_middleware_1.authenticate, // All authenticated users can list assets
 validation_middleware_1.validateListAssets, assetController.listAssets.bind(assetController));
+// Asset utility endpoints (place before parameterized routes)
 router.get('/assets/search', auth_middleware_1.authenticate, // All authenticated users can search assets
 validation_middleware_1.validateSearchAssets, assetController.searchAssets.bind(assetController));
+router.get('/assets/stats', auth_middleware_1.authenticate, auth_middleware_1.requireSupervisor, // Stats are for supervisors and above
+assetController.getAssetStats.bind(assetController));
+router.get('/assets/locations', auth_middleware_1.authenticate, // All authenticated users can get locations for filtering
+assetController.getLocations.bind(assetController));
+// Parameterized routes (place after utility endpoints)
 router.get('/assets/:id', auth_middleware_1.authenticate, validation_middleware_1.validateGetAssetById, assetController.getAssetById.bind(assetController));
 router.put('/assets/:id', strictRateLimit, auth_middleware_1.authenticate, auth_middleware_1.requireSupervisor, // Only SUPERVISOR and ADMIN can update assets
 validation_middleware_1.validateUpdateAsset, assetController.updateAsset.bind(assetController));

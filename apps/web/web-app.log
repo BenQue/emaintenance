@@ -1,0 +1,265 @@
+
+> @emaintanance/web@1.0.0 dev
+> next dev --turbopack
+
+   ▲ Next.js 15.4.5 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.31.53:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 573ms
+ ○ Compiling / ...
+ ✓ Compiled / in 903ms
+ GET / 200 in 1025ms
+ ✓ Compiled /dashboard/assets in 197ms
+ GET /dashboard/assets 200 in 239ms
+ ✓ Compiled /login in 101ms
+ GET /login 200 in 119ms
+ GET /login 200 in 57ms
+ ✓ Compiled /_not-found/page in 84ms
+ GET /health 404 in 119ms
+ GET / 200 in 25ms
+ ✓ Compiled /dashboard in 116ms
+ GET /dashboard 200 in 134ms
+ ✓ Compiled /dashboard/kpi in 403ms
+ GET /dashboard/kpi 200 in 420ms
+ GET /dashboard/kpi 200 in 34ms
+ GET /dashboard 200 in 30ms
+ GET /dashboard/kpi 200 in 21ms
+ GET /dashboard/kpi 200 in 17ms
+ ✓ Compiled /dashboard/work-orders in 130ms
+ GET /dashboard/work-orders 200 in 148ms
+ GET /dashboard/assets 200 in 30ms
+ ✓ Compiled /dashboard/users in 127ms
+ GET /dashboard/users 200 in 145ms
+ GET /dashboard 200 in 38ms
+ GET /dashboard/kpi 200 in 22ms
+ GET /dashboard/kpi 200 in 17ms
+ GET /dashboard/kpi 200 in 78ms
+ GET /login 200 in 21ms
+ GET /dashboard 200 in 40ms
+ GET /dashboard 200 in 18ms
+ GET /dashboard 200 in 20ms
+ GET /dashboard 200 in 17ms
+ GET /dashboard/kpi 200 in 17ms
+ GET /dashboard/kpi 200 in 16ms
+ GET /dashboard/kpi 200 in 42ms
+ GET /login 200 in 32ms
+ GET /dashboard 200 in 20ms
+ GET /dashboard 200 in 20ms
+ GET /dashboard 200 in 15ms
+ GET /dashboard 200 in 15ms
+ GET /dashboard/kpi 200 in 18ms
+ GET /dashboard/kpi 200 in 15ms
+ GET /dashboard/work-orders 200 in 23ms
+ GET /dashboard/work-orders 200 in 31ms
+ GET /dashboard/work-orders 200 in 28ms
+ GET /dashboard/work-orders?sortBy=reportedAt&sortOrder=desc&page=1&limit=20 200 in 68ms
+ GET /login 200 in 19ms
+ GET /dashboard/work-orders 200 in 30ms
+ GET /dashboard/work-orders?sortBy=reportedAt&sortOrder=desc&page=1&limit=20 200 in 42ms
+ GET /login 200 in 16ms
+ GET /dashboard/work-orders?sortBy=reportedAt&sortOrder=desc&page=1&limit=20 200 in 42ms
+ GET /login 200 in 19ms
+ GET /dashboard/work-orders 200 in 32ms
+ ✓ Compiled /dashboard/work-orders/[id] in 211ms
+Error: Route "/dashboard/work-orders/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at WorkOrderDetailPage (app/dashboard/work-orders/[id]/page.tsx:10:46)
+   8 |
+   9 | export default function WorkOrderDetailPage({ params }: WorkOrderDetailPageProps) {
+> 10 |   return <WorkOrderDetail workOrderId={params.id} />;
+     |                                              ^
+  11 | }
+ GET /dashboard/work-orders/wo001 200 in 402ms
+ GET /dashboard/work-orders?sortBy=reportedAt&sortOrder=desc&page=1&limit=20 200 in 44ms
+ GET /login 200 in 17ms
+ ✓ Compiled in 7ms
+ ✓ Compiled in 5ms
+ ✓ Compiled in 26ms
+ GET /dashboard/work-orders?sortBy=reportedAt&sortOrder=desc&page=1&limit=20 200 in 134ms
+ GET /login 200 in 22ms
+Error: Route "/dashboard/work-orders/[id]" used `params.id`. `params` should be awaited before using its properties. Learn more: https://nextjs.org/docs/messages/sync-dynamic-apis
+    at WorkOrderDetailPage (app/dashboard/work-orders/[id]/page.tsx:10:46)
+   8 |
+   9 | export default function WorkOrderDetailPage({ params }: WorkOrderDetailPageProps) {
+> 10 |   return <WorkOrderDetail workOrderId={params.id} />;
+     |                                              ^
+  11 | }
+ GET /dashboard/work-orders/wo001 200 in 87ms
+ GET / 200 in 42ms
+ GET /login 200 in 22ms
+ GET /dashboard 200 in 23ms
+ GET /dashboard/kpi 200 in 63ms
+ GET /dashboard/kpi 200 in 22ms
+ GET /dashboard/work-orders 200 in 28ms
+ ✓ Compiled in 18ms
+ ✓ Compiled in 33ms
+ ✓ Compiled in 33ms
+ ✓ Compiled in 17ms
+ ✓ Compiled in 17ms
+ ✓ Compiled in 15ms
+ ✓ Compiled in 15ms
+ ✓ Compiled in 21ms
+ ✓ Compiled in 13ms
+ ✓ Compiled in 10ms
+ ✓ Compiled in 16ms
+ ✓ Compiled in 18ms
+ ✓ Compiled in 17ms
+ ✓ Compiled in 16ms
+ ✓ Compiled in 16ms
+ ✓ Compiled in 16ms
+ ✓ Compiled in 14ms
+ ✓ Compiled in 15ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/benque/Project/Emaintanance/apps/web/.next/server/app/dashboard/work-orders/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/benque/Project/Emaintanance/apps/web/.next/server/app/dashboard/work-orders/page/app-build-manifest.json'
+}
+ ✓ Compiled /_error in 369ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.wixnsn4s6z'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.wixnsn4s6z'
+}
+[Error: ENOENT: no such file or directory, open '/Users/benque/Project/Emaintanance/apps/web/.next/server/app/dashboard/work-orders/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/benque/Project/Emaintanance/apps/web/.next/server/app/dashboard/work-orders/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.8i6oipex1tj'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.8i6oipex1tj'
+}
+[Error: ENOENT: no such file or directory, open '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.4otemjcc6sr'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.4otemjcc6sr'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/benque/Project/Emaintanance/apps/web/.next/server/app/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/benque/Project/Emaintanance/apps/web/.next/server/app/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.2uizt8amrgs'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.2uizt8amrgs'
+}
+[Error: ENOENT: no such file or directory, open '/Users/benque/Project/Emaintanance/apps/web/.next/server/app/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/benque/Project/Emaintanance/apps/web/.next/server/app/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.lzd5al2pi9a'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.lzd5al2pi9a'
+}
+[Error: ENOENT: no such file or directory, open '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.0trrx2g8a1wl'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.0trrx2g8a1wl'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/benque/Project/Emaintanance/apps/web/.next/server/app/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/benque/Project/Emaintanance/apps/web/.next/server/app/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.bbzzjvxgu9i'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.bbzzjvxgu9i'
+}
+[Error: ENOENT: no such file or directory, open '/Users/benque/Project/Emaintanance/apps/web/.next/server/app/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/benque/Project/Emaintanance/apps/web/.next/server/app/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.a4uogrc9gsv'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.a4uogrc9gsv'
+}
+[Error: ENOENT: no such file or directory, open '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.e5wbx5klsx'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.e5wbx5klsx'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/benque/Project/Emaintanance/apps/web/.next/server/app/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/benque/Project/Emaintanance/apps/web/.next/server/app/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.5pzrvro982d'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.5pzrvro982d'
+}
+[Error: ENOENT: no such file or directory, open '/Users/benque/Project/Emaintanance/apps/web/.next/server/app/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/benque/Project/Emaintanance/apps/web/.next/server/app/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.qk28zbhkp2'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.qk28zbhkp2'
+}
+[Error: ENOENT: no such file or directory, open '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.cc4y7zccta'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.cc4y7zccta'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/benque/Project/Emaintanance/apps/web/.next/server/app/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/benque/Project/Emaintanance/apps/web/.next/server/app/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.4vmdvo88qox'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.4vmdvo88qox'
+}
+[Error: ENOENT: no such file or directory, open '/Users/benque/Project/Emaintanance/apps/web/.next/server/app/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/benque/Project/Emaintanance/apps/web/.next/server/app/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.m4bohwr2h8'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.m4bohwr2h8'
+}
+[Error: ENOENT: no such file or directory, open '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.sorh9x68bn8'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/benque/Project/Emaintanance/apps/web/.next/static/development/_buildManifest.js.tmp.sorh9x68bn8'
+}
+[?25h

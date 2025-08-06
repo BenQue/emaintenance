@@ -1,6 +1,6 @@
 'use client';
 
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { Eye, Filter, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
@@ -9,6 +9,20 @@ import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { cn } from '../../lib/utils';
+
+// Safe date formatting utility
+const safeFormatDate = (dateValue: string | Date | null | undefined, formatString: string): string => {
+  if (!dateValue) return '未设置';
+  
+  const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
+  
+  if (!isValid(date)) {
+    console.warn('Invalid date value in work order table:', dateValue);
+    return '无效日期';
+  }
+  
+  return format(date, formatString, { locale: zhCN });
+};
 
 interface WorkOrderTableProps {
   workOrders: WorkOrder[];
@@ -120,10 +134,10 @@ export function WorkOrderTable({ workOrders, loading, onRefresh }: WorkOrderTabl
                   </td>
                   <td className="py-3 px-4">
                     <div className="text-sm text-gray-900">
-                      {format(new Date(workOrder.reportedAt), 'MM/dd HH:mm', { locale: zhCN })}
+                      {safeFormatDate(workOrder.reportedAt, 'MM/dd HH:mm')}
                     </div>
                     <div className="text-xs text-gray-600">
-                      {format(new Date(workOrder.reportedAt), 'yyyy年', { locale: zhCN })}
+                      {safeFormatDate(workOrder.reportedAt, 'yyyy年')}
                     </div>
                   </td>
                   <td className="py-3 px-4">

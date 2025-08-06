@@ -1,14 +1,35 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '../hooks/useAuth';
+
 export default function Home() {
-  return (
-    <main className="min-h-screen p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">
-          企业设备维修管理系统
-        </h1>
-        <p className="text-gray-600">
-          E-Maintenance System - 设备维修管理平台
-        </p>
+  const { isAuthenticated, isLoading, checkAuth } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/login');
+    } else if (!isLoading && isAuthenticated) {
+      router.push('/dashboard');
+    }
+  }, [isAuthenticated, isLoading, router]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">加载中...</p>
+        </div>
       </div>
-    </main>
-  );
+    );
+  }
+
+  return null;
 }

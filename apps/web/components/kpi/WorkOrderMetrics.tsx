@@ -58,6 +58,15 @@ export function WorkOrderMetrics({ statistics, trends, loading = false, error }:
     );
   }
 
+  // Check if statistics data is available and properly structured
+  if (!statistics || !statistics.byStatus || !statistics.byPriority) {
+    return (
+      <div className="text-center py-8">
+        <div className="text-gray-500">暂无工单统计数据</div>
+      </div>
+    );
+  }
+
   // Prepare data for pie charts
   const statusData: ChartData[] = Object.entries(statistics.byStatus)
     .filter(([_, count]) => count > 0)
@@ -76,12 +85,12 @@ export function WorkOrderMetrics({ statistics, trends, loading = false, error }:
     }));
 
   // Prepare trend data
-  const creationTrendData: TrendData[] = trends?.creationTrend.map(item => ({
+  const creationTrendData: TrendData[] = trends?.creationTrend?.map(item => ({
     date: item.date,
     value: item.count,
   })) || [];
 
-  const completionTrendData: TrendData[] = trends?.completionTrend.map(item => ({
+  const completionTrendData: TrendData[] = trends?.completionTrend?.map(item => ({
     date: item.date,
     value: item.count,
   })) || [];

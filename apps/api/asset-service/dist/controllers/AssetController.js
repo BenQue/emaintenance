@@ -240,16 +240,17 @@ class AssetController {
         try {
             const { q, category, location, status, limit } = req.query;
             if (!q || typeof q !== 'string') {
-                return res.status(400).json({
+                res.status(400).json({
                     success: false,
                     error: 'Search query parameter "q" is required',
                     timestamp: new Date().toISOString(),
                 });
+                return;
             }
             const filters = {
                 category: category,
                 location: location,
-                status: status,
+                isActive: status === 'ACTIVE' ? true : status === 'INACTIVE' ? false : undefined,
                 limit: limit ? parseInt(limit, 10) : undefined,
             };
             const assets = await this.assetService.searchAssets(q, filters);
@@ -418,6 +419,56 @@ class AssetController {
             });
         }
     }
+    /**
+     * Get unique asset locations
+     */
+    async getLocations(req, res) {
+        try {
+            const locations = await this.assetService.getUniqueLocations();
+            res.json({
+                success: true,
+                data: { locations },
+                timestamp: new Date().toISOString(),
+            });
+        }
+        catch (error) {
+            const correlationId = req.headers['x-correlation-id'];
+            logger_1.default.error('Error fetching asset locations', {
+                correlationId,
+                error: error instanceof Error ? error.message : 'Unknown error'
+            });
+            res.status(500).json({
+                success: false,
+                error: 'Failed to fetch asset locations',
+                timestamp: new Date().toISOString(),
+            });
+        }
+    }
+    /**
+     * Get general asset statistics for dashboard
+     */
+    async getAssetStats(req, res) {
+        try {
+            const stats = await this.assetService.getAssetStatistics();
+            res.json({
+                success: true,
+                data: stats,
+                timestamp: new Date().toISOString(),
+            });
+        }
+        catch (error) {
+            const correlationId = req.headers['x-correlation-id'];
+            logger_1.default.error('Error fetching asset statistics', {
+                correlationId,
+                error: error instanceof Error ? error.message : 'Unknown error'
+            });
+            res.status(500).json({
+                success: false,
+                error: 'Failed to fetch asset statistics',
+                timestamp: new Date().toISOString(),
+            });
+        }
+    }
     parseKPIFilters(query) {
         const filters = {};
         if (query.location) {
@@ -460,14 +511,11 @@ class AssetController {
         if (query.search && typeof query.search === 'string') {
             filters.search = query.search.trim();
         }
-        if (query.category && typeof query.category === 'string') {
-            filters.category = query.category;
-        }
         if (query.location && typeof query.location === 'string') {
             filters.location = query.location;
         }
-        if (query.status && ['ACTIVE', 'INACTIVE', 'MAINTENANCE', 'RETIRED'].includes(query.status)) {
-            filters.status = query.status;
+        if (query.status && ['ACTIVE', 'INACTIVE'].includes(query.status)) {
+            filters.isActive = query.status === 'ACTIVE';
         }
         if (query.sortBy && ['name', 'assetCode', 'createdAt', 'updatedAt'].includes(query.sortBy)) {
             filters.sortBy = query.sortBy;

@@ -9,8 +9,20 @@ import {
   WorkOrderWithResolution,
   CreateResolutionRequest,
   ResolutionRecord,
+  Priority,
 } from '../types/work-order';
 import { workOrderService } from '../services/work-order-service';
+
+interface CreateWorkOrderData {
+  assetId: string;
+  title: string;
+  category: string;
+  reason: string;
+  location?: string;
+  priority: Priority;
+  description?: string;
+  photos?: File[];
+}
 
 interface WorkOrderState {
   // State
@@ -19,7 +31,9 @@ interface WorkOrderState {
   currentWorkOrderWithResolution: WorkOrderWithResolution | null;
   statusHistory: WorkOrderStatusHistoryItem[];
   loading: boolean;
+  creating: boolean;
   error: string | null;
+  createError: string | null;
   pagination: {
     page: number;
     limit: number;
@@ -35,8 +49,10 @@ interface WorkOrderState {
   updateWorkOrderStatus: (id: string, statusUpdate: UpdateWorkOrderStatusRequest) => Promise<void>;
   completeWorkOrder: (id: string, resolutionData: CreateResolutionRequest) => Promise<void>;
   uploadResolutionPhotos: (id: string, photos: File[]) => Promise<string[]>;
+  createWorkOrder: (workOrderData: CreateWorkOrderData) => Promise<WorkOrder>;
   clearCurrentWorkOrder: () => void;
   clearError: () => void;
+  clearCreateError: () => void;
   setLoading: (loading: boolean) => void;
 }
 
@@ -49,7 +65,9 @@ export const useWorkOrderStore = create<WorkOrderState>()(
       currentWorkOrderWithResolution: null,
       statusHistory: [],
       loading: false,
+      creating: false,
       error: null,
+      createError: null,
       pagination: {
         page: 1,
         limit: 20,
@@ -223,8 +241,32 @@ export const useWorkOrderStore = create<WorkOrderState>()(
         });
       },
 
+      createWorkOrder: async (workOrderData: CreateWorkOrderData): Promise<WorkOrder> => {
+        set({ creating: true, createError: null });
+        try {
+          const createdWorkOrder = await workOrderService.createWorkOrder(workOrderData);
+          
+          // Optionally refresh the work order list to include the new work order
+          // This depends on whether the user should see their own created work orders
+          
+          set({ creating: false });
+          return createdWorkOrder;
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Failed to create work order';
+          set({
+            createError: errorMessage,
+            creating: false,
+          });
+          throw error;
+        }
+      },
+
       clearError: () => {
         set({ error: null });
+      },
+
+      clearCreateError: () => {
+        set({ createError: null });
       },
 
       setLoading: (loading: boolean) => {

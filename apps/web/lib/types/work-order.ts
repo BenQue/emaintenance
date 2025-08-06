@@ -75,8 +75,9 @@ export interface WorkOrderStatusHistoryItem {
   createdAt: Date;
 }
 
-export interface WorkOrderWithStatusHistory extends WorkOrder {
+export interface WorkOrderWithStatusHistory extends Omit<WorkOrder, 'asset'> {
   statusHistory: WorkOrderStatusHistoryItem[];
+  asset?: Asset; // Asset might not be populated in history endpoint
 }
 
 export interface UpdateWorkOrderStatusRequest {

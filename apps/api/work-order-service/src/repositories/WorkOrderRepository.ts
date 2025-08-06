@@ -8,12 +8,12 @@ export class WorkOrderRepository {
     const workOrder = await this.prisma.workOrder.create({
       data: {
         title: data.title,
-        description: data.description,
+        description: data.description || '无详细描述', // Provide default description
         category: data.category,
         reason: data.reason,
         location: data.location,
         priority: data.priority,
-        assetId: data.assetId,
+        assetId: data.assetId!,  // assetId is guaranteed to be set by service layer
         createdById: data.createdById,
         attachments: data.attachments || [],
       },
@@ -304,46 +304,74 @@ export class WorkOrderRepository {
   }
 
   async getFilterOptions(): Promise<FilterOptionsResponse> {
-    const [categoriesResult, assetsResult, usersResult] = await Promise.all([
-      this.prisma.workOrder.findMany({
-        select: { category: true },
-        distinct: ['category'],
-      }),
-      this.prisma.asset.findMany({
-        where: { isActive: true },
-        select: {
-          id: true,
-          assetCode: true,
-          name: true,
-        },
-        orderBy: { assetCode: 'asc' },
-      }),
-      this.prisma.user.findMany({
-        where: { 
-          isActive: true,
-          role: { in: ['TECHNICIAN', 'SUPERVISOR', 'ADMIN'] }
-        },
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          role: true,
-        },
-        orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }],
-      }),
-    ]);
+    try {
+      console.log('Starting getFilterOptions query...');
+      
+      const [categoriesResult, assetsResult, usersResult] = await Promise.all([
+        this.prisma.workOrder.findMany({
+          select: { category: true },
+          distinct: ['category'],
+        }).catch(error => {
+          console.error('Error fetching categories:', error);
+          throw error;
+        }),
+        this.prisma.asset.findMany({
+          where: { isActive: true },
+          select: {
+            id: true,
+            assetCode: true,
+            name: true,
+          },
+          orderBy: { assetCode: 'asc' },
+        }).catch(error => {
+          console.error('Error fetching assets:', error);
+          throw error;
+        }),
+        this.prisma.user.findMany({
+          where: { 
+            isActive: true,
+            role: { in: ['TECHNICIAN', 'SUPERVISOR', 'ADMIN'] }
+          },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            role: true,
+          },
+          orderBy: [{ firstName: 'asc' }, { lastName: 'asc' }],
+        }).catch(error => {
+          console.error('Error fetching users:', error);
+          throw error;
+        }),
+      ]);
 
-    return {
-      statuses: Object.values(WorkOrderStatus),
-      priorities: Object.values(Priority),
-      categories: categoriesResult.map(item => item.category),
-      assets: assetsResult,
-      users: usersResult.map(user => ({
-        id: user.id,
-        name: `${user.firstName} ${user.lastName}`,
-        role: user.role,
-      })),
-    };
+      console.log('Successfully fetched filter options data');
+
+      const result = {
+        statuses: Object.values(WorkOrderStatus),
+        priorities: Object.values(Priority),
+        categories: categoriesResult.map(item => item.category),
+        assets: assetsResult,
+        users: usersResult.map(user => ({
+          id: user.id,
+          name: `${user.firstName} ${user.lastName}`,
+          role: user.role,
+        })),
+      };
+
+      console.log('Filter options result:', {
+        statusCount: result.statuses.length,
+        priorityCount: result.priorities.length,
+        categoryCount: result.categories.length,
+        assetCount: result.assets.length,
+        userCount: result.users.length,
+      });
+
+      return result;
+    } catch (error) {
+      console.error('Error in getFilterOptions repository method:', error);
+      throw error;
+    }
   }
 
   async findManyForCSV(filters: WorkOrderFilters = {}): Promise<WorkOrderForCSV[]> {

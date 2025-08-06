@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { WorkOrderFilters } from './WorkOrderFilters';
 import { AdvancedWorkOrderList } from './AdvancedWorkOrderList';
+import { WorkOrderCreateModal } from './WorkOrderCreateModal';
 import { WorkOrder } from '../../lib/types/work-order';
 import { workOrderService } from '../../lib/services/work-order-service';
 import {
@@ -22,6 +23,7 @@ export function WorkOrderManagement() {
   } = useWorkOrderFilterStore();
 
   const [isExporting, setIsExporting] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // Initialize filters from URL on mount
   useEffect(() => {
@@ -64,6 +66,23 @@ export function WorkOrderManagement() {
     router.push(`/dashboard/work-orders/${workOrder.id}`);
   };
 
+  const handleCreateClick = () => {
+    setIsCreateModalOpen(true);
+  };
+
+  const handleCreateModalClose = () => {
+    setIsCreateModalOpen(false);
+  };
+
+  const handleCreateSuccess = () => {
+    setIsCreateModalOpen(false);
+    // Trigger a refresh by adding a cache-busting timestamp to force AdvancedWorkOrderList re-render
+    // This is more React-friendly than window.location.reload()
+    const url = new URL(window.location.href);
+    url.searchParams.set('refresh', Date.now().toString());
+    window.history.replaceState({}, '', url.toString());
+  };
+
   return (
     <div className="container mx-auto px-4 py-6 space-y-6">
       {/* Header */}
@@ -73,6 +92,17 @@ export function WorkOrderManagement() {
           <p className="text-gray-600 mt-2">
             查看、筛选和管理所有工单
           </p>
+        </div>
+        <div>
+          <button 
+            onClick={handleCreateClick}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium flex items-center gap-2 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            创建工单
+          </button>
         </div>
       </div>
 
@@ -99,6 +129,13 @@ export function WorkOrderManagement() {
           </div>
         </div>
       )}
+
+      {/* Work Order Creation Modal */}
+      <WorkOrderCreateModal
+        isOpen={isCreateModalOpen}
+        onClose={handleCreateModalClose}
+        onSuccess={handleCreateSuccess}
+      />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { Clock, ArrowRight, MessageSquare } from 'lucide-react';
 import { WorkOrderStatusHistoryItem, WorkOrderStatusLabels, StatusColors } from '../../lib/types/work-order';
@@ -8,12 +8,26 @@ import { Badge } from '../ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { cn } from '../../lib/utils';
 
+// Safe date formatting utility
+const safeFormatDate = (dateValue: string | Date | null | undefined, formatString: string): string => {
+  if (!dateValue) return '未设置';
+  
+  const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
+  
+  if (!isValid(date)) {
+    console.warn('Invalid date value in status history:', dateValue);
+    return '无效日期';
+  }
+  
+  return format(date, formatString, { locale: zhCN });
+};
+
 interface StatusHistoryProps {
-  statusHistory: WorkOrderStatusHistoryItem[];
+  statusHistory: WorkOrderStatusHistoryItem[] | undefined;
 }
 
 export function StatusHistory({ statusHistory }: StatusHistoryProps) {
-  if (statusHistory.length === 0) {
+  if (!statusHistory || statusHistory.length === 0) {
     return (
       <Card>
         <CardHeader>
@@ -33,10 +47,10 @@ export function StatusHistory({ statusHistory }: StatusHistoryProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {statusHistory.map((item, index) => (
+          {(statusHistory || []).map((item, index) => (
             <div key={item.id} className="relative">
               {/* Timeline line */}
-              {index < statusHistory.length - 1 && (
+              {index < (statusHistory?.length || 0) - 1 && (
                 <div className="absolute left-6 top-12 w-0.5 h-16 bg-gray-200" />
               )}
               
@@ -62,11 +76,14 @@ export function StatusHistory({ statusHistory }: StatusHistoryProps) {
                   </div>
                   
                   <div className="text-sm text-gray-600 mb-1">
-                    操作人: {item.changedBy.firstName} {item.changedBy.lastName}
+                    操作人: {item.changedBy ? 
+                      `${item.changedBy.firstName || '未知'} ${item.changedBy.lastName || ''}`.trim() 
+                      : '操作人信息不可用'
+                    }
                   </div>
                   
                   <div className="text-xs text-gray-500 mb-2">
-                    {format(new Date(item.createdAt), 'yyyy年MM月dd日 HH:mm:ss', { locale: zhCN })}
+                    {safeFormatDate(item.createdAt, 'yyyy年MM月dd日 HH:mm:ss')}
                   </div>
                   
                   {item.notes && (

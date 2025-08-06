@@ -130,7 +130,7 @@ class AssetService {
                 where: {
                     assetId: id,
                     status: {
-                        in: ['PENDING', 'IN_PROGRESS', 'WAITING_FOR_PARTS']
+                        in: ['PENDING', 'IN_PROGRESS', 'WAITING_PARTS']
                     }
                 }
             });
@@ -278,6 +278,81 @@ class AssetService {
             .filter(asset => asset.healthScore < 50)
             .sort((a, b) => a.healthScore - b.healthScore)
             .slice(0, filters.limit || 5);
+    }
+    /**
+     * Get unique asset locations
+     */
+    async getUniqueLocations() {
+        try {
+            const locations = await this.prisma.asset.findMany({
+                select: { location: true },
+                distinct: ['location'],
+                orderBy: { location: 'asc' }
+            });
+            const uniqueLocations = locations.map(item => item.location);
+            logger_1.default.debug('Unique locations retrieved via service', {
+                count: uniqueLocations.length
+            });
+            return uniqueLocations;
+        }
+        catch (error) {
+            logger_1.default.error('Asset service: Failed to get unique locations', {
+                error: error instanceof Error ? error.message : 'Unknown error'
+            });
+            throw error;
+        }
+    }
+    /**
+     * Get general asset statistics for dashboard
+     */
+    async getAssetStatistics() {
+        try {
+            const [totalCount, activeCount, inactiveCount, locationStats, manufacturerStats] = await Promise.all([
+                this.prisma.asset.count(),
+                this.prisma.asset.count({ where: { isActive: true } }),
+                this.prisma.asset.count({ where: { isActive: false } }),
+                this.prisma.asset.groupBy({
+                    by: ['location'],
+                    _count: { location: true }
+                }),
+                this.prisma.asset.groupBy({
+                    by: ['manufacturer'],
+                    _count: { manufacturer: true },
+                    where: { manufacturer: { not: null } }
+                })
+            ]);
+            const byLocation = {};
+            locationStats.forEach(stat => {
+                byLocation[stat.location] = stat._count.location;
+            });
+            const byManufacturer = {};
+            manufacturerStats.forEach(stat => {
+                if (stat.manufacturer) {
+                    byManufacturer[stat.manufacturer] = stat._count.manufacturer;
+                }
+            });
+            const uniqueLocations = locationStats.length;
+            logger_1.default.debug('Asset statistics retrieved via service', {
+                total: totalCount,
+                active: activeCount,
+                inactive: inactiveCount,
+                locations: uniqueLocations
+            });
+            return {
+                total: totalCount,
+                active: activeCount,
+                inactive: inactiveCount,
+                locations: uniqueLocations,
+                byLocation,
+                byManufacturer
+            };
+        }
+        catch (error) {
+            logger_1.default.error('Asset service: Failed to get asset statistics', {
+                error: error instanceof Error ? error.message : 'Unknown error'
+            });
+            throw error;
+        }
     }
 }
 exports.AssetService = AssetService;

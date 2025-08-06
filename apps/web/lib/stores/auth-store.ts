@@ -21,7 +21,7 @@ interface AuthState {
   login: (credentials: LoginRequest) => Promise<void>;
   logout: () => void;
   clearError: () => void;
-  checkAuth: () => void;
+  checkAuth: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -72,24 +72,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ error: null });
   },
 
-  checkAuth: () => {
+  checkAuth: async () => {
     const token = authService.getToken();
     if (token && !authService.isTokenExpired(token)) {
       try {
-        // Extract user data from JWT token payload
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        const user: User = {
-          id: payload.userId || payload.sub,
-          email: payload.email,
-          username: payload.username,
-          firstName: payload.firstName,
-          lastName: payload.lastName,
-          role: payload.role,
-          isActive: payload.isActive,
-        };
-        set({ user, isAuthenticated: true });
+        // Fetch complete user profile from server instead of relying on JWT payload
+        const user = await authService.fetchProfile();
+        set({ user, isAuthenticated: true, error: null });
       } catch (error) {
-        // If token is malformed, treat as unauthenticated
+        // If profile fetch fails, treat as unauthenticated
         authService.removeToken();
         set({
           user: null,

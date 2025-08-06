@@ -16,6 +16,7 @@ router.post('/', workOrderController.createWorkOrder);
 router.get('/my', workOrderController.getMyWorkOrders);
 router.get('/assigned', workOrderController.getAssignedWorkOrders);
 router.get('/statistics', authorize('SUPERVISOR', 'ADMIN'), workOrderController.getStatistics);
+router.get('/filter-options', authorize('SUPERVISOR', 'ADMIN'), workOrderController.getFilterOptions);
 router.get('/', workOrderController.getWorkOrders);
 
 // Protected routes (require work order access check)
@@ -46,7 +47,6 @@ router.get('/kpi/mttr', authorize('SUPERVISOR', 'ADMIN'), workOrderController.ge
 router.get('/kpi/trends', authorize('SUPERVISOR', 'ADMIN'), workOrderController.getWorkOrderTrends);
 
 // Advanced filtering routes (supervisors and admins only)
-router.get('/filter-options', authorize('SUPERVISOR', 'ADMIN'), workOrderController.getFilterOptions);
 router.get('/export', authorize('SUPERVISOR', 'ADMIN'), workOrderController.exportWorkOrdersCSV);
 
 export default router;

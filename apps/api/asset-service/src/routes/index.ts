@@ -19,7 +19,7 @@ const assetController = new AssetController(prisma);
 // Rate limiting configuration
 const generalRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: process.env.NODE_ENV === 'development' ? 1000 : 100, // Higher limit for development
   message: {
     success: false,
     error: 'Too many requests from this IP, please try again later.',
@@ -29,7 +29,7 @@ const generalRateLimit = rateLimit({
 
 const strictRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 20, // limit create/update/delete operations
+  max: process.env.NODE_ENV === 'development' ? 200 : 20, // Higher limit for development
   message: {
     success: false,
     error: 'Too many modification requests from this IP, please try again later.',
@@ -67,6 +67,7 @@ router.get(
   assetController.listAssets.bind(assetController)
 );
 
+// Asset utility endpoints (place before parameterized routes)
 router.get(
   '/assets/search',
   authenticate, // All authenticated users can search assets
@@ -74,6 +75,20 @@ router.get(
   assetController.searchAssets.bind(assetController)
 );
 
+router.get(
+  '/assets/stats',
+  authenticate,
+  requireSupervisor, // Stats are for supervisors and above
+  assetController.getAssetStats.bind(assetController)
+);
+
+router.get(
+  '/assets/locations',
+  authenticate, // All authenticated users can get locations for filtering
+  assetController.getLocations.bind(assetController)
+);
+
+// Parameterized routes (place after utility endpoints)
 router.get(
   '/assets/:id',
   authenticate,

@@ -67,30 +67,33 @@ exports.assetSchemas = {
             name: zod_1.z.string().min(1, 'Asset name is required').max(200, 'Asset name too long'),
             description: zod_1.z.string().optional(),
             location: zod_1.z.string().min(1, 'Location is required').max(200, 'Location too long'),
-            category: zod_1.z.string().min(1, 'Category is required').max(100, 'Category too long'),
+            model: zod_1.z.string().optional(),
+            manufacturer: zod_1.z.string().optional(),
             serialNumber: zod_1.z.string().optional(),
-            status: zod_1.z.enum(['ACTIVE', 'INACTIVE', 'MAINTENANCE', 'RETIRED']).optional()
+            installDate: zod_1.z.string().datetime().optional()
         })
     }),
     // Update asset validation
     update: zod_1.z.object({
         params: zod_1.z.object({
-            id: zod_1.z.string().uuid('Invalid asset ID format')
+            id: zod_1.z.string().min(1, 'Asset ID is required')
         }),
         body: zod_1.z.object({
             assetCode: zod_1.z.string().min(1).max(50).optional(),
             name: zod_1.z.string().min(1).max(200).optional(),
             description: zod_1.z.string().optional(),
             location: zod_1.z.string().min(1).max(200).optional(),
-            category: zod_1.z.string().min(1).max(100).optional(),
+            model: zod_1.z.string().optional(),
+            manufacturer: zod_1.z.string().optional(),
             serialNumber: zod_1.z.string().optional(),
-            status: zod_1.z.enum(['ACTIVE', 'INACTIVE', 'MAINTENANCE', 'RETIRED']).optional()
+            installDate: zod_1.z.string().datetime().optional(),
+            isActive: zod_1.z.boolean().optional()
         })
     }),
     // Get asset by ID validation
     getById: zod_1.z.object({
         params: zod_1.z.object({
-            id: zod_1.z.string().uuid('Invalid asset ID format')
+            id: zod_1.z.string().min(1, 'Asset ID is required')
         })
     }),
     // List assets validation
@@ -99,9 +102,8 @@ exports.assetSchemas = {
             page: zod_1.z.string().transform(val => parseInt(val, 10)).pipe(zod_1.z.number().min(1)).optional(),
             limit: zod_1.z.string().transform(val => parseInt(val, 10)).pipe(zod_1.z.number().min(1).max(100)).optional(),
             search: zod_1.z.string().optional(),
-            category: zod_1.z.string().optional(),
             location: zod_1.z.string().optional(),
-            status: zod_1.z.enum(['ACTIVE', 'INACTIVE', 'MAINTENANCE', 'RETIRED']).optional(),
+            status: zod_1.z.enum(['ACTIVE', 'INACTIVE']).optional(),
             sortBy: zod_1.z.enum(['name', 'assetCode', 'createdAt', 'updatedAt']).optional(),
             sortOrder: zod_1.z.enum(['asc', 'desc']).optional()
         })
@@ -110,9 +112,8 @@ exports.assetSchemas = {
     search: zod_1.z.object({
         query: zod_1.z.object({
             q: zod_1.z.string().min(1, 'Search query is required'),
-            category: zod_1.z.string().optional(),
             location: zod_1.z.string().optional(),
-            status: zod_1.z.enum(['ACTIVE', 'INACTIVE', 'MAINTENANCE', 'RETIRED']).optional(),
+            status: zod_1.z.enum(['ACTIVE', 'INACTIVE']).optional(),
             limit: zod_1.z.string().transform(val => parseInt(val, 10)).pipe(zod_1.z.number().min(1).max(50)).optional()
         })
     })

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { 
   ArrowLeft, 
@@ -27,6 +27,20 @@ import { StatusUpdateForm } from './StatusUpdateForm';
 import { ResolutionRecordForm } from './ResolutionRecordForm';
 import { ResolutionRecordDisplay } from './ResolutionRecordDisplay';
 import { cn } from '../../lib/utils';
+
+// Safe date formatting utility
+const safeFormatDate = (dateValue: string | Date | null | undefined, formatString: string): string => {
+  if (!dateValue) return '未设置';
+  
+  const date = typeof dateValue === 'string' ? new Date(dateValue) : dateValue;
+  
+  if (!isValid(date)) {
+    console.warn('Invalid date value:', dateValue);
+    return '无效日期';
+  }
+  
+  return format(date, formatString, { locale: zhCN });
+};
 
 interface WorkOrderDetailProps {
   workOrderId: string;
@@ -203,9 +217,19 @@ export function WorkOrderDetail({ workOrderId }: WorkOrderDetailProps) {
               <div className="flex items-start space-x-4">
                 <Wrench className="w-8 h-8 text-gray-400 mt-1" />
                 <div>
-                  <h4 className="font-medium text-gray-900">{currentWorkOrder.asset.name}</h4>
-                  <p className="text-gray-600">设备编号: {currentWorkOrder.asset.assetCode}</p>
-                  <p className="text-gray-600">位置: {currentWorkOrder.asset.location}</p>
+                  {currentWorkOrder.asset ? (
+                    <>
+                      <h4 className="font-medium text-gray-900">{currentWorkOrder.asset.name}</h4>
+                      <p className="text-gray-600">设备编号: {currentWorkOrder.asset.assetCode}</p>
+                      <p className="text-gray-600">位置: {currentWorkOrder.asset.location}</p>
+                    </>
+                  ) : (
+                    <>
+                      <h4 className="font-medium text-gray-900">设备信息不可用</h4>
+                      <p className="text-gray-600">设备ID: {currentWorkOrder.assetId}</p>
+                      <p className="text-gray-600 text-sm text-orange-600">正在加载设备信息...</p>
+                    </>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -222,7 +246,7 @@ export function WorkOrderDetail({ workOrderId }: WorkOrderDetailProps) {
                 <div>
                   <span className="font-medium">报修时间: </span>
                   <span className="text-gray-700">
-                    {format(new Date(currentWorkOrder.reportedAt), 'yyyy年MM月dd日 HH:mm', { locale: zhCN })}
+                    {safeFormatDate(currentWorkOrder.reportedAt, 'yyyy年MM月dd日 HH:mm')}
                   </span>
                 </div>
               </div>
@@ -233,7 +257,7 @@ export function WorkOrderDetail({ workOrderId }: WorkOrderDetailProps) {
                   <div>
                     <span className="font-medium">开始时间: </span>
                     <span className="text-gray-700">
-                      {format(new Date(currentWorkOrder.startedAt), 'yyyy年MM月dd日 HH:mm', { locale: zhCN })}
+                      {safeFormatDate(currentWorkOrder.startedAt, 'yyyy年MM月dd日 HH:mm')}
                     </span>
                   </div>
                 </div>
@@ -245,7 +269,7 @@ export function WorkOrderDetail({ workOrderId }: WorkOrderDetailProps) {
                   <div>
                     <span className="font-medium">完成时间: </span>
                     <span className="text-gray-700">
-                      {format(new Date(currentWorkOrder.completedAt), 'yyyy年MM月dd日 HH:mm', { locale: zhCN })}
+                      {safeFormatDate(currentWorkOrder.completedAt, 'yyyy年MM月dd日 HH:mm')}
                     </span>
                   </div>
                 </div>
@@ -320,10 +344,15 @@ export function WorkOrderDetail({ workOrderId }: WorkOrderDetailProps) {
                 <div className="flex items-center space-x-2">
                   <User className="w-4 h-4 text-gray-400" />
                   <span className="text-gray-700">
-                    {currentWorkOrder.createdBy.firstName} {currentWorkOrder.createdBy.lastName}
+                    {currentWorkOrder.createdBy ? 
+                      `${currentWorkOrder.createdBy.firstName || '未知'} ${currentWorkOrder.createdBy.lastName || ''}`.trim() 
+                      : '报修人信息不可用'
+                    }
                   </span>
                 </div>
-                <p className="text-sm text-gray-600 ml-6">{currentWorkOrder.createdBy.email}</p>
+                <p className="text-sm text-gray-600 ml-6">
+                  {currentWorkOrder.createdBy?.email || '邮箱信息不可用'}
+                </p>
               </div>
 
               {currentWorkOrder.assignedTo && (
@@ -332,24 +361,24 @@ export function WorkOrderDetail({ workOrderId }: WorkOrderDetailProps) {
                   <div className="flex items-center space-x-2">
                     <User className="w-4 h-4 text-gray-400" />
                     <span className="text-gray-700">
-                      {currentWorkOrder.assignedTo.firstName} {currentWorkOrder.assignedTo.lastName}
+                      {`${currentWorkOrder.assignedTo.firstName || '未知'} ${currentWorkOrder.assignedTo.lastName || ''}`.trim()}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 ml-6">{currentWorkOrder.assignedTo.email}</p>
+                  <p className="text-sm text-gray-600 ml-6">{currentWorkOrder.assignedTo.email || '邮箱信息不可用'}</p>
                 </div>
               )}
             </CardContent>
           </Card>
 
           {/* Attachments */}
-          {currentWorkOrder.attachments.length > 0 && (
+          {currentWorkOrder.attachments && currentWorkOrder.attachments.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">附件</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {currentWorkOrder.attachments.map((attachment, index) => (
+                  {(currentWorkOrder.attachments || []).map((attachment, index) => (
                     <div key={index} className="flex items-center space-x-2">
                       <FileText className="w-4 h-4 text-gray-400" />
                       <a

@@ -8,17 +8,22 @@ async function main() {
 
   // Create users
   const hashedPassword = await bcryptjs.hash('password123', 10);
+  const adminPassword = await bcryptjs.hash('admin123', 10);
 
   const admin = await prisma.user.upsert({
     where: { email: 'admin@emaintanance.com' },
-    update: {},
+    update: {
+      firstName: 'System',
+      lastName: 'Administrator',
+      password: adminPassword,
+    },
     create: {
       email: 'admin@emaintanance.com',
       username: 'admin',
-      password: hashedPassword,
+      password: adminPassword,
       employeeId: 'EMP001',
-      firstName: '管理员',
-      lastName: '系统',
+      firstName: 'System',
+      lastName: 'Administrator',
       role: UserRole.ADMIN,
     },
   });

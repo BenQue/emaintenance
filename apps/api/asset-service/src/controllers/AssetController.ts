@@ -444,6 +444,58 @@ export class AssetController {
     }
   }
 
+  /**
+   * Get unique asset locations
+   */
+  async getLocations(req: Request, res: Response): Promise<void> {
+    try {
+      const locations = await this.assetService.getUniqueLocations();
+      
+      res.json({
+        success: true,
+        data: { locations },
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      const correlationId = req.headers['x-correlation-id'];
+      logger.error('Error fetching asset locations', {
+        correlationId,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch asset locations',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  /**
+   * Get general asset statistics for dashboard
+   */
+  async getAssetStats(req: Request, res: Response): Promise<void> {
+    try {
+      const stats = await this.assetService.getAssetStatistics();
+      
+      res.json({
+        success: true,
+        data: stats,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      const correlationId = req.headers['x-correlation-id'];
+      logger.error('Error fetching asset statistics', {
+        correlationId,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch asset statistics',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
   private parseKPIFilters(query: any): AssetKPIFilters {
     const filters: AssetKPIFilters = {};
 
@@ -498,9 +550,6 @@ export class AssetController {
       filters.search = query.search.trim();
     }
 
-    if (query.category && typeof query.category === 'string') {
-      filters.category = query.category;
-    }
 
     if (query.location && typeof query.location === 'string') {
       filters.location = query.location;

@@ -13,8 +13,8 @@ export const CreateWorkOrderSchema = z.object({
     .max(200, '工单标题不能超过200个字符'),
   
   description: z.string()
-    .min(10, '描述至少需要10个字符')
-    .max(2000, '描述不能超过2000个字符'),
+    .max(2000, '描述不能超过2000个字符')
+    .optional(),
   
   category: z.string()
     .min(1, '请选择报修类别')
@@ -31,7 +31,8 @@ export const CreateWorkOrderSchema = z.object({
   priority: PrioritySchema.default(Priority.MEDIUM),
   
   assetId: z.string()
-    .min(1, '设备ID不能为空'),
+    .min(1, '设备ID不能为空')
+    .optional(),
   
   attachments: z.array(z.string().url('附件路径必须是有效的URL'))
     .max(10, '最多只能上传10个附件')

@@ -503,12 +503,18 @@ export class WorkOrderController {
       throw new AppError('权限不足：只有主管和管理员可以访问筛选选项', 403);
     }
 
-    const filterOptions = await this.workOrderService.getFilterOptions();
+    try {
+      const filterOptions = await this.workOrderService.getFilterOptions();
 
-    res.json({
-      status: 'success',
-      data: filterOptions,
-    });
+      res.json({
+        status: 'success',
+        data: filterOptions,
+      });
+    } catch (error) {
+      // Add more specific error handling for database issues
+      console.error('Error in getFilterOptions:', error);
+      throw new AppError('获取筛选选项失败：数据库查询错误', 500);
+    }
   });
 
   // Export work orders to CSV

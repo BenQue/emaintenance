@@ -69,32 +69,35 @@ export const assetSchemas = {
       name: z.string().min(1, 'Asset name is required').max(200, 'Asset name too long'),
       description: z.string().optional(),
       location: z.string().min(1, 'Location is required').max(200, 'Location too long'),
-      category: z.string().min(1, 'Category is required').max(100, 'Category too long'),
+      model: z.string().optional(),
+      manufacturer: z.string().optional(),
       serialNumber: z.string().optional(),
-      status: z.enum(['ACTIVE', 'INACTIVE', 'MAINTENANCE', 'RETIRED']).optional()
+      installDate: z.string().datetime().optional()
     })
   }),
 
   // Update asset validation
   update: z.object({
     params: z.object({
-      id: z.string().uuid('Invalid asset ID format')
+      id: z.string().min(1, 'Asset ID is required')
     }),
     body: z.object({
       assetCode: z.string().min(1).max(50).optional(),
       name: z.string().min(1).max(200).optional(),
       description: z.string().optional(),
       location: z.string().min(1).max(200).optional(),
-      category: z.string().min(1).max(100).optional(),
+      model: z.string().optional(),
+      manufacturer: z.string().optional(),
       serialNumber: z.string().optional(),
-      status: z.enum(['ACTIVE', 'INACTIVE', 'MAINTENANCE', 'RETIRED']).optional()
+      installDate: z.string().datetime().optional(),
+      isActive: z.boolean().optional()
     })
   }),
 
   // Get asset by ID validation
   getById: z.object({
     params: z.object({
-      id: z.string().uuid('Invalid asset ID format')
+      id: z.string().min(1, 'Asset ID is required')
     })
   }),
 
@@ -104,9 +107,8 @@ export const assetSchemas = {
       page: z.string().transform(val => parseInt(val, 10)).pipe(z.number().min(1)).optional(),
       limit: z.string().transform(val => parseInt(val, 10)).pipe(z.number().min(1).max(100)).optional(),
       search: z.string().optional(),
-      category: z.string().optional(),
       location: z.string().optional(),
-      status: z.enum(['ACTIVE', 'INACTIVE', 'MAINTENANCE', 'RETIRED']).optional(),
+      status: z.enum(['ACTIVE', 'INACTIVE']).optional(),
       sortBy: z.enum(['name', 'assetCode', 'createdAt', 'updatedAt']).optional(),
       sortOrder: z.enum(['asc', 'desc']).optional()
     })
@@ -116,9 +118,8 @@ export const assetSchemas = {
   search: z.object({
     query: z.object({
       q: z.string().min(1, 'Search query is required'),
-      category: z.string().optional(),
       location: z.string().optional(),
-      status: z.enum(['ACTIVE', 'INACTIVE', 'MAINTENANCE', 'RETIRED']).optional(),
+      status: z.enum(['ACTIVE', 'INACTIVE']).optional(),
       limit: z.string().transform(val => parseInt(val, 10)).pipe(z.number().min(1).max(50)).optional()
     })
   })

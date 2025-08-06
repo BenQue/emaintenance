@@ -5,8 +5,8 @@ import { ApiResponse } from '../types/auth';
  * Format Zod validation errors into user-friendly messages
  */
 export function formatValidationErrors(error: ZodError): string {
-  return error.errors
-    .map(err => {
+  return error.issues
+    .map((err: any) => {
       const field = err.path.length > 0 ? err.path.join('.') : 'field';
       return `${field}: ${err.message}`;
     })

@@ -1,0 +1,135 @@
+
+> @emaintanance/work-order-service@1.0.0 dev
+> tsx watch src/index.ts
+
+Work order service running on port 3002
+Environment: development
+Starting getFilterOptions query...
+Successfully fetched filter options data
+Filter options result: {
+  statusCount: 6,
+  priorityCount: 4,
+  categoryCount: 5,
+  assetCount: 3,
+  userCount: 4
+}
+Starting getFilterOptions query...
+Successfully fetched filter options data
+Filter options result: {
+  statusCount: 6,
+  priorityCount: 4,
+  categoryCount: 5,
+  assetCount: 3,
+  userCount: 4
+}
+Starting getFilterOptions query...
+Successfully fetched filter options data
+Filter options result: {
+  statusCount: 6,
+  priorityCount: 4,
+  categoryCount: 5,
+  assetCount: 3,
+  userCount: 4
+}
+Starting getFilterOptions query...
+Successfully fetched filter options data
+Filter options result: {
+  statusCount: 6,
+  priorityCount: 4,
+  categoryCount: 5,
+  assetCount: 3,
+  userCount: 4
+}
+TypeError: Cannot read properties of undefined (reading 'map')
+    at handleValidationError (/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/utils/errorHandler.ts:18:31)
+    at globalErrorHandler (/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/utils/errorHandler.ts:52:11)
+    at Layer.handle_error (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/layer.js:71:5)
+    at trim_prefix (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:326:13)
+    at /Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:286:9
+    at router.process_params (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:346:12)
+    at next (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:280:10)
+    at /Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:646:15
+    at next (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:265:14)
+    at next (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/route.js:141:14)
+TypeError: Cannot read properties of undefined (reading 'map')
+    at handleValidationError (/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/utils/errorHandler.ts:18:31)
+    at globalErrorHandler (/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/utils/errorHandler.ts:52:11)
+    at Layer.handle_error (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/layer.js:71:5)
+    at trim_prefix (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:326:13)
+    at /Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:286:9
+    at router.process_params (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:346:12)
+    at next (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:280:10)
+    at /Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:646:15
+    at next (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:265:14)
+    at next (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/route.js:141:14)
+Starting getFilterOptions query...
+Successfully fetched filter options data
+Filter options result: {
+  statusCount: 6,
+  priorityCount: 4,
+  categoryCount: 5,
+  assetCount: 3,
+  userCount: 4
+}
+Starting getFilterOptions query...
+Successfully fetched filter options data
+Filter options result: {
+  statusCount: 6,
+  priorityCount: 4,
+  categoryCount: 5,
+  assetCount: 3,
+  userCount: 4
+}
+Starting getFilterOptions query...
+Successfully fetched filter options data
+Filter options result: {
+  statusCount: 6,
+  priorityCount: 4,
+  categoryCount: 5,
+  assetCount: 3,
+  userCount: 4
+}
+Starting getFilterOptions query...
+Successfully fetched filter options data
+Filter options result: {
+  statusCount: 6,
+  priorityCount: 4,
+  categoryCount: 5,
+  assetCount: 3,
+  userCount: 4
+}
+TypeError: Cannot read properties of undefined (reading 'map')
+    at handleValidationError (/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/utils/errorHandler.ts:18:31)
+    at globalErrorHandler (/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/utils/errorHandler.ts:52:11)
+    at Layer.handle_error (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/layer.js:71:5)
+    at trim_prefix (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:326:13)
+    at /Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:286:9
+    at router.process_params (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:346:12)
+    at next (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:280:10)
+    at /Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:646:15
+    at next (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:265:14)
+    at next (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/route.js:141:14)
+10:26:21 PM [tsx] change in ./src/utils/errorHandler.ts Restarting...
+cWork order service running on port 3002
+Environment: development
+10:26:50 PM [tsx] change in ./src/utils/validation.ts Restarting...
+cWork order service running on port 3002
+Environment: development
+10:27:03 PM [tsx] change in ./src/services/WorkOrderService.ts Restarting...
+cWork order service running on port 3002
+Environment: development
+10:27:35 PM [tsx] change in ./src/services/WorkOrderService.ts Restarting...
+cWork order service running on port 3002
+Environment: development
+10:27:47 PM [tsx] change in ./src/repositories/WorkOrderRepository.ts Restarting...
+cWork order service running on port 3002
+Environment: development
+Starting getFilterOptions query...
+Successfully fetched filter options data
+Filter options result: {
+  statusCount: 6,
+  priorityCount: 4,
+  categoryCount: 5,
+  assetCount: 3,
+  userCount: 4
+}

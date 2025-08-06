@@ -52,7 +52,18 @@ export function WorkOrderFilters({ onFiltersChange, onExport }: WorkOrderFilters
       setFilterOptions(options);
     } catch (error) {
       console.error('Failed to load filter options:', error);
-      setError('Failed to load filter options');
+      
+      // Provide more specific error messages
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      if (errorMessage.includes('权限不足') || errorMessage.includes('403')) {
+        setError('您没有权限访问筛选选项。请联系管理员。');
+      } else if (errorMessage.includes('认证') || errorMessage.includes('401')) {
+        setError('认证失败，请重新登录。');
+      } else if (errorMessage.includes('工单不存在') || errorMessage.includes('404')) {
+        setError('系统配置错误，请联系管理员。');
+      } else {
+        setError(`加载筛选选项失败: ${errorMessage}`);
+      }
     } finally {
       setLoading(false);
     }
