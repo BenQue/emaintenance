@@ -44,8 +44,10 @@ class User {
       firstName: json['firstName'] as String,
       lastName: json['lastName'] as String,
       role: UserRole.fromString(json['role'] as String),
-      isActive: json['isActive'] as bool,
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      isActive: json['isActive'] as bool? ?? true, // Default to true if not provided
+      createdAt: json['createdAt'] != null 
+          ? DateTime.parse(json['createdAt'] as String)
+          : DateTime.now(), // Default to current time if not provided
     );
   }
 
@@ -75,25 +77,28 @@ class AuthResponse {
   });
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
+    // Handle wrapped response format from backend
+    final data = json['data'] as Map<String, dynamic>? ?? json;
+    
     return AuthResponse(
-      token: json['token'] as String,
-      user: User.fromJson(json['user'] as Map<String, dynamic>),
+      token: data['token'] as String,
+      user: User.fromJson(data['user'] as Map<String, dynamic>),
     );
   }
 }
 
 class LoginRequest {
-  final String email;
+  final String identifier;  // Can be username or email
   final String password;
 
   const LoginRequest({
-    required this.email,
+    required this.identifier,
     required this.password,
   });
 
   Map<String, dynamic> toJson() {
     return {
-      'email': email,
+      'identifier': identifier,
       'password': password,
     };
   }

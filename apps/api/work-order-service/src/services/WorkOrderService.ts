@@ -2,7 +2,7 @@ import { PrismaClient } from '@emaintanance/database';
 import { WorkOrderRepository } from '../repositories/WorkOrderRepository';
 import { AssignmentRuleService } from './AssignmentRuleService';
 import { NotificationService } from './NotificationService';
-import { CreateWorkOrderRequest, UpdateWorkOrderRequest, WorkOrderWithRelations, WorkOrderFilters, PaginatedWorkOrders, UpdateWorkOrderStatusRequest, WorkOrderStatusHistoryItem, WorkOrderWithStatusHistory, CreateResolutionRecordRequest, ResolutionRecordResponse, WorkOrderWithResolution, MaintenanceHistoryResponse, AssetMaintenanceHistory, MTTRStatistics, WorkOrderTrends, KPIFilters, FilterOptionsResponse, WorkOrderForCSV } from '../types/work-order';
+import { CreateWorkOrderRequest, UpdateWorkOrderRequest, WorkOrderWithRelations, WorkOrderFilters, PaginatedWorkOrders, UpdateWorkOrderStatusRequest, WorkOrderStatusHistoryItem, WorkOrderWithStatusHistory, CreateResolutionRecordRequest, ResolutionRecordResponse, WorkOrderWithResolution, MaintenanceHistoryResponse, AssetMaintenanceHistory, MTTRStatistics, WorkOrderTrends, KPIFilters, FilterOptionsResponse, WorkOrderForCSV, WorkOrderPhoto } from '../types/work-order';
 import { CSVGenerator } from '../utils/csv-generator';
 
 export class WorkOrderService {
@@ -1156,6 +1156,80 @@ export class WorkOrderService {
       default:
         return d.toISOString().split('T')[0];
     }
+  }
+
+  // Photo management methods
+  async uploadWorkOrderPhotos(
+    workOrderId: string,
+    photoRecords: Array<{
+      filename: string;
+      originalName: string;
+      filePath: string;
+      thumbnailPath?: string;
+      fileSize: number;
+      mimeType: string;
+      uploadedAt: Date;
+    }>,
+    userId: string
+  ): Promise<WorkOrderWithRelations | null> {
+    try {
+      // Create WorkOrderPhoto records
+      await this.prisma.workOrderPhoto.createMany({
+        data: photoRecords.map(record => ({
+          workOrderId,
+          filename: record.filename,
+          originalName: record.originalName,
+          filePath: record.filePath,
+          thumbnailPath: record.thumbnailPath,
+          fileSize: record.fileSize,
+          mimeType: record.mimeType,
+          uploadedAt: record.uploadedAt,
+        })),
+      });
+
+      // Return updated work order with photos
+      return await this.getWorkOrderById(workOrderId);
+    } catch (error) {
+      console.error('Error uploading work order photos:', error);
+      return null;
+    }
+  }
+
+  async getWorkOrderPhotos(workOrderId: string): Promise<WorkOrderPhoto[]> {
+    const photos = await this.prisma.workOrderPhoto.findMany({
+      where: { workOrderId },
+      orderBy: { uploadedAt: 'desc' },
+      select: {
+        id: true,
+        filename: true,
+        originalName: true,
+        filePath: true,
+        thumbnailPath: true,
+        fileSize: true,
+        mimeType: true,
+        uploadedAt: true,
+      },
+    });
+
+    return photos;
+  }
+
+  async getWorkOrderPhotoById(photoId: string): Promise<WorkOrderPhoto | null> {
+    const photo = await this.prisma.workOrderPhoto.findUnique({
+      where: { id: photoId },
+      select: {
+        id: true,
+        filename: true,
+        originalName: true,
+        filePath: true,
+        thumbnailPath: true,
+        fileSize: true,
+        mimeType: true,
+        uploadedAt: true,
+      },
+    });
+
+    return photo;
   }
 }
 

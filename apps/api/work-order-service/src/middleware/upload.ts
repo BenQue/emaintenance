@@ -10,8 +10,11 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Configure multer storage
-const storage = multer.diskStorage({
+// Configure multer storage - use memory storage for photo processing
+const storage = multer.memoryStorage();
+
+// Legacy disk storage for backward compatibility
+const diskStorage = multer.diskStorage({
   destination: (req: Request, file: Express.Multer.File, cb) => {
     cb(null, uploadDir);
   },
@@ -41,8 +44,8 @@ const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilt
   }
 };
 
-// Configure multer
-const upload = multer({
+// Configure multer for photo uploads (memory storage)
+const photoUpload = multer({
   storage,
   fileFilter,
   limits: {
@@ -51,11 +54,24 @@ const upload = multer({
   },
 });
 
-// Middleware for single file upload
-export const uploadSingle = upload.single('attachment');
+// Configure multer for legacy uploads (disk storage)
+const legacyUpload = multer({
+  storage: diskStorage,
+  fileFilter,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+    files: 5, // Maximum 5 files per request
+  },
+});
 
-// Middleware for multiple file upload
-export const uploadMultiple = upload.array('attachments', 5);
+// Middleware for single file upload (legacy)
+export const uploadSingle = legacyUpload.single('attachment');
+
+// Middleware for multiple file upload (legacy)
+export const uploadMultiple = legacyUpload.array('attachments', 5);
+
+// Middleware for photo uploads
+export const uploadPhotos = photoUpload.array('photos', 5);
 
 // Helper function to get file URL
 export const getFileUrl = (filename: string): string => {

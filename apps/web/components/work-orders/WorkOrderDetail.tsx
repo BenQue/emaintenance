@@ -26,6 +26,7 @@ import { StatusHistory } from './StatusHistory';
 import { StatusUpdateForm } from './StatusUpdateForm';
 import { ResolutionRecordForm } from './ResolutionRecordForm';
 import { ResolutionRecordDisplay } from './ResolutionRecordDisplay';
+import { WorkOrderPhotos } from './WorkOrderPhotos';
 import { cn } from '../../lib/utils';
 
 // Safe date formatting utility
@@ -395,6 +396,9 @@ export function WorkOrderDetail({ workOrderId }: WorkOrderDetailProps) {
               </CardContent>
             </Card>
           )}
+
+          {/* Work Order Photos */}
+          <WorkOrderPhotos workOrderId={currentWorkOrder.id} />
         </div>
       </div>
     </div>

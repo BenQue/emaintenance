@@ -45,6 +45,7 @@
     "@types/multer": "^2.0.0",
     "@types/qrcode": "^1.5.5",
     "@types/winston": "^2.4.4",
+    "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
     "cors": "^2.8.5",
@@ -54,6 +55,7 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",
     "qrcode": "^1.5.4",
+    "sharp": "^0.34.3",
     "winston": "^3.17.0",
     "zod": "^4.0.14"
   }

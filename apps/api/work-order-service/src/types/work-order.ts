@@ -63,6 +63,7 @@ export interface WorkOrderWithRelations {
     lastName: string;
     email: string;
   } | null;
+  photos?: WorkOrderPhoto[];
 }
 
 export interface WorkOrderFilters {
@@ -246,4 +247,30 @@ export interface WorkOrderForCSV {
   createdBy: string;
   assignedTo?: string | null;
   resolutionDescription?: string | null;
+}
+
+// Photo-related types
+export interface WorkOrderPhoto {
+  id: string;
+  workOrderId: string;
+  filename: string;
+  originalName: string;
+  filePath: string;
+  thumbnailPath: string | null;
+  fileSize: number;
+  mimeType: string;
+  uploadedAt: Date;
+}
+
+export interface PhotoUploadRequest {
+  photos: Express.Multer.File[];
+}
+
+export interface PhotoUploadResponse {
+  workOrder: WorkOrderWithRelations;
+  uploadedPhotos: WorkOrderPhoto[];
+}
+
+export interface PhotoListResponse {
+  photos: WorkOrderPhoto[];
 }

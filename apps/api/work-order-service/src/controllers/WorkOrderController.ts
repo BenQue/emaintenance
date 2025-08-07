@@ -13,12 +13,15 @@ import {
 } from '../utils/validation';
 import { AppError, asyncHandler } from '../utils/errorHandler';
 import { getFileUrl, getFilenameFromUrl, deleteFile } from '../middleware/upload';
+import { PhotoStorageService } from '../services/PhotoStorageService';
 
 export class WorkOrderController {
   private workOrderService: WorkOrderService;
+  private photoStorageService: PhotoStorageService;
 
   constructor(prisma: PrismaClient) {
     this.workOrderService = new WorkOrderService(prisma);
+    this.photoStorageService = new PhotoStorageService();
   }
 
   // Create new work order
@@ -436,6 +439,182 @@ export class WorkOrderController {
         uploadedPhotos: photoPaths,
       },
     });
+  });
+
+  // Upload photos to work order
+  uploadWorkOrderPhotos = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new AppError('用户未认证', 401);
+    }
+
+    const { id } = IdParamSchema.parse(req.params);
+
+    if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
+      throw new AppError('请选择要上传的图片文件', 400);
+    }
+
+    // Check if work order exists and user has access
+    const workOrder = await this.workOrderService.getWorkOrderById(id);
+    if (!workOrder) {
+      throw new AppError('工单不存在', 404);
+    }
+
+    // Check access permission - only creator, assignee, or SUPERVISOR/ADMIN
+    if (
+      workOrder.createdById !== req.user.id &&
+      workOrder.assignedToId !== req.user.id &&
+      !['SUPERVISOR', 'ADMIN'].includes(req.user.role)
+    ) {
+      throw new AppError('权限不足：无法访问此工单', 403);
+    }
+
+    // Save photos using PhotoStorageService
+    const photoRecords = [];
+    for (const file of req.files as Express.Multer.File[]) {
+      const photoRecord = await this.photoStorageService.savePhoto(file, id);
+      photoRecords.push(photoRecord);
+    }
+
+    // Update work order with photo records
+    const updatedWorkOrder = await this.workOrderService.uploadWorkOrderPhotos(
+      id,
+      photoRecords,
+      req.user.id
+    );
+
+    if (!updatedWorkOrder) {
+      throw new AppError('照片上传失败', 400);
+    }
+
+    res.json({
+      status: 'success',
+      message: '工单照片上传成功',
+      data: {
+        workOrder: updatedWorkOrder,
+        uploadedPhotos: photoRecords,
+      },
+    });
+  });
+
+  // Get photos for work order
+  getWorkOrderPhotos = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new AppError('用户未认证', 401);
+    }
+
+    const { id } = IdParamSchema.parse(req.params);
+
+    // Check if work order exists and user has access
+    const workOrder = await this.workOrderService.getWorkOrderById(id);
+    if (!workOrder) {
+      throw new AppError('工单不存在', 404);
+    }
+
+    // Check access permission
+    if (
+      workOrder.createdById !== req.user.id &&
+      workOrder.assignedToId !== req.user.id &&
+      !['SUPERVISOR', 'ADMIN'].includes(req.user.role)
+    ) {
+      throw new AppError('权限不足：无法访问此工单', 403);
+    }
+
+    const photos = await this.workOrderService.getWorkOrderPhotos(id);
+
+    res.json({
+      status: 'success',
+      data: {
+        photos,
+      },
+    });
+  });
+
+  // Get individual photo file
+  getWorkOrderPhoto = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new AppError('用户未认证', 401);
+    }
+
+    const { id, photoId } = req.params;
+
+    if (!id || !photoId) {
+      throw new AppError('工单ID和照片ID不能为空', 400);
+    }
+
+    // Check if work order exists and user has access
+    const workOrder = await this.workOrderService.getWorkOrderById(id);
+    if (!workOrder) {
+      throw new AppError('工单不存在', 404);
+    }
+
+    // Check access permission
+    if (
+      workOrder.createdById !== req.user.id &&
+      workOrder.assignedToId !== req.user.id &&
+      !['SUPERVISOR', 'ADMIN'].includes(req.user.role)
+    ) {
+      throw new AppError('权限不足：无法访问此工单', 403);
+    }
+
+    // Get photo metadata
+    const photo = await this.workOrderService.getWorkOrderPhotoById(photoId);
+    if (!photo) {
+      throw new AppError('照片不存在', 404);
+    }
+
+    // Get photo file path
+    const photoPath = await this.photoStorageService.getPhotoPath(photo.filePath);
+
+    // Set appropriate headers
+    res.setHeader('Content-Type', photo.mimeType);
+    res.setHeader('Content-Disposition', `inline; filename="${photo.originalName}"`);
+    res.setHeader('Cache-Control', 'public, max-age=86400'); // 24 hours cache
+
+    res.sendFile(photoPath);
+  });
+
+  // Get thumbnail for photo
+  getWorkOrderPhotoThumbnail = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new AppError('用户未认证', 401);
+    }
+
+    const { id, photoId } = req.params;
+
+    if (!id || !photoId) {
+      throw new AppError('工单ID和照片ID不能为空', 400);
+    }
+
+    // Check if work order exists and user has access
+    const workOrder = await this.workOrderService.getWorkOrderById(id);
+    if (!workOrder) {
+      throw new AppError('工单不存在', 404);
+    }
+
+    // Check access permission
+    if (
+      workOrder.createdById !== req.user.id &&
+      workOrder.assignedToId !== req.user.id &&
+      !['SUPERVISOR', 'ADMIN'].includes(req.user.role)
+    ) {
+      throw new AppError('权限不足：无法访问此工单', 403);
+    }
+
+    // Get photo metadata
+    const photo = await this.workOrderService.getWorkOrderPhotoById(photoId);
+    if (!photo || !photo.thumbnailPath) {
+      throw new AppError('缩略图不存在', 404);
+    }
+
+    // Get thumbnail file path
+    const thumbnailPath = await this.photoStorageService.getThumbnailPath(photo.thumbnailPath);
+
+    // Set appropriate headers
+    res.setHeader('Content-Type', 'image/jpeg');
+    res.setHeader('Content-Disposition', `inline; filename="thumb_${photo.originalName}"`);
+    res.setHeader('Cache-Control', 'public, max-age=86400'); // 24 hours cache
+
+    res.sendFile(thumbnailPath);
   });
 
   // Get asset maintenance history

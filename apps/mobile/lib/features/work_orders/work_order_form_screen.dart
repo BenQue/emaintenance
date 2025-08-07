@@ -54,15 +54,26 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
   }
 
   Future<void> _loadFormData() async {
+    print('WorkOrderForm: 开始加载表单数据...');
     setState(() {
       _isLoading = true;
     });
 
     try {
+      print('WorkOrderForm: 获取AssetService实例...');
       final assetService = await AssetService.getInstance();
+      
+      print('WorkOrderForm: 获取设备类别...');
       final categories = await assetService.getAssetCategories();
+      print('WorkOrderForm: 设备类别: $categories');
+      
+      print('WorkOrderForm: 获取故障原因...');
       final reasons = await assetService.getFailureReasons();
+      print('WorkOrderForm: 故障原因: $reasons');
+      
+      print('WorkOrderForm: 获取常用位置...');
       final locations = await assetService.getCommonLocations();
+      print('WorkOrderForm: 常用位置: $locations');
 
       setState(() {
         _categories = categories;
@@ -70,7 +81,9 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
         _commonLocations = locations;
         _isLoading = false;
       });
+      print('WorkOrderForm: 表单数据加载完成');
     } catch (e) {
+      print('WorkOrderForm: 加载表单数据失败: $e');
       setState(() {
         _isLoading = false;
       });
@@ -95,16 +108,34 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
   }
 
   Future<void> _capturePhoto() async {
-    final result = await Navigator.of(context).push<String>(
-      MaterialPageRoute(
-        builder: (context) => const PhotoCaptureScreen(),
-      ),
-    );
-    
-    if (result != null) {
-      setState(() {
-        _capturedImagePath = result;
-      });
+    print('WorkOrderForm: 开始拍照...');
+    try {
+      final result = await Navigator.of(context).push<String>(
+        MaterialPageRoute(
+          builder: (context) => const PhotoCaptureScreen(),
+        ),
+      );
+      
+      print('WorkOrderForm: 拍照结果: $result');
+      
+      if (result != null) {
+        setState(() {
+          _capturedImagePath = result;
+        });
+        print('WorkOrderForm: 照片路径已保存: $_capturedImagePath');
+      } else {
+        print('WorkOrderForm: 拍照被取消');
+      }
+    } catch (e) {
+      print('WorkOrderForm: 拍照错误: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('拍照失败: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -115,11 +146,15 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
   }
 
   Future<void> _submitWorkOrder() async {
+    print('WorkOrderForm: 开始提交工单...');
+    
     if (!_formKey.currentState!.validate()) {
+      print('WorkOrderForm: 表单验证失败');
       return;
     }
 
     if (_selectedCategory == null) {
+      print('WorkOrderForm: 未选择报修类别');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('请选择报修类别'),
@@ -130,6 +165,7 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
     }
 
     if (_selectedReason == null) {
+      print('WorkOrderForm: 未选择报修原因');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('请选择报修原因'),
@@ -144,16 +180,19 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
     });
 
     try {
+      print('WorkOrderForm: 获取用户信息...');
       final authProvider = context.read<AuthProvider>();
       final currentUser = authProvider.user;
       
       if (currentUser == null) {
         throw Exception('用户未登录');
       }
+      print('WorkOrderForm: 当前用户: ${currentUser.fullName}');
 
       if (widget.asset == null) {
         throw Exception('设备信息缺失');
       }
+      print('WorkOrderForm: 设备信息: ${widget.asset!.name}');
 
       final workOrder = WorkOrderRequest(
         title: _titleController.text.trim(),
@@ -167,10 +206,40 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
         assetId: widget.asset!.id,
         attachments: _capturedImagePath != null ? [_capturedImagePath!] : [],
       );
+      
+      print('WorkOrderForm: 工单数据: ${workOrder.title}, ${workOrder.category}, ${workOrder.reason}');
 
       // Submit work order to backend
+      print('WorkOrderForm: 获取WorkOrderService实例...');
       final workOrderService = await WorkOrderService.getInstance();
+      
+      print('WorkOrderForm: 调用创建工单API...');
       final createdWorkOrder = await workOrderService.createWorkOrder(workOrder);
+      
+      print('WorkOrderForm: 工单创建成功: ${createdWorkOrder.id}');
+
+      // Upload photo if captured
+      if (_capturedImagePath != null) {
+        print('WorkOrderForm: 上传工单故障照片...');
+        try {
+          await workOrderService.uploadWorkOrderPhotos(
+            createdWorkOrder.id,
+            [_capturedImagePath!],
+          );
+          print('WorkOrderForm: 故障照片上传成功');
+        } catch (e) {
+          print('WorkOrderForm: 故障照片上传失败: $e');
+          // Continue even if photo upload fails
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('照片上传失败: $e'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+        }
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -184,6 +253,7 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
     } catch (e) {
+      print('WorkOrderForm: 提交工单失败: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

@@ -4,23 +4,36 @@ import 'api_client.dart';
 
 class WorkOrderService {
   static WorkOrderService? _instance;
-  late final ApiClient _apiClient;
+  ApiClient? _apiClient;
 
   WorkOrderService._internal();
 
   static Future<WorkOrderService> getInstance() async {
-    _instance ??= WorkOrderService._internal();
-    _instance!._apiClient = await ApiClient.getInstance();
+    if (_instance == null) {
+      _instance = WorkOrderService._internal();
+      // 使用工单服务客户端，因为work-order相关API在work-order-service中
+      _instance!._apiClient = await ApiClient.getWorkOrderServiceClient();
+    }
     return _instance!;
   }
 
   /// Create a new work order
   Future<WorkOrder> createWorkOrder(WorkOrderRequest request) async {
     try {
-      final response = await _apiClient.post<Map<String, dynamic>>(
+      print('WorkOrderService: 创建工单请求数据: ${request.toJson()}');
+      print('WorkOrderService: 正在调用work-order服务API...');
+      
+      if (_apiClient == null) {
+        throw Exception('API client not initialized');
+      }
+      
+      final response = await _apiClient!.post<Map<String, dynamic>>(
         '/api/work-orders',
         data: request.toJson(),
       );
+
+      print('WorkOrderService: API响应状态: ${response.statusCode}');
+      print('WorkOrderService: API响应数据: ${response.data}');
 
       if (response.data == null) {
         throw Exception('Empty response from server');
@@ -29,6 +42,7 @@ class WorkOrderService {
       final workOrderData = response.data!['data']['workOrder'] as Map<String, dynamic>;
       return WorkOrder.fromJson(workOrderData);
     } catch (e) {
+      print('WorkOrderService: 创建工单错误: $e');
       throw Exception('Failed to create work order: $e');
     }
   }
@@ -36,7 +50,11 @@ class WorkOrderService {
   /// Get work order by ID
   Future<WorkOrder> getWorkOrder(String workOrderId) async {
     try {
-      final response = await _apiClient.get<Map<String, dynamic>>(
+      if (_apiClient == null) {
+        throw Exception('API client not initialized');
+      }
+      
+      final response = await _apiClient!.get<Map<String, dynamic>>(
         '/api/work-orders/$workOrderId',
       );
 
@@ -58,7 +76,11 @@ class WorkOrderService {
     int limit = 20,
   }) async {
     try {
-      final response = await _apiClient.get<Map<String, dynamic>>(
+      if (_apiClient == null) {
+        throw Exception('API client not initialized');
+      }
+      
+      final response = await _apiClient!.get<Map<String, dynamic>>(
         '/api/work-orders/my',
         queryParameters: {
           'type': type,
@@ -83,7 +105,11 @@ class WorkOrderService {
     int limit = 20,
   }) async {
     try {
-      final response = await _apiClient.get<Map<String, dynamic>>(
+      if (_apiClient == null) {
+        throw Exception('API client not initialized');
+      }
+      
+      final response = await _apiClient!.get<Map<String, dynamic>>(
         '/api/work-orders/assigned',
         queryParameters: {
           'page': page.toString(),
@@ -104,7 +130,11 @@ class WorkOrderService {
   /// Get work order with status history
   Future<WorkOrderWithRelations> getWorkOrderWithHistory(String workOrderId) async {
     try {
-      final response = await _apiClient.get<Map<String, dynamic>>(
+      if (_apiClient == null) {
+        throw Exception('API client not initialized');
+      }
+      
+      final response = await _apiClient!.get<Map<String, dynamic>>(
         '/api/work-orders/$workOrderId/history',
       );
 
@@ -122,7 +152,11 @@ class WorkOrderService {
   /// Get work order status history
   Future<List<WorkOrderStatusHistory>> getWorkOrderStatusHistory(String workOrderId) async {
     try {
-      final response = await _apiClient.get<Map<String, dynamic>>(
+      if (_apiClient == null) {
+        throw Exception('API client not initialized');
+      }
+      
+      final response = await _apiClient!.get<Map<String, dynamic>>(
         '/api/work-orders/$workOrderId/status-history',
       );
 
@@ -145,7 +179,11 @@ class WorkOrderService {
     UpdateWorkOrderStatusRequest request,
   ) async {
     try {
-      final response = await _apiClient.put<Map<String, dynamic>>(
+      if (_apiClient == null) {
+        throw Exception('API client not initialized');
+      }
+      
+      final response = await _apiClient!.put<Map<String, dynamic>>(
         '/api/work-orders/$workOrderId/status',
         data: request.toJson(),
       );
@@ -164,7 +202,11 @@ class WorkOrderService {
   /// Update work order
   Future<WorkOrder> updateWorkOrder(String workOrderId, Map<String, dynamic> updates) async {
     try {
-      final response = await _apiClient.put<Map<String, dynamic>>(
+      if (_apiClient == null) {
+        throw Exception('API client not initialized');
+      }
+      
+      final response = await _apiClient!.put<Map<String, dynamic>>(
         '/api/work-orders/$workOrderId',
         data: updates,
       );
@@ -187,7 +229,11 @@ class WorkOrderService {
         'file': await MultipartFile.fromFile(filePath),
       });
 
-      final response = await _apiClient.post<Map<String, dynamic>>(
+      if (_apiClient == null) {
+        throw Exception('API client not initialized');
+      }
+      
+      final response = await _apiClient!.post<Map<String, dynamic>>(
         '/api/work-orders/$workOrderId/attachments',
         data: formData,
         options: Options(
@@ -207,13 +253,91 @@ class WorkOrderService {
     }
   }
 
+  /// Upload photos to work order (for fault documentation and resolution)
+  Future<Map<String, dynamic>> uploadWorkOrderPhotos(
+    String workOrderId,
+    List<String> photoPaths,
+  ) async {
+    try {
+      print('WorkOrderService: 上传工单照片，工单ID: $workOrderId, 照片数量: ${photoPaths.length}');
+
+      final formData = FormData();
+      for (int i = 0; i < photoPaths.length; i++) {
+        formData.files.add(MapEntry(
+          'photos',
+          await MultipartFile.fromFile(photoPaths[i]),
+        ));
+      }
+
+      if (_apiClient == null) {
+        throw Exception('API client not initialized');
+      }
+      
+      final response = await _apiClient!.post<Map<String, dynamic>>(
+        '/api/work-orders/$workOrderId/work-order-photos',
+        data: formData,
+        options: Options(
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        ),
+      );
+
+      if (response.data == null) {
+        throw Exception('Empty response from server');
+      }
+
+      print('WorkOrderService: 工单照片上传成功');
+      return response.data!['data'] as Map<String, dynamic>;
+    } catch (e) {
+      print('WorkOrderService: 上传工单照片错误: $e');
+      throw Exception('Failed to upload work order photos: $e');
+    }
+  }
+
+  /// Get photos for a work order
+  Future<List<Map<String, dynamic>>> getWorkOrderPhotos(String workOrderId) async {
+    try {
+      if (_apiClient == null) {
+        throw Exception('API client not initialized');
+      }
+      
+      final response = await _apiClient!.get<Map<String, dynamic>>(
+        '/api/work-orders/$workOrderId/work-order-photos',
+      );
+
+      if (response.data == null) {
+        throw Exception('Empty response from server');
+      }
+
+      final photosData = response.data!['data']['photos'] as List;
+      return photosData.cast<Map<String, dynamic>>();
+    } catch (e) {
+      throw Exception('Failed to get work order photos: $e');
+    }
+  }
+
+  /// Get photo URL for display
+  String getPhotoUrl(String workOrderId, String photoId) {
+    return '/api/work-orders/$workOrderId/work-order-photos/$photoId';
+  }
+
+  /// Get thumbnail URL for display
+  String getThumbnailUrl(String workOrderId, String photoId) {
+    return '/api/work-orders/$workOrderId/work-order-photos/$photoId/thumbnail';
+  }
+
   /// Complete work order with resolution record
   Future<WorkOrderWithResolution> completeWorkOrder(
     String workOrderId,
     CreateResolutionRequest request,
   ) async {
     try {
-      final response = await _apiClient.post<Map<String, dynamic>>(
+      if (_apiClient == null) {
+        throw Exception('API client not initialized');
+      }
+      
+      final response = await _apiClient!.post<Map<String, dynamic>>(
         '/api/work-orders/$workOrderId/complete',
         data: request.toJson(),
       );
@@ -232,7 +356,11 @@ class WorkOrderService {
   /// Get work order with resolution record
   Future<WorkOrderWithResolution> getWorkOrderWithResolution(String workOrderId) async {
     try {
-      final response = await _apiClient.get<Map<String, dynamic>>(
+      if (_apiClient == null) {
+        throw Exception('API client not initialized');
+      }
+      
+      final response = await _apiClient!.get<Map<String, dynamic>>(
         '/api/work-orders/$workOrderId/resolution',
       );
 
@@ -258,7 +386,11 @@ class WorkOrderService {
           'attachments': await MultipartFile.fromFile(photoPaths[i]),
       });
 
-      final response = await _apiClient.post<Map<String, dynamic>>(
+      if (_apiClient == null) {
+        throw Exception('API client not initialized');
+      }
+      
+      final response = await _apiClient!.post<Map<String, dynamic>>(
         '/api/work-orders/$workOrderId/photos',
         data: formData,
         options: Options(

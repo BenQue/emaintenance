@@ -140,6 +140,7 @@ model WorkOrder {
   assignedTo      User?   @relation("AssignedTo", fields: [assignedToId], references: [id])
   notifications   Notification[]
   statusHistory   WorkOrderStatusHistory[]
+  photos          WorkOrderPhoto[]
   resolutionRecord ResolutionRecord?
   maintenanceHistory MaintenanceHistory?
 
@@ -170,6 +171,24 @@ model WorkOrderStatusHistory {
   @@index([workOrderId, createdAt])
   @@index([changedById])
   @@map("work_order_status_history")
+}
+
+model WorkOrderPhoto {
+  id               String   @id @default(cuid())
+  workOrderId      String
+  workOrder        WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+
+  filename         String   // Generated unique filename
+  originalName     String   // User's original filename  
+  filePath         String   // Relative storage path (year/month/filename)
+  thumbnailPath    String?  // Thumbnail path (year/month/thumbnails/thumb_filename)
+  fileSize         Int      // File size in bytes
+  mimeType         String   // Image MIME type
+
+  uploadedAt       DateTime @default(now())
+  
+  @@index([workOrderId])
+  @@map("work_order_photos")
 }
 
 model AssignmentRule {

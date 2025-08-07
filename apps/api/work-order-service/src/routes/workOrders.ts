@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { PrismaClient } from '@emaintanance/database';
 import { WorkOrderController } from '../controllers/WorkOrderController';
 import { authenticate, authorize, checkWorkOrderAccess } from '../middleware/auth';
-import { uploadSingle, uploadMultiple } from '../middleware/upload';
+import { uploadSingle, uploadMultiple, uploadPhotos } from '../middleware/upload';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -41,6 +41,12 @@ router.post('/:id/photos', checkWorkOrderAccess, uploadMultiple, workOrderContro
 
 // Asset maintenance history routes
 router.get('/assets/:assetId/maintenance-history', workOrderController.getAssetMaintenanceHistory);
+
+// Photo management routes
+router.post('/:id/work-order-photos', uploadPhotos, workOrderController.uploadWorkOrderPhotos);
+router.get('/:id/work-order-photos', workOrderController.getWorkOrderPhotos);
+router.get('/:id/work-order-photos/:photoId', workOrderController.getWorkOrderPhoto);
+router.get('/:id/work-order-photos/:photoId/thumbnail', workOrderController.getWorkOrderPhotoThumbnail);
 
 // KPI routes (supervisors and admins only)
 router.get('/kpi/mttr', authorize('SUPERVISOR', 'ADMIN'), workOrderController.getMTTRStatistics);

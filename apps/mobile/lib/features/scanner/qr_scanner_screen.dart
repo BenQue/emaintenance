@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:camera/camera.dart';
 import '../../shared/services/asset_service.dart';
+import '../../shared/services/api_client.dart';
 
 class QRScannerScreen extends StatefulWidget {
   const QRScannerScreen({super.key});
@@ -11,7 +13,7 @@ class QRScannerScreen extends StatefulWidget {
 }
 
 class _QRScannerScreenState extends State<QRScannerScreen> {
-  late MobileScannerController _controller;
+  MobileScannerController? _controller;
   bool _isLoading = false;
   bool _hasPermission = false;
   String? _errorMessage;
@@ -23,25 +25,86 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
   }
 
   Future<void> _initializeScanner() async {
-    // Request camera permission
-    final status = await Permission.camera.request();
-    if (status.isGranted) {
-      setState(() {
-        _hasPermission = true;
-      });
-      _controller = MobileScannerController();
-    } else {
+    try {
+      print('QRScanner: Starting initialization...');
+      
       setState(() {
         _hasPermission = false;
-        _errorMessage = '需要相机权限才能扫描二维码';
+        _errorMessage = '正在初始化相机...';
+      });
+      
+      // 首先检查权限状态
+      final status = await Permission.camera.status;
+      print('QRScanner: Current permission status: $status');
+      
+      if (status.isGranted) {
+        // 权限已授予，直接初始化 MobileScanner
+        print('QRScanner: Permission already granted, initializing MobileScanner directly...');
+        _controller = MobileScannerController();
+        setState(() {
+          _hasPermission = true;
+          _errorMessage = null;
+        });
+        return;
+      }
+      
+      // 权限未授予，使用直接相机访问来触发权限对话框
+      print('QRScanner: Permission not granted, trying direct camera access...');
+      final cameras = await availableCameras();
+      print('QRScanner: Found ${cameras.length} cameras');
+      
+      if (cameras.isEmpty) {
+        setState(() {
+          _hasPermission = false;
+          _errorMessage = '设备上没有可用的相机';
+        });
+        return;
+      }
+      
+      // 快速测试相机访问权限
+      print('QRScanner: Quick camera access test...');
+      final testController = CameraController(
+        cameras.first,
+        ResolutionPreset.low, // 使用低分辨率加快初始化
+      );
+      
+      try {
+        await testController.initialize();
+        print('QRScanner: Camera access successful');
+        await testController.dispose();
+        
+        // 权限成功后直接初始化 MobileScanner
+        _controller = MobileScannerController();
+        setState(() {
+          _hasPermission = true;
+          _errorMessage = null;
+        });
+        
+      } catch (cameraError) {
+        print('QRScanner: Camera access failed: $cameraError');
+        await testController.dispose();
+        
+        setState(() {
+          _hasPermission = false;
+          _errorMessage = '相机权限被拒绝。请在弹出的对话框中选择"允许"，或手动到设置中启用相机权限。';
+        });
+      }
+      
+    } catch (e) {
+      print('QRScanner: Error initializing scanner: $e');
+      setState(() {
+        _hasPermission = false;
+        _errorMessage = '初始化扫描器失败: ${e.toString()}';
       });
     }
   }
 
   @override
   void dispose() {
-    if (_hasPermission) {
-      _controller.dispose();
+    try {
+      _controller?.dispose();
+    } catch (e) {
+      print('Error disposing scanner controller: $e');
     }
     super.dispose();
   }
@@ -60,7 +123,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
 
         try {
           // Stop the scanner temporarily
-          await _controller.stop();
+          await _controller?.stop();
           
           // Fetch asset information
           final assetService = await AssetService.getInstance();
@@ -71,16 +134,27 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
             Navigator.of(context).pop(asset);
           }
         } catch (e) {
+          print('QRScanner: 扫码错误详情: $e');
           if (mounted) {
+            String errorMessage = '无法找到设备: $assetCode';
+            if (e is ApiException) {
+              errorMessage += '\n错误详情: ${e.message}';
+              if (e.statusCode != null) {
+                errorMessage += '\n状态码: ${e.statusCode}';
+              }
+            } else {
+              errorMessage += '\n错误详情: ${e.toString()}';
+            }
+            
             setState(() {
               _isLoading = false;
-              _errorMessage = '无法找到设备: $assetCode';
+              _errorMessage = errorMessage;
             });
             
             // Restart the scanner after error
-            await Future.delayed(const Duration(seconds: 2));
+            await Future.delayed(const Duration(seconds: 3)); // 给更多时间阅读错误信息
             if (mounted) {
-              await _controller.start();
+              await _controller?.start();
               setState(() {
                 _errorMessage = null;
               });
@@ -92,7 +166,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
   }
 
   void _toggleFlash() {
-    _controller.toggleTorch();
+    _controller?.toggleTorch();
   }
 
   @override
@@ -123,10 +197,15 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     return Stack(
       children: [
         // Scanner view
-        MobileScanner(
-          controller: _controller,
-          onDetect: _onBarcodeDetected,
-        ),
+        if (_controller != null)
+          MobileScanner(
+            controller: _controller!,
+            onDetect: _onBarcodeDetected,
+          )
+        else
+          const Center(
+            child: CircularProgressIndicator(),
+          ),
         
         // Overlay
         Container(
@@ -275,15 +354,66 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () async {
-                await openAppSettings();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('打开设置'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () async {
+                    // 使用与绿色测试按钮相同的直接相机访问方法
+                    setState(() {
+                      _errorMessage = '正在直接访问相机硬件（这会触发权限对话框）...';
+                    });
+
+                    try {
+                      print('重新请求: 直接获取相机列表...');
+                      final cameras = await availableCameras();
+                      print('重新请求: 找到 ${cameras.length} 个相机');
+                      
+                      if (cameras.isEmpty) {
+                        setState(() {
+                          _errorMessage = '没有找到可用的相机设备';
+                        });
+                        return;
+                      }
+
+                      // 直接尝试初始化相机 - 这会触发权限对话框
+                      final testController = CameraController(
+                        cameras.first,
+                        ResolutionPreset.medium,
+                      );
+
+                      await testController.initialize();
+                      print('重新请求: 相机控制器初始化成功！');
+                      await testController.dispose();
+
+                      // 成功后重新初始化扫描器
+                      await _initializeScanner();
+                      
+                    } catch (e) {
+                      print('重新请求: 相机访问错误: $e');
+                      setState(() {
+                        _errorMessage = '相机权限被拒绝。如果刚才弹出了权限对话框，请点击"允许"。';
+                      });
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('重新请求'),
+                ),
+                const SizedBox(width: 16),
+                ElevatedButton(
+                  onPressed: () async {
+                    await openAppSettings();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('打开设置'),
+                ),
+              ],
             ),
           ],
         ),

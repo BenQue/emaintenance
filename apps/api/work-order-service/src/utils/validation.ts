@@ -34,7 +34,7 @@ export const CreateWorkOrderSchema = z.object({
     .min(1, '设备ID不能为空')
     .optional(),
   
-  attachments: z.array(z.string().url('附件路径必须是有效的URL'))
+  attachments: z.array(z.string().min(1, '附件路径不能为空'))
     .max(10, '最多只能上传10个附件')
     .optional()
     .default([]),
@@ -82,7 +82,7 @@ export const UpdateWorkOrderSchema = z.object({
     .min(1, '分配用户ID不能为空')
     .optional(),
   
-  attachments: z.array(z.string().url('附件路径必须是有效的URL'))
+  attachments: z.array(z.string().min(1, '附件路径不能为空'))
     .max(10, '最多只能上传10个附件')
     .optional(),
 });

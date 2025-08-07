@@ -394,6 +394,26 @@ class WorkOrderService {
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
   }
+
+  async getWorkOrderPhotos(workOrderId: string): Promise<any[]> {
+    try {
+      const response = await this.request<{ photos: any[] }>(
+        `/api/work-orders/${workOrderId}/work-order-photos`
+      );
+      return response.photos || [];
+    } catch (error) {
+      console.error('Failed to fetch work order photos:', error);
+      throw error;
+    }
+  }
+
+  getWorkOrderPhotoUrl(workOrderId: string, photoId: string): string {
+    return `${API_BASE_URL}/api/work-orders/${workOrderId}/work-order-photos/${photoId}`;
+  }
+
+  getWorkOrderPhotoThumbnailUrl(workOrderId: string, photoId: string): string {
+    return `${API_BASE_URL}/api/work-orders/${workOrderId}/work-order-photos/${photoId}/thumbnail`;
+  }
 }
 
 export const workOrderService = new WorkOrderService();

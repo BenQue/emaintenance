@@ -225,10 +225,26 @@ class _WorkOrderCompletionScreenState extends State<WorkOrderCompletionScreen> {
 
     // Upload photos if any
     if (_selectedPhotos.isNotEmpty) {
-      await workOrderService.uploadResolutionPhotos(
-        widget.workOrder.id,
-        _selectedPhotos,
-      );
+      try {
+        // Upload both as resolution photos (legacy) and work order photos (new system)
+        await Future.wait([
+          workOrderService.uploadResolutionPhotos(
+            widget.workOrder.id,
+            _selectedPhotos,
+          ),
+          workOrderService.uploadWorkOrderPhotos(
+            widget.workOrder.id,
+            _selectedPhotos,
+          ),
+        ]);
+      } catch (e) {
+        print('Failed to upload some photos: $e');
+        // Try uploading just resolution photos (fallback)
+        await workOrderService.uploadResolutionPhotos(
+          widget.workOrder.id,
+          _selectedPhotos,
+        );
+      }
     }
 
     if (mounted) {

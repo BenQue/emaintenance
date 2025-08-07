@@ -108,13 +108,15 @@ class HomeScreen extends StatelessWidget {
             ),
           );
           
-          if (result != null && mounted) {
+          if (result != null) {
             // Navigate to work order form with scanned asset
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => WorkOrderFormScreen(asset: result),
-              ),
-            );
+            if (context.mounted) {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => WorkOrderFormScreen(asset: result),
+                ),
+              );
+            }
           }
         },
         backgroundColor: Colors.blue,

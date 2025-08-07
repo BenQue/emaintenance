@@ -26,43 +26,45 @@ class _PhotoCaptureScreenState extends State<PhotoCaptureScreen> {
   }
 
   Future<void> _initializeCamera() async {
-    // Request camera permission
-    final cameraStatus = await Permission.camera.request();
-    if (!cameraStatus.isGranted) {
+    print('PhotoCapture: 开始初始化相机...');
+    
+    try {
+      // 使用和QR扫描器相同的权限处理方式：直接调用availableCameras
+      // 这会自动触发权限请求对话框（如果需要的话）
+      _cameras = await availableCameras();
+      print('PhotoCapture: 找到 ${_cameras!.length} 个相机');
+      
+      if (_cameras!.isEmpty) {
+        setState(() {
+          _hasPermission = false;
+          _errorMessage = '设备上未找到相机';
+        });
+        return;
+      }
+
+      // 创建并初始化相机控制器
+      _cameraController = CameraController(
+        _cameras![0], // 使用后置相机
+        ResolutionPreset.high,
+      );
+      
+      print('PhotoCapture: 正在初始化相机控制器...');
+      await _cameraController!.initialize();
+      print('PhotoCapture: 相机控制器初始化成功');
+      
+      if (mounted) {
+        setState(() {
+          _hasPermission = true;
+          _isCameraInitialized = true;
+        });
+        print('PhotoCapture: 相机初始化完成，可以使用');
+      }
+      
+    } catch (e) {
+      print('PhotoCapture: 相机初始化失败: $e');
       setState(() {
         _hasPermission = false;
-        _errorMessage = '需要相机权限才能拍照';
-      });
-      return;
-    }
-
-    setState(() {
-      _hasPermission = true;
-    });
-
-    try {
-      _cameras = await availableCameras();
-      if (_cameras!.isNotEmpty) {
-        _cameraController = CameraController(
-          _cameras![0],
-          ResolutionPreset.high,
-        );
-        
-        await _cameraController!.initialize();
-        
-        if (mounted) {
-          setState(() {
-            _isCameraInitialized = true;
-          });
-        }
-      } else {
-        setState(() {
-          _errorMessage = '未找到可用相机';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage = '初始化相机失败: $e';
+        _errorMessage = '相机初始化失败: $e';
       });
     }
   }
@@ -281,20 +283,67 @@ class _PhotoCaptureScreenState extends State<PhotoCaptureScreen> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () async {
-                await openAppSettings();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('打开设置'),
+            Column(
+              children: [
+                // 权限测试按钮（和QR扫描器一样）
+                ElevatedButton(
+                  onPressed: _testCameraPermission,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(200, 48),
+                  ),
+                  child: const Text('测试相机权限'),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () async {
+                    await openAppSettings();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(200, 48),
+                  ),
+                  child: const Text('打开设置'),
+                ),
+              ],
             ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _testCameraPermission() async {
+    print('PhotoCapture: 测试相机权限...');
+    try {
+      // 使用和QR扫描器完全相同的权限测试方式
+      final cameras = await availableCameras();
+      print('PhotoCapture: 权限测试成功，找到 ${cameras.length} 个相机');
+      
+      if (cameras.isNotEmpty) {
+        // 创建一个临时的相机控制器来测试
+        final testController = CameraController(cameras.first, ResolutionPreset.low);
+        await testController.initialize();
+        await testController.dispose();
+        
+        print('PhotoCapture: 权限测试完成，重新初始化相机...');
+        
+        // 权限获取成功，重新初始化相机
+        setState(() {
+          _hasPermission = true;
+          _errorMessage = null;
+        });
+        
+        _initializeCamera();
+      }
+    } catch (e) {
+      print('PhotoCapture: 权限测试失败: $e');
+      setState(() {
+        _errorMessage = '相机权限测试失败: $e';
+      });
+    }
   }
 }
 

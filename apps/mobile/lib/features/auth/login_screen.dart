@@ -12,13 +12,13 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -31,7 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final authProvider = context.read<AuthProvider>();
     
     final success = await authProvider.login(
-      email: _emailController.text.trim(),
+      identifier: _usernameController.text.trim(),
       password: _passwordController.text,
     );
 
@@ -93,21 +93,21 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 48),
 
-                    // Email field
+                    // Username field
                     TextFormField(
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
+                      controller: _usernameController,
+                      keyboardType: TextInputType.text,
                       textInputAction: TextInputAction.next,
                       enabled: !authProvider.isLoading,
                       decoration: const InputDecoration(
-                        labelText: '邮箱地址',
-                        hintText: '请输入您的邮箱地址',
-                        prefixIcon: Icon(Icons.email_outlined),
+                        labelText: '用户名',
+                        hintText: '请输入您的用户名',
+                        prefixIcon: Icon(Icons.person_outline),
                         border: OutlineInputBorder(),
                       ),
                       validator: FormBuilderValidators.compose([
-                        FormBuilderValidators.required(errorText: '请输入邮箱地址'),
-                        FormBuilderValidators.email(errorText: '请输入有效的邮箱地址'),
+                        FormBuilderValidators.required(errorText: '请输入用户名'),
+                        FormBuilderValidators.minLength(3, errorText: '用户名至少需要3个字符'),
                       ]),
                     ),
                     const SizedBox(height: 16),
@@ -230,9 +230,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              '员工: employee@example.com / password123\n'
-                              '技术员: technician@example.com / password123\n'
-                              '主管: supervisor@example.com / password123',
+                              '员工: employee / password123\n'
+                              '技术员: technician / password123\n'
+                              '主管: supervisor / password123\n'
+                              '管理员: admin / password123',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.blue.shade600,

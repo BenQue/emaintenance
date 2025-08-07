@@ -49,6 +49,7 @@ interface WorkOrderState {
   updateWorkOrderStatus: (id: string, statusUpdate: UpdateWorkOrderStatusRequest) => Promise<void>;
   completeWorkOrder: (id: string, resolutionData: CreateResolutionRequest) => Promise<void>;
   uploadResolutionPhotos: (id: string, photos: File[]) => Promise<string[]>;
+  fetchWorkOrderPhotos: (id: string) => Promise<any[]>;
   createWorkOrder: (workOrderData: CreateWorkOrderData) => Promise<WorkOrder>;
   clearCurrentWorkOrder: () => void;
   clearError: () => void;
@@ -229,6 +230,16 @@ export const useWorkOrderStore = create<WorkOrderState>()(
             error: error instanceof Error ? error.message : 'Failed to upload resolution photos',
             loading: false,
           });
+          throw error;
+        }
+      },
+
+      fetchWorkOrderPhotos: async (id: string): Promise<any[]> => {
+        try {
+          const photos = await workOrderService.getWorkOrderPhotos(id);
+          return photos;
+        } catch (error) {
+          console.error('Failed to fetch work order photos:', error);
           throw error;
         }
       },

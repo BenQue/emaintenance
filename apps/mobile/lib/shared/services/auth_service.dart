@@ -10,15 +10,15 @@ class AuthService {
   
   static Future<AuthService> getInstance() async {
     _instance ??= AuthService._internal();
-    _instance!._apiClient = await ApiClient.getInstance();
+    _instance!._apiClient = await ApiClient.getUserServiceClient();
     return _instance!;
   }
   
   Future<AuthResponse> login({
-    required String email,
+    required String identifier,
     required String password,
   }) async {
-    final loginRequest = LoginRequest(email: email, password: password);
+    final loginRequest = LoginRequest(identifier: identifier, password: password);
     
     final response = await _apiClient.post<Map<String, dynamic>>(
       '/api/auth/login',

@@ -1,16 +1,17 @@
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/environment.dart';
 
 class ApiClient {
-  static const String baseUrl = 'http://localhost:3000'; // TODO: Configure based on environment
+  final String _baseUrl;
   late final Dio _dio;
   late final SharedPreferences _prefs;
   
   static ApiClient? _instance;
   
-  ApiClient._internal() {
+  ApiClient._internal(this._baseUrl) {
     _dio = Dio(BaseOptions(
-      baseUrl: baseUrl,
+      baseUrl: _baseUrl,
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
       sendTimeout: const Duration(seconds: 10),
@@ -40,10 +41,26 @@ class ApiClient {
     ));
   }
   
-  static Future<ApiClient> getInstance() async {
-    _instance ??= ApiClient._internal();
-    _instance!._prefs = await SharedPreferences.getInstance();
+  static Future<ApiClient> getInstance({String? baseUrl}) async {
+    final url = baseUrl ?? Environment.userServiceUrl; // 默认使用用户服务
+    if (_instance == null || _instance!._baseUrl != url) {
+      _instance = ApiClient._internal(url);
+      _instance!._prefs = await SharedPreferences.getInstance();
+    }
     return _instance!;
+  }
+  
+  // 为不同服务创建特定的客户端实例
+  static Future<ApiClient> getUserServiceClient() async {
+    return await getInstance(baseUrl: Environment.userServiceUrl);
+  }
+  
+  static Future<ApiClient> getWorkOrderServiceClient() async {
+    return await getInstance(baseUrl: Environment.workOrderServiceUrl);
+  }
+  
+  static Future<ApiClient> getAssetServiceClient() async {
+    return await getInstance(baseUrl: Environment.assetServiceUrl);
   }
   
   Future<String?> getToken() async {
