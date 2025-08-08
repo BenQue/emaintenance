@@ -101,7 +101,10 @@ export const WorkOrderQuerySchema = z.object({
     .optional()
     .default('20'),
   
-  status: WorkOrderStatusSchema.optional(),
+  status: z.union([
+    WorkOrderStatusSchema,
+    z.enum(['NOT_COMPLETED', 'ACTIVE']) // Support special filter statuses (ACTIVE for backward compatibility)
+  ]).optional(),
   
   priority: PrioritySchema.optional(),
   

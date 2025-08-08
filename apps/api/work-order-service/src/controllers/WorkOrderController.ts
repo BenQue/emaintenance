@@ -52,11 +52,20 @@ export class WorkOrderController {
   getWorkOrder = asyncHandler(async (req: Request, res: Response) => {
     const { id } = IdParamSchema.parse(req.params);
 
+    console.log(`[DEBUG] WorkOrderController.getWorkOrder: Fetching work order ID: ${id}`);
+    
     const workOrder = await this.workOrderService.getWorkOrderById(id);
 
     if (!workOrder) {
+      console.log(`[WARNING] WorkOrderController.getWorkOrder: Work order not found for ID: ${id}`);
       throw new AppError('工单不存在', 404);
     }
+
+    console.log(`[DEBUG] WorkOrderController.getWorkOrder: Successfully retrieved work order "${workOrder.title}" with asset data:`, {
+      assetId: workOrder.asset?.id,
+      assetName: workOrder.asset?.name,
+      assetCode: workOrder.asset?.assetCode,
+    });
 
     res.json({
       status: 'success',
@@ -70,8 +79,14 @@ export class WorkOrderController {
   getWorkOrders = asyncHandler(async (req: Request, res: Response) => {
     const queryParams = WorkOrderQuerySchema.parse(req.query);
     
+    // Handle backward compatibility for ACTIVE status
+    let statusFilter = queryParams.status;
+    if (queryParams.status === 'ACTIVE') {
+      statusFilter = 'NOT_COMPLETED';
+    }
+    
     const filters = {
-      status: queryParams.status,
+      status: statusFilter,
       priority: queryParams.priority,
       assetId: queryParams.assetId,
       createdById: queryParams.createdById,
@@ -335,11 +350,21 @@ export class WorkOrderController {
   getWorkOrderWithHistory = asyncHandler(async (req: Request, res: Response) => {
     const { id } = IdParamSchema.parse(req.params);
 
+    console.log(`[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: ${id}`);
+    
     const workOrder = await this.workOrderService.getWorkOrderWithStatusHistory(id);
 
     if (!workOrder) {
+      console.log(`[WARNING] WorkOrderController.getWorkOrderWithHistory: Work order not found for ID: ${id}`);
       throw new AppError('工单不存在', 404);
     }
+
+    console.log(`[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "${workOrder.title}" with ${workOrder.statusHistory?.length || 0} status history entries and asset:`, {
+      assetId: workOrder.asset?.id,
+      assetName: workOrder.asset?.name,
+      hasStatusHistory: !!workOrder.statusHistory,
+      statusHistoryCount: workOrder.statusHistory?.length || 0,
+    });
 
     res.json({
       status: 'success',

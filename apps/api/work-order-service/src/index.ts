@@ -11,17 +11,38 @@ import { globalErrorHandler } from './utils/errorHandler';
 const app = express();
 const PORT = process.env.PORT || 3002;
 
-// Rate limiting
-const limiter = rateLimit({
+// Rate limiting configuration
+const isDevelopment = process.env.NODE_ENV === 'development';
+
+// General rate limiter for most operations (viewing, listing)
+const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'development' ? 1000 : 100, // Higher limit for development
-  message: 'Too many requests from this IP, please try again later.',
+  max: isDevelopment ? 10000 : 1000, // High limit for viewing operations
+  message: {
+    error: 'Too many requests from this IP, please try again later.',
+    retryAfter: Math.ceil(15 * 60 * 1000 / 1000),
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Strict rate limiter for create/update/delete operations
+const strictLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: isDevelopment ? 200 : 50, // Stricter limit for write operations
+  message: {
+    error: 'Too many create/update requests from this IP, please try again later.',
+    retryAfter: Math.ceil(15 * 60 * 1000 / 1000),
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
 });
 
 // Middleware
 app.use(helmet());
 app.use(cors());
-app.use(limiter);
+// Apply general rate limiter to all routes by default
+app.use(generalLimiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 

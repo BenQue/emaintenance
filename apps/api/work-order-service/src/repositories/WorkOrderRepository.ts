@@ -49,37 +49,55 @@ export class WorkOrderRepository {
   }
 
   async findById(id: string): Promise<WorkOrderWithRelations | null> {
-    const workOrder = await this.prisma.workOrder.findUnique({
-      where: { id },
-      include: {
-        asset: {
-          select: {
-            id: true,
-            assetCode: true,
-            name: true,
-            location: true,
+    try {
+      console.log(`[DEBUG] WorkOrderRepository.findById: Searching for work order ID: ${id}`);
+      
+      const workOrder = await this.prisma.workOrder.findUnique({
+        where: { id },
+        include: {
+          asset: {
+            select: {
+              id: true,
+              assetCode: true,
+              name: true,
+              location: true,
+              description: true,
+              model: true,
+              manufacturer: true,
+              serialNumber: true,
+              isActive: true,
+            },
+          },
+          createdBy: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+          assignedTo: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
           },
         },
-        createdBy: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-          },
-        },
-        assignedTo: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-          },
-        },
-      },
-    });
+      });
 
-    return workOrder as WorkOrderWithRelations | null;
+      if (workOrder) {
+        console.log(`[DEBUG] WorkOrderRepository.findById: Found work order "${workOrder.title}" with asset "${workOrder.asset.name}"`);
+      } else {
+        console.log(`[DEBUG] WorkOrderRepository.findById: No work order found with ID: ${id}`);
+      }
+
+      return workOrder as WorkOrderWithRelations | null;
+    } catch (error) {
+      console.error(`[ERROR] WorkOrderRepository.findById: Database query failed for ID ${id}:`, error);
+      throw error;
+    }
   }
 
   async findMany(
@@ -434,7 +452,14 @@ export class WorkOrderRepository {
     const where: any = {};
 
     if (filters.status) {
-      where.status = filters.status;
+      // Handle special "NOT_COMPLETED" status to exclude completed work orders
+      if (filters.status === 'NOT_COMPLETED') {
+        where.status = {
+          not: WorkOrderStatus.COMPLETED
+        };
+      } else {
+        where.status = filters.status;
+      }
     }
 
     if (filters.priority) {

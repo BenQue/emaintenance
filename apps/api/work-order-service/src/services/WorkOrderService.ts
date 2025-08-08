@@ -16,6 +16,14 @@ export class WorkOrderService {
     this.notificationService = new NotificationService(prisma);
   }
 
+  async getWorkOrders(
+    filters: WorkOrderFilters = {},
+    page: number = 1,
+    limit: number = 20
+  ): Promise<PaginatedWorkOrders> {
+    return this.workOrderRepository.findMany(filters, page, limit);
+  }
+
   async createWorkOrder(
     data: CreateWorkOrderRequest,
     createdById: string
@@ -390,6 +398,11 @@ export class WorkOrderService {
             assetCode: true,
             name: true,
             location: true,
+            description: true,
+            model: true,
+            manufacturer: true,
+            serialNumber: true,
+            isActive: true,
           }
         },
         createdBy: {
