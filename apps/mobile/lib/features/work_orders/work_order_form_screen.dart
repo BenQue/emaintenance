@@ -37,6 +37,7 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
   
   bool _isLoading = false;
   bool _isSubmitting = false;
+  bool _hasSubmitted = false;
 
   @override
   void initState() {
@@ -148,6 +149,12 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
   Future<void> _submitWorkOrder() async {
     print('WorkOrderForm: 开始提交工单...');
     
+    // Prevent multiple submissions
+    if (_isSubmitting || _hasSubmitted) {
+      print('WorkOrderForm: 工单正在提交或已经提交，忽略重复请求');
+      return;
+    }
+    
     if (!_formKey.currentState!.validate()) {
       print('WorkOrderForm: 表单验证失败');
       return;
@@ -217,6 +224,11 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
       final createdWorkOrder = await workOrderService.createWorkOrder(workOrder);
       
       print('WorkOrderForm: 工单创建成功: ${createdWorkOrder.id}');
+      
+      // Mark as submitted to prevent multiple submissions
+      setState(() {
+        _hasSubmitted = true;
+      });
 
       // Upload photo if captured
       if (_capturedImagePath != null) {
@@ -246,11 +258,26 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
           SnackBar(
             content: Text('工单提交成功 - 工单号: ${createdWorkOrder.id}'),
             backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
           ),
         );
         
-        // Navigate back to home
-        Navigator.of(context).popUntil((route) => route.isFirst);
+        // Wait a moment for the snackbar to show, then navigate
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        if (mounted) {
+          // Navigate back to home screen
+          print('WorkOrderForm: 开始返回主页面...');
+          print('WorkOrderForm: 当前路由栈深度: ${Navigator.of(context).canPop()}');
+          
+          // Use a more reliable navigation approach
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            '/home',
+            (route) => false, // Remove all previous routes
+          );
+          
+          print('WorkOrderForm: 已执行导航返回主页');
+        }
       }
     } catch (e) {
       print('WorkOrderForm: 提交工单失败: $e');
@@ -592,7 +619,7 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
       child: SizedBox(
         height: 50,
         child: ElevatedButton(
-          onPressed: _isSubmitting ? null : _submitWorkOrder,
+          onPressed: (_isSubmitting || _hasSubmitted) ? null : _submitWorkOrder,
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.blue,
             foregroundColor: Colors.white,
@@ -606,10 +633,15 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                   ),
                 )
-              : const Text(
-                  '提交工单',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
+              : _hasSubmitted
+                  ? const Text(
+                      '已提交',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    )
+                  : const Text(
+                      '提交工单',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
         ),
       ),
     );

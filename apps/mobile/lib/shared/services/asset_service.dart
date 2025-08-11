@@ -1,8 +1,19 @@
 import '../models/asset.dart';
 import 'api_client.dart';
 
+class AssetValidationResult {
+  final bool exists;
+  final Asset? asset;
+
+  const AssetValidationResult({
+    required this.exists,
+    this.asset,
+  });
+}
+
 class AssetService {
   late final ApiClient _apiClient;
+  late final ApiClient _assetServiceClient;
   
   static AssetService? _instance;
   
@@ -13,6 +24,8 @@ class AssetService {
       _instance = AssetService._internal();
       // 使用用户服务客户端，因为asset相关API在user service中
       _instance!._apiClient = await ApiClient.getUserServiceClient();
+      // 为手工输入功能使用专门的资产服务客户端
+      _instance!._assetServiceClient = await ApiClient.getAssetServiceClient();
     }
     return _instance!;
   }
@@ -59,6 +72,125 @@ class AssetService {
     } catch (e) {
       print('AssetService: 查找设备失败: $e');
       rethrow;
+    }
+  }
+
+  // Manual asset code input methods
+  Future<List<Asset>> searchAssetsByCode(
+    String partialCode, {
+    String? location,
+    bool? isActive,
+    int limit = 10,
+  }) async {
+    print('AssetService: 搜索资产代码: $partialCode');
+    
+    final queryParameters = <String, dynamic>{
+      'code': partialCode,
+      'limit': limit,
+    };
+    
+    if (location != null && location.isNotEmpty) {
+      queryParameters['location'] = location;
+    }
+    
+    if (isActive != null) {
+      queryParameters['status'] = isActive ? 'ACTIVE' : 'INACTIVE';
+    }
+    
+    try {
+      final response = await _assetServiceClient.get<Map<String, dynamic>>(
+        '/api/assets/search-by-code',
+        queryParameters: queryParameters,
+      );
+      
+      print('AssetService: 代码搜索响应: ${response.data}');
+      
+      if (response.data == null || response.data!['success'] != true) {
+        return [];
+      }
+      
+      final List<dynamic> assetsData = response.data!['data'] as List<dynamic>;
+      return assetsData
+          .map((json) => Asset.fromJson(json as Map<String, dynamic>))
+          .toList();
+      
+    } catch (e) {
+      print('AssetService: 搜索资产代码失败: $e');
+      return [];
+    }
+  }
+
+  Future<AssetValidationResult> validateAssetCode(String assetCode) async {
+    print('AssetService: 验证资产代码: $assetCode');
+    
+    try {
+      final response = await _assetServiceClient.get<Map<String, dynamic>>(
+        '/api/assets/validate',
+        queryParameters: {'code': assetCode},
+      );
+      
+      print('AssetService: 验证响应: ${response.data}');
+      
+      if (response.data == null) {
+        return AssetValidationResult(exists: false);
+      }
+      
+      final bool exists = response.data!['exists'] == true;
+      Asset? asset;
+      
+      if (exists && response.data!['asset'] != null) {
+        asset = Asset.fromJson(response.data!['asset'] as Map<String, dynamic>);
+      }
+      
+      return AssetValidationResult(exists: exists, asset: asset);
+      
+    } catch (e) {
+      print('AssetService: 验证资产代码失败: $e');
+      return AssetValidationResult(exists: false);
+    }
+  }
+
+  Future<List<Asset>> getAssetSuggestions(
+    String input, {
+    String? location,
+    bool? isActive,
+    int limit = 10,
+  }) async {
+    print('AssetService: 获取资产建议: $input');
+    
+    final queryParameters = <String, dynamic>{
+      'input': input,
+      'limit': limit,
+    };
+    
+    if (location != null && location.isNotEmpty) {
+      queryParameters['location'] = location;
+    }
+    
+    if (isActive != null) {
+      queryParameters['status'] = isActive ? 'ACTIVE' : 'INACTIVE';
+    }
+    
+    try {
+      final response = await _assetServiceClient.get<Map<String, dynamic>>(
+        '/api/assets/suggest',
+        queryParameters: queryParameters,
+      );
+      
+      print('AssetService: 建议响应: ${response.data}');
+      
+      if (response.data == null || response.data!['success'] != true) {
+        return [];
+      }
+      
+      final List<dynamic> assetsData = response.data!['data'] as List<dynamic>;
+      return assetsData
+          .map((json) => Asset.fromJson(json as Map<String, dynamic>))
+          .toList();
+      
+    } catch (e) {
+      print('AssetService: 获取资产建议失败: $e');
+      return [];
     }
   }
   

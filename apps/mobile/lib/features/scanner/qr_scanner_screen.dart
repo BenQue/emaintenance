@@ -4,6 +4,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:camera/camera.dart';
 import '../../shared/services/asset_service.dart';
 import '../../shared/services/api_client.dart';
+import '../../shared/models/asset.dart';
+import '../assets/asset_code_input_screen.dart';
 
 class QRScannerScreen extends StatefulWidget {
   const QRScannerScreen({super.key});
@@ -169,6 +171,48 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     _controller?.toggleTorch();
   }
 
+  Future<void> _showManualInput() async {
+    try {
+      // 暂停扫描器以避免冲突
+      await _controller?.stop();
+      
+      // 导航到手工输入界面
+      final result = await Navigator.of(context).push<Asset>(
+        MaterialPageRoute(
+          builder: (context) => AssetCodeInputScreen(
+            title: '手工输入资产代码',
+            subtitle: '当无法扫描二维码时，可以手工输入资产代码进行查找',
+            showQROption: false, // 不显示QR选项，因为我们已经在QR界面了
+            onAssetSelected: (asset) {
+              Navigator.of(context).pop(asset);
+            },
+          ),
+        ),
+      );
+      
+      if (result != null && mounted) {
+        // 返回选中的资产到上一个界面
+        Navigator.of(context).pop(result);
+      } else {
+        // 用户取消了，重启扫描器
+        await _controller?.start();
+      }
+    } catch (e) {
+      print('Manual input error: $e');
+      // 发生错误，重启扫描器
+      await _controller?.start();
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('打开手工输入失败: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -177,6 +221,12 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         actions: [
+          // 手工输入资产代码按钮
+          IconButton(
+            icon: const Icon(Icons.keyboard),
+            onPressed: _showManualInput,
+            tooltip: '手工输入资产代码',
+          ),
           if (_hasPermission)
             IconButton(
               icon: const Icon(Icons.flash_on),
@@ -258,6 +308,23 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                     fontSize: 14,
                   ),
                   textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                // 手工输入按钮
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _showManualInput,
+                    icon: const Icon(Icons.keyboard, color: Colors.white),
+                    label: const Text(
+                      '手工输入资产代码',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.white),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
                 ),
               ],
             ),
