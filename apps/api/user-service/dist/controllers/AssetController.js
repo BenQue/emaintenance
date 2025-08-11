@@ -55,6 +55,28 @@ class AssetController {
         }
     };
     /**
+     * Get asset by code (for QR scanning)
+     */
+    getAssetByCode = async (req, res) => {
+        try {
+            const { code } = req.params;
+            if (!code) {
+                return res.status(400).json((0, errorHandler_1.createErrorResponse)('Asset code is required', 400));
+            }
+            const asset = await this.assetService.getAssetByCode(code);
+            if (!asset) {
+                return res.status(404).json((0, errorHandler_1.createErrorResponse)('Asset not found', 404));
+            }
+            res.status(200).json((0, errorHandler_1.createSuccessResponse)(asset));
+        }
+        catch (error) {
+            console.error('Get asset by code error:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Failed to get asset by code';
+            const statusCode = error instanceof Error ? (0, errorHandler_1.getErrorStatusCode)(error) : 500;
+            res.status(statusCode).json((0, errorHandler_1.createErrorResponse)(errorMessage, statusCode));
+        }
+    };
+    /**
      * List assets with pagination and filtering
      */
     listAssets = async (req, res) => {

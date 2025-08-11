@@ -11,6 +11,10 @@ export declare class AssetController {
      */
     getAssetById: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
     /**
+     * Get asset by code (for QR scanning)
+     */
+    getAssetByCode: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
+    /**
      * List assets with pagination and filtering
      */
     listAssets: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;

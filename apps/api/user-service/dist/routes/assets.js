@@ -6,7 +6,9 @@ const auth_1 = require("../middleware/auth");
 const rateLimiter_1 = require("../middleware/rateLimiter");
 const router = (0, express_1.Router)();
 const assetController = new AssetController_1.AssetController();
-// All asset routes require authentication and SUPERVISOR/ADMIN role
+// QR scanning route - only requires authentication (for mobile app)
+router.get('/code/:code', auth_1.authenticate, rateLimiter_1.generalRateLimit, assetController.getAssetByCode);
+// All other asset routes require authentication and SUPERVISOR/ADMIN role
 router.use(auth_1.authenticate);
 router.use(auth_1.requireSupervisor);
 // Asset CRUD routes

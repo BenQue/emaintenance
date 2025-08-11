@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Eye, Calendar, User, Wrench } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
@@ -33,31 +33,48 @@ export function AdvancedWorkOrderList({
   } = useWorkOrderFilterStore();
 
   const [workOrders, setWorkOrders] = useState<PaginatedWorkOrders | null>(null);
+  const loadingRef = useRef<boolean>(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Load work orders when filters or pagination changes
-  useEffect(() => {
-    loadWorkOrders();
-  }, [filters, currentPage, pageSize]);
+  // Load work orders  
+  const loadWorkOrders = useCallback(async () => {
+    // Prevent multiple simultaneous requests
+    if (loadingRef.current) {
+      return;
+    }
 
-  const loadWorkOrders = async () => {
     try {
+      loadingRef.current = true;
       setLoading(true);
       setError(null);
       
+      console.log('AdvancedWorkOrderList - Loading with filters:', filters);
       const result = await workOrderService.getAllWorkOrders(
         filters,
         currentPage,
         pageSize
       );
       
+      console.log('AdvancedWorkOrderList - API result:', result);
+      console.log('Setting workOrders state with result:', result);
       setWorkOrders(result);
     } catch (error) {
-      console.error('Failed to load work orders:', error);
-      setError('Failed to load work orders');
+      console.error('Failed to load work orders - detailed error:', error);
+      console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
+      setError(`Failed to load work orders: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
-  };
+  }, [filters, currentPage, pageSize, setLoading, setError]);
+
+  // Load work orders when filters or pagination changes
+  useEffect(() => {
+    // Only load if filters are initialized (has sortBy means store is ready)
+    if (filters.sortBy) {
+      loadWorkOrders();
+    }
+  }, [loadWorkOrders, filters.sortBy]);
 
   const getPriorityBadgeVariant = (priority: string) => {
     switch (priority) {
@@ -156,7 +173,11 @@ export function AdvancedWorkOrderList({
     );
   }
 
+  console.log('Render check - workOrders state:', workOrders);
+  console.log('Render check - isLoading:', isLoading);
+
   if (!workOrders || workOrders.workOrders.length === 0) {
+    console.log('Rendering empty state - workOrders:', workOrders);
     return (
       <Card className="p-8 text-center">
         <p className="text-gray-500">没有找到符合条件的工单</p>

@@ -226,7 +226,13 @@ NEXT_PUBLIC_API_URL="http://localhost:3001"
 - JWT tokens should include refresh token mechanism
 - Implement CSRF protection for web application
 - Add input sanitization and validation middleware
-- Rate limiting should be implemented for authentication endpoints
+- ✅ **Rate Limiting Implemented**: Comprehensive API rate limiting with differentiated policies for read vs write operations
 - Ensure all sensitive data is properly excluded from version control
+
+### Recent Security Enhancements (2025-08-08)
+- **分层速率限制策略**: 实施了区分查看操作和创建/修改操作的差异化速率限制
+  - 查看操作：开发环境 10,000/15分钟，生产环境 1,000/15分钟
+  - 写操作：开发环境 200/15分钟，生产环境 50/15分钟
+  - 解决了 429 错误，提升了用户体验和系统安全性
 
 When working with this codebase, always consider the microservices architecture, maintain consistency with established patterns, and ensure proper role-based access control is implemented for any new features.

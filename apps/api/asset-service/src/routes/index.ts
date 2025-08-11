@@ -75,6 +75,25 @@ router.get(
   assetController.searchAssets.bind(assetController)
 );
 
+// Manual asset code input endpoints
+router.get(
+  '/assets/search-by-code',
+  authenticate, // All authenticated users can search by asset code
+  assetController.searchAssetsByCode.bind(assetController)
+);
+
+router.get(
+  '/assets/validate',
+  authenticate, // All authenticated users can validate asset codes
+  assetController.validateAssetCode.bind(assetController)
+);
+
+router.get(
+  '/assets/suggest',
+  authenticate, // All authenticated users can get asset suggestions
+  assetController.getAssetSuggestions.bind(assetController)
+);
+
 router.get(
   '/assets/stats',
   authenticate,

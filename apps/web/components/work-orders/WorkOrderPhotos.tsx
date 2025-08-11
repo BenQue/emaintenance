@@ -39,11 +39,29 @@ export function WorkOrderPhotos({ workOrderId }: WorkOrderPhotosProps) {
     try {
       setLoading(true);
       setError(null);
+      
+      // Check if we have authentication token before making the request
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        console.warn('No auth token found, skipping photo loading');
+        setError('请先登录');
+        return;
+      }
+      
       const photosData = await fetchWorkOrderPhotos(workOrderId);
       setPhotos(photosData || []);
     } catch (err) {
       console.error('Failed to load work order photos:', err);
-      setError('加载照片失败');
+      const errorMessage = err instanceof Error ? err.message : '加载照片失败';
+      
+      // Provide more specific error messages
+      if (errorMessage.includes('工单不存在')) {
+        setError('工单不存在或无访问权限');
+      } else if (errorMessage.includes('认证') || errorMessage.includes('token')) {
+        setError('认证已过期，请重新登录');
+      } else {
+        setError('加载照片失败');
+      }
     } finally {
       setLoading(false);
     }
@@ -61,13 +79,35 @@ export function WorkOrderPhotos({ workOrderId }: WorkOrderPhotosProps) {
       : getPhotoUrl(photo);
   };
 
-  const downloadPhoto = (photo: WorkOrderPhoto) => {
-    const link = document.createElement('a');
-    link.href = getPhotoUrl(photo);
-    link.download = photo.originalName;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const downloadPhoto = async (photo: WorkOrderPhoto) => {
+    try {
+      // Create authenticated download request
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(getPhotoUrl(photo), {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Download failed');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = photo.originalName;
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download photo:', error);
+    }
   };
 
   const formatFileSize = (bytes: number): string => {

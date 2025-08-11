@@ -57,13 +57,19 @@ interface WorkOrderFilterState {
 const initialFilters: WorkOrderFilters = {
   sortBy: 'reportedAt',
   sortOrder: 'desc',
+  // Default to show only active work orders (exclude COMPLETED)
+  status: 'NOT_COMPLETED',
 };
 
 export const useWorkOrderFilterStore = create<WorkOrderFilterState>()(
   persist(
     (set, get) => ({
-      // State
-      filters: initialFilters,
+      // State - explicitly set initial filters
+      filters: {
+        sortBy: 'reportedAt',
+        sortOrder: 'desc',
+        status: 'NOT_COMPLETED',
+      },
       filterOptions: null,
       isLoading: false,
       error: null,
@@ -177,7 +183,7 @@ export const useWorkOrderFilterStore = create<WorkOrderFilterState>()(
       },
     }),
     {
-      name: 'work-order-filters',
+      name: 'work-order-filters-v2', // Change storage key to force reset
       partialize: (state) => ({
         filters: state.filters,
         pageSize: state.pageSize,

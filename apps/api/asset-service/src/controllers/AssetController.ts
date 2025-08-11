@@ -101,7 +101,15 @@ export class AssetController {
   async getAssetById(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
+      console.log(`[DEBUG] AssetController.getAssetById: Fetching asset ID: ${id}`);
+      
       const asset = await this.assetService.getAssetById(id);
+
+      if (asset) {
+        console.log(`[DEBUG] AssetController.getAssetById: Successfully retrieved asset "${asset.name}" (${asset.assetCode})`);
+      } else {
+        console.log(`[WARNING] AssetController.getAssetById: Asset not found for ID: ${id}`);
+      }
 
       res.json({
         success: true,
@@ -110,6 +118,8 @@ export class AssetController {
       });
     } catch (error) {
       const correlationId = req.headers['x-correlation-id'];
+      console.error(`[ERROR] AssetController.getAssetById: Failed to fetch asset ID ${req.params.id}:`, error);
+      
       logger.error('Error fetching asset by ID', {
         correlationId,
         assetId: req.params.id,
@@ -287,6 +297,144 @@ export class AssetController {
       res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : 'Failed to search assets',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  /**
+   * Search assets by partial code for autocomplete
+   * GET /api/assets/search?code={partialCode}
+   */
+  async searchAssetsByCode(req: Request, res: Response): Promise<void> {
+    try {
+      const { code, location, status, limit } = req.query;
+      
+      if (!code || typeof code !== 'string') {
+        res.status(400).json({
+          success: false,
+          error: 'Search code parameter "code" is required',
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+
+      const filters = {
+        location: location as string,
+        isActive: status === 'ACTIVE' ? true : status === 'INACTIVE' ? false : undefined,
+        limit: limit ? parseInt(limit as string, 10) : undefined,
+      };
+
+      const assets = await this.assetService.searchAssetsByCode(code, filters);
+
+      res.json({
+        success: true,
+        data: assets,
+        query: { code, ...filters },
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      const correlationId = req.headers['x-correlation-id'];
+      logger.error('Error searching assets by code', {
+        correlationId,
+        query: req.query,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to search assets by code',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  /**
+   * Validate exact asset code existence
+   * GET /api/assets/validate?code={fullCode}
+   */
+  async validateAssetCode(req: Request, res: Response): Promise<void> {
+    try {
+      const { code } = req.query;
+      
+      if (!code || typeof code !== 'string') {
+        res.status(400).json({
+          success: false,
+          error: 'Asset code parameter "code" is required',
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+
+      const result = await this.assetService.validateAssetCode(code);
+
+      res.json({
+        success: true,
+        data: {
+          exists: result.exists,
+          asset: result.asset || null,
+        },
+        query: { code },
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      const correlationId = req.headers['x-correlation-id'];
+      logger.error('Error validating asset code', {
+        correlationId,
+        query: req.query,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to validate asset code',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  /**
+   * Get asset suggestions with fuzzy matching
+   * GET /api/assets/suggest?input={userInput}
+   */
+  async getAssetSuggestions(req: Request, res: Response): Promise<void> {
+    try {
+      const { input, location, status, limit } = req.query;
+      
+      if (!input || typeof input !== 'string') {
+        res.status(400).json({
+          success: false,
+          error: 'Search input parameter "input" is required',
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+
+      const filters = {
+        location: location as string,
+        isActive: status === 'ACTIVE' ? true : status === 'INACTIVE' ? false : undefined,
+        limit: limit ? parseInt(limit as string, 10) : undefined,
+      };
+
+      const suggestions = await this.assetService.getAssetSuggestions(input, filters);
+
+      res.json({
+        success: true,
+        data: suggestions,
+        query: { input, ...filters },
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      const correlationId = req.headers['x-correlation-id'];
+      logger.error('Error getting asset suggestions', {
+        correlationId,
+        query: req.query,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to get asset suggestions',
         timestamp: new Date().toISOString(),
       });
     }

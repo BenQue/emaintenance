@@ -102,13 +102,27 @@ export const useWorkOrderStore = create<WorkOrderState>()(
       loadWorkOrderWithHistory: async (id: string) => {
         set({ loading: true, error: null });
         try {
+          console.log(`[DEBUG] WorkOrderStore.loadWorkOrderWithHistory: Loading work order ID: ${id}`);
           const workOrder = await workOrderService.getWorkOrderWithHistory(id);
+          
+          console.log(`[DEBUG] WorkOrderStore.loadWorkOrderWithHistory: Received work order data:`, {
+            id: workOrder?.id,
+            title: workOrder?.title,
+            category: workOrder?.category,
+            reason: workOrder?.reason,
+            assetId: workOrder?.asset?.id,
+            assetName: workOrder?.asset?.name,
+            hasStatusHistory: !!workOrder?.statusHistory,
+            statusHistoryCount: workOrder?.statusHistory?.length || 0,
+          });
+          
           set({
             currentWorkOrder: workOrder,
             statusHistory: workOrder.statusHistory,
             loading: false,
           });
         } catch (error) {
+          console.error(`[ERROR] WorkOrderStore.loadWorkOrderWithHistory: Failed to load work order ID ${id}:`, error);
           set({
             error: error instanceof Error ? error.message : 'Failed to load work order',
             loading: false,
@@ -170,12 +184,25 @@ export const useWorkOrderStore = create<WorkOrderState>()(
       loadWorkOrderWithResolution: async (id: string) => {
         set({ loading: true, error: null });
         try {
+          console.log(`[DEBUG] WorkOrderStore.loadWorkOrderWithResolution: Loading work order resolution for ID: ${id}`);
           const workOrder = await workOrderService.getWorkOrderWithResolution(id);
+          
+          console.log(`[DEBUG] WorkOrderStore.loadWorkOrderWithResolution: Received work order resolution data:`, {
+            id: workOrder?.id,
+            title: workOrder?.title,
+            category: workOrder?.category,
+            reason: workOrder?.reason,
+            assetId: workOrder?.asset?.id,
+            assetName: workOrder?.asset?.name,
+            hasResolution: !!workOrder?.resolutionRecord,
+          });
+          
           set({
             currentWorkOrderWithResolution: workOrder,
             loading: false,
           });
         } catch (error) {
+          console.error(`[ERROR] WorkOrderStore.loadWorkOrderWithResolution: Failed to load work order resolution for ID ${id}:`, error);
           set({
             error: error instanceof Error ? error.message : 'Failed to load work order with resolution',
             loading: false,

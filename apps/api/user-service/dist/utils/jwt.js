@@ -18,10 +18,11 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
  * Generate a JWT token for a user
  */
 function generateToken(payload) {
-    return jsonwebtoken_1.default.sign(payload, JWT_SECRET, {
+    const options = {
         expiresIn: JWT_EXPIRES_IN,
         issuer: 'emaintanance-user-service',
-    });
+    };
+    return jsonwebtoken_1.default.sign(payload, JWT_SECRET, options);
 }
 /**
  * Verify and decode a JWT token

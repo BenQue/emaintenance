@@ -90,6 +90,7 @@ describe('PhotoStorageService', () => {
       expect(mockedSharp().jpeg).toHaveBeenCalledWith({
         quality: 80,
         progressive: true,
+        mozjpeg: true,
       });
       expect(mockedSharp().toFile).toHaveBeenCalled();
     });

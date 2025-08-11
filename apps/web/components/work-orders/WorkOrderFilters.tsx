@@ -159,6 +159,58 @@ export function WorkOrderFilters({ onFiltersChange, onExport }: WorkOrderFilters
         </div>
       </div>
 
+      {/* Quick Status Filters */}
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant={filters.status === 'NOT_COMPLETED' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setFilter('status', 'NOT_COMPLETED')}
+          className="flex items-center gap-1"
+        >
+          进行中工单（默认）
+        </Button>
+        <Button
+          variant={filters.status === 'PENDING' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setFilter('status', 'PENDING')}
+          className="flex items-center gap-1"
+        >
+          待处理工单
+        </Button>
+        <Button
+          variant={filters.status === 'IN_PROGRESS' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setFilter('status', 'IN_PROGRESS')}
+          className="flex items-center gap-1"
+        >
+          进行中
+        </Button>
+        <Button
+          variant={filters.status === 'WAITING_PARTS' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setFilter('status', 'WAITING_PARTS')}
+          className="flex items-center gap-1"
+        >
+          等待配件
+        </Button>
+        <Button
+          variant={filters.status === 'COMPLETED' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setFilter('status', 'COMPLETED')}
+          className="flex items-center gap-1"
+        >
+          已完成工单
+        </Button>
+        <Button
+          variant={!filters.status || filters.status === '' || filters.status === undefined ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setFilter('status', undefined)}
+          className="flex items-center gap-1"
+        >
+          全部工单
+        </Button>
+      </div>
+
       {/* Advanced Filters */}
       {showAdvancedFilters && (
         <div className="border-t pt-4 space-y-4">
@@ -175,6 +227,7 @@ export function WorkOrderFilters({ onFiltersChange, onExport }: WorkOrderFilters
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">所有状态</option>
+                <option value="ACTIVE">进行中工单（未完成）</option>
                 {filterOptions?.statuses.map((status) => (
                   <option key={status} value={status}>
                     {getStatusLabel(status)}
@@ -339,21 +392,30 @@ export function WorkOrderFilters({ onFiltersChange, onExport }: WorkOrderFilters
           </div>
 
           {/* Active Filters Display */}
-          {Object.values(filters).some(value => value && value !== 'reportedAt' && value !== 'desc') && (
+          {Object.values(filters).some(value => value && value !== 'reportedAt' && value !== 'desc' && value !== 'NOT_COMPLETED') && (
             <div className="pt-4 border-t">
               <div className="flex flex-wrap gap-2">
                 <span className="text-sm font-medium text-gray-700">活动筛选:</span>
                 {Object.entries(filters).map(([key, value]) => {
-                  if (!value || value === 'reportedAt' || value === 'desc') return null;
+                  // Skip default values and the NOT_COMPLETED status (it's the default state)
+                  if (!value || value === 'reportedAt' || value === 'desc' || value === 'NOT_COMPLETED') return null;
+                  
+                  // Get display value
+                  let displayValue = value;
+                  if (key === 'status') {
+                    displayValue = getStatusLabel(value);
+                  } else if (key === 'priority') {
+                    displayValue = getPriorityLabel(value);
+                  }
                   
                   return (
                     <span
                       key={key}
                       className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
                     >
-                      {key}: {value}
+                      {key === 'status' ? '状态' : key === 'priority' ? '优先级' : key}: {displayValue}
                       <button
-                        onClick={() => setFilter(key as keyof WorkOrderFilters, undefined)}
+                        onClick={() => setFilter(key as keyof WorkOrderFilters, key === 'status' ? 'NOT_COMPLETED' : undefined)}
                         className="text-blue-600 hover:text-blue-800"
                       >
                         <X className="h-3 w-3" />

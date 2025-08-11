@@ -1,703 +1,167 @@
 
 > @emaintanance/asset-service@1.0.0 dev
-> ts-node src/index.ts
+> NODE_ENV=development ts-node src/index.ts
 
-[32minfo[39m: Asset service started successfully {"environment":"development","port":3003,"service":"asset-service","timestamp":"2025-08-06T12:07:53.994Z","version":"1.0.0"}
-2025-08-06 20:07:53 [asset-service] [32minfo[39m: Asset service started successfully {
+[32minfo[39m: Asset service started successfully {"environment":"development","port":3003,"service":"asset-service","timestamp":"2025-08-11T13:45:56.338Z","version":"1.0.0"}
+2025-08-11 21:45:56 [asset-service] [32minfo[39m: Asset service started successfully {
   "version": "1.0.0",
   "port": 3003,
   "environment": "development"
 }
-[33mwarn[39m: Route not found {"ip":"::1","method":"GET","path":"/health","service":"asset-service","timestamp":"2025-08-06T12:08:01.803Z","version":"1.0.0"}
-2025-08-06 20:08:01 [asset-service] [33mwarn[39m: Route not found {
+[32minfo[39m: Incoming request {"correlationId":"asset-1754919962176","ip":"::1","method":"GET","path":"/health","query":{},"service":"asset-service","timestamp":"2025-08-11T13:46:02.176Z","userAgent":"curl/8.7.1","version":"1.0.0"}
+2025-08-11 21:46:02 [asset-service] [32minfo[39m: Incoming request {
   "version": "1.0.0",
+  "correlationId": "asset-1754919962176",
+  "method": "GET",
   "path": "/health",
-  "method": "GET",
-  "ip": "::1"
-}
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482086063","ip":"::1","method":"GET","path":"/assets","query":{},"service":"asset-service","timestamp":"2025-08-06T12:08:06.063Z","userAgent":"curl/8.7.1","version":"1.0.0"}
-2025-08-06 20:08:06 [asset-service] [32minfo[39m: Incoming request {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482086063",
-  "method": "GET",
-  "path": "/assets",
   "query": {},
   "userAgent": "curl/8.7.1",
   "ip": "::1"
 }
-[33mwarn[39m: Authentication failed: No Bearer token provided {"correlationId":"asset-1754482086063","method":"GET","path":"/assets","service":"asset-service","timestamp":"2025-08-06T12:08:06.066Z","version":"1.0.0"}
-2025-08-06 20:08:06 [asset-service] [33mwarn[39m: Authentication failed: No Bearer token provided {
+[32minfo[39m: Request completed {"correlationId":"asset-1754919962176","duration":"5ms","method":"GET","path":"/health","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-11T13:46:02.181Z","version":"1.0.0"}
+2025-08-11 21:46:02 [asset-service] [32minfo[39m: Request completed {
   "version": "1.0.0",
-  "correlationId": "asset-1754482086063",
-  "path": "/assets",
-  "method": "GET"
-}
-[32minfo[39m: Request completed {"correlationId":"asset-1754482086063","duration":"3ms","method":"GET","path":"/assets","service":"asset-service","statusCode":401,"success":false,"timestamp":"2025-08-06T12:08:06.066Z","version":"1.0.0"}
-2025-08-06 20:08:06 [asset-service] [32minfo[39m: Request completed {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482086063",
+  "correlationId": "asset-1754919962176",
   "method": "GET",
-  "path": "/assets",
-  "statusCode": 401,
-  "duration": "3ms",
-  "success": false
-}
-[33mwarn[39m: Request failed {"correlationId":"asset-1754482086063","duration":"3ms","method":"GET","path":"/assets","responseBody":{"error":"Access token required","success":false,"timestamp":"2025-08-06T12:08:06.066Z"},"service":"asset-service","statusCode":401,"timestamp":"2025-08-06T12:08:06.066Z","version":"1.0.0"}
-2025-08-06 20:08:06 [asset-service] [33mwarn[39m: Request failed {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482086063",
-  "method": "GET",
-  "path": "/assets",
-  "statusCode": 401,
-  "duration": "3ms",
-  "responseBody": {
-    "success": false,
-    "error": "Access token required",
-    "timestamp": "2025-08-06T12:08:06.066Z"
-  }
-}
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482094159","ip":"::1","method":"GET","path":"/assets/kpi/downtime-ranking","query":{"limit":"5","timeRange":"month"},"service":"asset-service","timestamp":"2025-08-06T12:08:14.159Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","version":"1.0.0"}
-2025-08-06 20:08:14 [asset-service] [32minfo[39m: Incoming request {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482094159",
-  "method": "GET",
-  "path": "/assets/kpi/downtime-ranking",
-  "query": {
-    "timeRange": "month",
-    "limit": "5"
-  },
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-  "ip": "::1"
-}
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482094163","ip":"::1","method":"GET","path":"/assets/kpi/fault-frequency","query":{"limit":"5","timeRange":"month"},"service":"asset-service","timestamp":"2025-08-06T12:08:14.163Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","version":"1.0.0"}
-2025-08-06 20:08:14 [asset-service] [32minfo[39m: Incoming request {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482094163",
-  "method": "GET",
-  "path": "/assets/kpi/fault-frequency",
-  "query": {
-    "timeRange": "month",
-    "limit": "5"
-  },
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-  "ip": "::1"
-}
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482094164","ip":"::1","method":"GET","path":"/assets/kpi/maintenance-cost","query":{"limit":"5","timeRange":"month"},"service":"asset-service","timestamp":"2025-08-06T12:08:14.164Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","version":"1.0.0"}
-2025-08-06 20:08:14 [asset-service] [32minfo[39m: Incoming request {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482094164",
-  "method": "GET",
-  "path": "/assets/kpi/maintenance-cost",
-  "query": {
-    "timeRange": "month",
-    "limit": "5"
-  },
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-  "ip": "::1"
-}
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482094165","ip":"::1","method":"GET","path":"/assets/kpi/health-overview","query":{"timeRange":"month"},"service":"asset-service","timestamp":"2025-08-06T12:08:14.165Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","version":"1.0.0"}
-2025-08-06 20:08:14 [asset-service] [32minfo[39m: Incoming request {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482094165",
-  "method": "GET",
-  "path": "/assets/kpi/health-overview",
-  "query": {
-    "timeRange": "month"
-  },
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-  "ip": "::1"
-}
-[32minfo[39m: Request completed {"correlationId":"asset-1754482094163","duration":"49ms","method":"GET","path":"/assets/kpi/fault-frequency","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-06T12:08:14.212Z","version":"1.0.0"}
-2025-08-06 20:08:14 [asset-service] [32minfo[39m: Request completed {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482094163",
-  "method": "GET",
-  "path": "/assets/kpi/fault-frequency",
-  "statusCode": 200,
-  "duration": "49ms",
-  "success": true
-}
-[32minfo[39m: Request completed {"correlationId":"asset-1754482094164","duration":"50ms","method":"GET","path":"/assets/kpi/maintenance-cost","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-06T12:08:14.214Z","version":"1.0.0"}
-2025-08-06 20:08:14 [asset-service] [32minfo[39m: Request completed {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482094164",
-  "method": "GET",
-  "path": "/assets/kpi/maintenance-cost",
-  "statusCode": 200,
-  "duration": "50ms",
-  "success": true
-}
-[32minfo[39m: Request completed {"correlationId":"asset-1754482094165","duration":"54ms","method":"GET","path":"/assets/kpi/health-overview","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-06T12:08:14.219Z","version":"1.0.0"}
-2025-08-06 20:08:14 [asset-service] [32minfo[39m: Request completed {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482094165",
-  "method": "GET",
-  "path": "/assets/kpi/health-overview",
-  "statusCode": 200,
-  "duration": "54ms",
-  "success": true
-}
-[32minfo[39m: Request completed {"correlationId":"asset-1754482094159","duration":"63ms","method":"GET","path":"/assets/kpi/downtime-ranking","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-06T12:08:14.222Z","version":"1.0.0"}
-2025-08-06 20:08:14 [asset-service] [32minfo[39m: Request completed {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482094159",
-  "method": "GET",
-  "path": "/assets/kpi/downtime-ranking",
-  "statusCode": 200,
-  "duration": "63ms",
-  "success": true
-}
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482116377","ip":"::1","method":"GET","path":"/assets/kpi/downtime-ranking","query":{"limit":"5","timeRange":"month"},"service":"asset-service","timestamp":"2025-08-06T12:08:36.377Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Incoming request {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482116377",
-  "method": "GET",
-  "path": "/assets/kpi/downtime-ranking",
-  "query": {
-    "timeRange": "month",
-    "limit": "5"
-  },
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-  "ip": "::1"
-}
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482116378","ip":"::1","method":"GET","path":"/assets/kpi/health-overview","query":{"timeRange":"month"},"service":"asset-service","timestamp":"2025-08-06T12:08:36.378Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Incoming request {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482116378",
-  "method": "GET",
-  "path": "/assets/kpi/health-overview",
-  "query": {
-    "timeRange": "month"
-  },
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-  "ip": "::1"
-}
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482116379","ip":"::1","method":"GET","path":"/assets/kpi/fault-frequency","query":{"limit":"5","timeRange":"month"},"service":"asset-service","timestamp":"2025-08-06T12:08:36.379Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Incoming request {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482116379",
-  "method": "GET",
-  "path": "/assets/kpi/fault-frequency",
-  "query": {
-    "timeRange": "month",
-    "limit": "5"
-  },
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-  "ip": "::1"
-}
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482116379","ip":"::1","method":"GET","path":"/assets/kpi/maintenance-cost","query":{"limit":"5","timeRange":"month"},"service":"asset-service","timestamp":"2025-08-06T12:08:36.379Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Incoming request {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482116379",
-  "method": "GET",
-  "path": "/assets/kpi/maintenance-cost",
-  "query": {
-    "timeRange": "month",
-    "limit": "5"
-  },
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-  "ip": "::1"
-}
-[32minfo[39m: Request completed {"correlationId":"asset-1754482116378","duration":"5ms","method":"GET","path":"/assets/kpi/health-overview","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-06T12:08:36.383Z","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Request completed {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482116378",
-  "method": "GET",
-  "path": "/assets/kpi/health-overview",
+  "path": "/health",
   "statusCode": 200,
   "duration": "5ms",
   "success": true
 }
-[32minfo[39m: Request completed {"correlationId":"asset-1754482116379","duration":"4ms","method":"GET","path":"/assets/kpi/fault-frequency","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-06T12:08:36.383Z","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Request completed {
+[32minfo[39m: Incoming request {"correlationId":"asset-1754920138401","ip":"::ffff:192.168.31.82","method":"GET","path":"/assets/validate","query":{"code":"TEST002"},"service":"asset-service","timestamp":"2025-08-11T13:48:58.402Z","userAgent":"Dart/3.8 (dart:io)","version":"1.0.0"}
+2025-08-11 21:48:58 [asset-service] [32minfo[39m: Incoming request {
   "version": "1.0.0",
-  "correlationId": "asset-1754482116379",
+  "correlationId": "asset-1754920138401",
   "method": "GET",
-  "path": "/assets/kpi/fault-frequency",
+  "path": "/assets/validate",
+  "query": {
+    "code": "TEST002"
+  },
+  "userAgent": "Dart/3.8 (dart:io)",
+  "ip": "::ffff:192.168.31.82"
+}
+[32minfo[39m: Request completed {"correlationId":"asset-1754920138401","duration":"50ms","method":"GET","path":"/assets/validate","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-11T13:48:58.451Z","version":"1.0.0"}
+2025-08-11 21:48:58 [asset-service] [32minfo[39m: Request completed {
+  "version": "1.0.0",
+  "correlationId": "asset-1754920138401",
+  "method": "GET",
+  "path": "/assets/validate",
   "statusCode": 200,
-  "duration": "4ms",
+  "duration": "50ms",
   "success": true
 }
-[32minfo[39m: Request completed {"correlationId":"asset-1754482116379","duration":"4ms","method":"GET","path":"/assets/kpi/maintenance-cost","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-06T12:08:36.383Z","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Request completed {
+[32minfo[39m: Incoming request {"correlationId":"asset-1754920138479","ip":"::ffff:192.168.31.82","method":"GET","path":"/assets/suggest","query":{"input":"TEST002","limit":"10"},"service":"asset-service","timestamp":"2025-08-11T13:48:58.479Z","userAgent":"Dart/3.8 (dart:io)","version":"1.0.0"}
+2025-08-11 21:48:58 [asset-service] [32minfo[39m: Incoming request {
   "version": "1.0.0",
-  "correlationId": "asset-1754482116379",
+  "correlationId": "asset-1754920138479",
   "method": "GET",
-  "path": "/assets/kpi/maintenance-cost",
+  "path": "/assets/suggest",
+  "query": {
+    "input": "TEST002",
+    "limit": "10"
+  },
+  "userAgent": "Dart/3.8 (dart:io)",
+  "ip": "::ffff:192.168.31.82"
+}
+[32minfo[39m: Request completed {"correlationId":"asset-1754920138479","duration":"5ms","method":"GET","path":"/assets/suggest","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-11T13:48:58.484Z","version":"1.0.0"}
+2025-08-11 21:48:58 [asset-service] [32minfo[39m: Request completed {
+  "version": "1.0.0",
+  "correlationId": "asset-1754920138479",
+  "method": "GET",
+  "path": "/assets/suggest",
   "statusCode": 200,
-  "duration": "4ms",
+  "duration": "5ms",
   "success": true
 }
-[32minfo[39m: Request completed {"correlationId":"asset-1754482116377","duration":"6ms","method":"GET","path":"/assets/kpi/downtime-ranking","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-06T12:08:36.383Z","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Request completed {
+[32minfo[39m: Incoming request {"correlationId":"asset-1754920397324","ip":"::ffff:192.168.31.82","method":"GET","path":"/assets/suggest","query":{"input":"E","limit":"10"},"service":"asset-service","timestamp":"2025-08-11T13:53:17.324Z","userAgent":"Dart/3.8 (dart:io)","version":"1.0.0"}
+2025-08-11 21:53:17 [asset-service] [32minfo[39m: Incoming request {
   "version": "1.0.0",
-  "correlationId": "asset-1754482116377",
+  "correlationId": "asset-1754920397324",
   "method": "GET",
-  "path": "/assets/kpi/downtime-ranking",
+  "path": "/assets/suggest",
+  "query": {
+    "input": "E",
+    "limit": "10"
+  },
+  "userAgent": "Dart/3.8 (dart:io)",
+  "ip": "::ffff:192.168.31.82"
+}
+[32minfo[39m: Request completed {"correlationId":"asset-1754920397324","duration":"6ms","method":"GET","path":"/assets/suggest","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-11T13:53:17.330Z","version":"1.0.0"}
+2025-08-11 21:53:17 [asset-service] [32minfo[39m: Request completed {
+  "version": "1.0.0",
+  "correlationId": "asset-1754920397324",
+  "method": "GET",
+  "path": "/assets/suggest",
   "statusCode": 200,
   "duration": "6ms",
   "success": true
 }
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482116384","ip":"::1","method":"GET","path":"/assets/kpi/health-overview","query":{"timeRange":"month"},"service":"asset-service","timestamp":"2025-08-06T12:08:36.384Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Incoming request {
+[32minfo[39m: Incoming request {"correlationId":"asset-1754920399369","ip":"::ffff:192.168.31.82","method":"GET","path":"/assets/suggest","query":{"input":"Eq","limit":"10"},"service":"asset-service","timestamp":"2025-08-11T13:53:19.369Z","userAgent":"Dart/3.8 (dart:io)","version":"1.0.0"}
+2025-08-11 21:53:19 [asset-service] [32minfo[39m: Incoming request {
   "version": "1.0.0",
-  "correlationId": "asset-1754482116384",
+  "correlationId": "asset-1754920399369",
   "method": "GET",
-  "path": "/assets/kpi/health-overview",
+  "path": "/assets/suggest",
   "query": {
-    "timeRange": "month"
+    "input": "Eq",
+    "limit": "10"
   },
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-  "ip": "::1"
+  "userAgent": "Dart/3.8 (dart:io)",
+  "ip": "::ffff:192.168.31.82"
 }
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482116385","ip":"::1","method":"GET","path":"/assets/kpi/fault-frequency","query":{"limit":"5","timeRange":"month"},"service":"asset-service","timestamp":"2025-08-06T12:08:36.385Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Incoming request {
+[32minfo[39m: Request completed {"correlationId":"asset-1754920399369","duration":"7ms","method":"GET","path":"/assets/suggest","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-11T13:53:19.376Z","version":"1.0.0"}
+2025-08-11 21:53:19 [asset-service] [32minfo[39m: Request completed {
   "version": "1.0.0",
-  "correlationId": "asset-1754482116385",
+  "correlationId": "asset-1754920399369",
   "method": "GET",
-  "path": "/assets/kpi/fault-frequency",
-  "query": {
-    "timeRange": "month",
-    "limit": "5"
-  },
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-  "ip": "::1"
-}
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482116385","ip":"::1","method":"GET","path":"/assets/kpi/maintenance-cost","query":{"limit":"5","timeRange":"month"},"service":"asset-service","timestamp":"2025-08-06T12:08:36.385Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Incoming request {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482116385",
-  "method": "GET",
-  "path": "/assets/kpi/maintenance-cost",
-  "query": {
-    "timeRange": "month",
-    "limit": "5"
-  },
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-  "ip": "::1"
-}
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482116386","ip":"::1","method":"GET","path":"/assets/kpi/downtime-ranking","query":{"limit":"5","timeRange":"month"},"service":"asset-service","timestamp":"2025-08-06T12:08:36.386Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Incoming request {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482116386",
-  "method": "GET",
-  "path": "/assets/kpi/downtime-ranking",
-  "query": {
-    "timeRange": "month",
-    "limit": "5"
-  },
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-  "ip": "::1"
-}
-[32minfo[39m: Request completed {"correlationId":"asset-1754482116384","duration":"2ms","method":"GET","path":"/assets/kpi/health-overview","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-06T12:08:36.386Z","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Request completed {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482116384",
-  "method": "GET",
-  "path": "/assets/kpi/health-overview",
+  "path": "/assets/suggest",
   "statusCode": 200,
-  "duration": "2ms",
+  "duration": "7ms",
   "success": true
 }
-[32minfo[39m: Request completed {"correlationId":"asset-1754482116385","duration":"2ms","method":"GET","path":"/assets/kpi/fault-frequency","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-06T12:08:36.387Z","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Request completed {
+[32minfo[39m: Incoming request {"correlationId":"asset-1754920908041","ip":"::ffff:192.168.31.82","method":"GET","path":"/assets/suggest","query":{"input":"t","limit":"10"},"service":"asset-service","timestamp":"2025-08-11T14:01:48.041Z","userAgent":"Dart/3.8 (dart:io)","version":"1.0.0"}
+2025-08-11 22:01:48 [asset-service] [32minfo[39m: Incoming request {
   "version": "1.0.0",
-  "correlationId": "asset-1754482116385",
+  "correlationId": "asset-1754920908041",
   "method": "GET",
-  "path": "/assets/kpi/fault-frequency",
-  "statusCode": 200,
-  "duration": "2ms",
-  "success": true
-}
-[32minfo[39m: Request completed {"correlationId":"asset-1754482116385","duration":"2ms","method":"GET","path":"/assets/kpi/maintenance-cost","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-06T12:08:36.387Z","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Request completed {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482116385",
-  "method": "GET",
-  "path": "/assets/kpi/maintenance-cost",
-  "statusCode": 200,
-  "duration": "2ms",
-  "success": true
-}
-[32minfo[39m: Request completed {"correlationId":"asset-1754482116386","duration":"2ms","method":"GET","path":"/assets/kpi/downtime-ranking","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-06T12:08:36.388Z","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Request completed {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482116386",
-  "method": "GET",
-  "path": "/assets/kpi/downtime-ranking",
-  "statusCode": 200,
-  "duration": "2ms",
-  "success": true
-}
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482116547","ip":"::1","method":"GET","path":"/assets/kpi/downtime-ranking","query":{"limit":"5","timeRange":"month"},"service":"asset-service","timestamp":"2025-08-06T12:08:36.547Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Incoming request {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482116547",
-  "method": "GET",
-  "path": "/assets/kpi/downtime-ranking",
+  "path": "/assets/suggest",
   "query": {
-    "timeRange": "month",
-    "limit": "5"
+    "input": "t",
+    "limit": "10"
   },
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-  "ip": "::1"
+  "userAgent": "Dart/3.8 (dart:io)",
+  "ip": "::ffff:192.168.31.82"
 }
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482116548","ip":"::1","method":"GET","path":"/assets/kpi/fault-frequency","query":{"limit":"5","timeRange":"month"},"service":"asset-service","timestamp":"2025-08-06T12:08:36.548Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Incoming request {
+[32minfo[39m: Request completed {"correlationId":"asset-1754920908041","duration":"46ms","method":"GET","path":"/assets/suggest","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-11T14:01:48.087Z","version":"1.0.0"}
+2025-08-11 22:01:48 [asset-service] [32minfo[39m: Request completed {
   "version": "1.0.0",
-  "correlationId": "asset-1754482116548",
+  "correlationId": "asset-1754920908041",
   "method": "GET",
-  "path": "/assets/kpi/fault-frequency",
+  "path": "/assets/suggest",
+  "statusCode": 200,
+  "duration": "46ms",
+  "success": true
+}
+[32minfo[39m: Incoming request {"correlationId":"asset-1754920908266","ip":"::ffff:192.168.31.82","method":"GET","path":"/assets/suggest","query":{"input":"te","limit":"10"},"service":"asset-service","timestamp":"2025-08-11T14:01:48.266Z","userAgent":"Dart/3.8 (dart:io)","version":"1.0.0"}
+2025-08-11 22:01:48 [asset-service] [32minfo[39m: Incoming request {
+  "version": "1.0.0",
+  "correlationId": "asset-1754920908266",
+  "method": "GET",
+  "path": "/assets/suggest",
   "query": {
-    "timeRange": "month",
-    "limit": "5"
+    "input": "te",
+    "limit": "10"
   },
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-  "ip": "::1"
+  "userAgent": "Dart/3.8 (dart:io)",
+  "ip": "::ffff:192.168.31.82"
 }
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482116548","ip":"::1","method":"GET","path":"/assets/kpi/maintenance-cost","query":{"limit":"5","timeRange":"month"},"service":"asset-service","timestamp":"2025-08-06T12:08:36.548Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Incoming request {
+[32minfo[39m: Request completed {"correlationId":"asset-1754920908266","duration":"6ms","method":"GET","path":"/assets/suggest","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-11T14:01:48.272Z","version":"1.0.0"}
+2025-08-11 22:01:48 [asset-service] [32minfo[39m: Request completed {
   "version": "1.0.0",
-  "correlationId": "asset-1754482116548",
+  "correlationId": "asset-1754920908266",
   "method": "GET",
-  "path": "/assets/kpi/maintenance-cost",
-  "query": {
-    "timeRange": "month",
-    "limit": "5"
-  },
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-  "ip": "::1"
-}
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482116549","ip":"::1","method":"GET","path":"/assets/kpi/health-overview","query":{"timeRange":"month"},"service":"asset-service","timestamp":"2025-08-06T12:08:36.549Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Incoming request {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482116549",
-  "method": "GET",
-  "path": "/assets/kpi/health-overview",
-  "query": {
-    "timeRange": "month"
-  },
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-  "ip": "::1"
-}
-[32minfo[39m: Request completed {"correlationId":"asset-1754482116547","duration":"2ms","method":"GET","path":"/assets/kpi/downtime-ranking","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-06T12:08:36.549Z","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Request completed {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482116547",
-  "method": "GET",
-  "path": "/assets/kpi/downtime-ranking",
+  "path": "/assets/suggest",
   "statusCode": 200,
-  "duration": "2ms",
+  "duration": "6ms",
   "success": true
-}
-[32minfo[39m: Request completed {"correlationId":"asset-1754482116548","duration":"2ms","method":"GET","path":"/assets/kpi/fault-frequency","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-06T12:08:36.550Z","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Request completed {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482116548",
-  "method": "GET",
-  "path": "/assets/kpi/fault-frequency",
-  "statusCode": 200,
-  "duration": "2ms",
-  "success": true
-}
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482116550","ip":"::1","method":"GET","path":"/assets/kpi/downtime-ranking","query":{"limit":"5","timeRange":"month"},"service":"asset-service","timestamp":"2025-08-06T12:08:36.550Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Incoming request {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482116550",
-  "method": "GET",
-  "path": "/assets/kpi/downtime-ranking",
-  "query": {
-    "timeRange": "month",
-    "limit": "5"
-  },
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-  "ip": "::1"
-}
-[32minfo[39m: Request completed {"correlationId":"asset-1754482116548","duration":"3ms","method":"GET","path":"/assets/kpi/maintenance-cost","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-06T12:08:36.551Z","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Request completed {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482116548",
-  "method": "GET",
-  "path": "/assets/kpi/maintenance-cost",
-  "statusCode": 200,
-  "duration": "3ms",
-  "success": true
-}
-[32minfo[39m: Request completed {"correlationId":"asset-1754482116549","duration":"2ms","method":"GET","path":"/assets/kpi/health-overview","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-06T12:08:36.551Z","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Request completed {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482116549",
-  "method": "GET",
-  "path": "/assets/kpi/health-overview",
-  "statusCode": 200,
-  "duration": "2ms",
-  "success": true
-}
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482116552","ip":"::1","method":"GET","path":"/assets/kpi/fault-frequency","query":{"limit":"5","timeRange":"month"},"service":"asset-service","timestamp":"2025-08-06T12:08:36.552Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Incoming request {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482116552",
-  "method": "GET",
-  "path": "/assets/kpi/fault-frequency",
-  "query": {
-    "timeRange": "month",
-    "limit": "5"
-  },
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-  "ip": "::1"
-}
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482116552","ip":"::1","method":"GET","path":"/assets/kpi/maintenance-cost","query":{"limit":"5","timeRange":"month"},"service":"asset-service","timestamp":"2025-08-06T12:08:36.552Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Incoming request {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482116552",
-  "method": "GET",
-  "path": "/assets/kpi/maintenance-cost",
-  "query": {
-    "timeRange": "month",
-    "limit": "5"
-  },
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-  "ip": "::1"
-}
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482116553","ip":"::1","method":"GET","path":"/assets/kpi/health-overview","query":{"timeRange":"month"},"service":"asset-service","timestamp":"2025-08-06T12:08:36.553Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Incoming request {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482116553",
-  "method": "GET",
-  "path": "/assets/kpi/health-overview",
-  "query": {
-    "timeRange": "month"
-  },
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-  "ip": "::1"
-}
-[32minfo[39m: Request completed {"correlationId":"asset-1754482116550","duration":"3ms","method":"GET","path":"/assets/kpi/downtime-ranking","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-06T12:08:36.553Z","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Request completed {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482116550",
-  "method": "GET",
-  "path": "/assets/kpi/downtime-ranking",
-  "statusCode": 200,
-  "duration": "3ms",
-  "success": true
-}
-[32minfo[39m: Request completed {"correlationId":"asset-1754482116552","duration":"2ms","method":"GET","path":"/assets/kpi/fault-frequency","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-06T12:08:36.554Z","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Request completed {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482116552",
-  "method": "GET",
-  "path": "/assets/kpi/fault-frequency",
-  "statusCode": 200,
-  "duration": "2ms",
-  "success": true
-}
-[32minfo[39m: Request completed {"correlationId":"asset-1754482116552","duration":"3ms","method":"GET","path":"/assets/kpi/maintenance-cost","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-06T12:08:36.555Z","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Request completed {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482116552",
-  "method": "GET",
-  "path": "/assets/kpi/maintenance-cost",
-  "statusCode": 200,
-  "duration": "3ms",
-  "success": true
-}
-[32minfo[39m: Request completed {"correlationId":"asset-1754482116553","duration":"2ms","method":"GET","path":"/assets/kpi/health-overview","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-06T12:08:36.555Z","version":"1.0.0"}
-2025-08-06 20:08:36 [asset-service] [32minfo[39m: Request completed {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482116553",
-  "method": "GET",
-  "path": "/assets/kpi/health-overview",
-  "statusCode": 200,
-  "duration": "2ms",
-  "success": true
-}
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482604259","ip":"::1","method":"GET","path":"/assets/kpi/downtime-ranking","query":{"limit":"5","timeRange":"month"},"service":"asset-service","timestamp":"2025-08-06T12:16:44.259Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","version":"1.0.0"}
-2025-08-06 20:16:44 [asset-service] [32minfo[39m: Incoming request {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482604259",
-  "method": "GET",
-  "path": "/assets/kpi/downtime-ranking",
-  "query": {
-    "timeRange": "month",
-    "limit": "5"
-  },
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-  "ip": "::1"
-}
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482604260","ip":"::1","method":"GET","path":"/assets/kpi/fault-frequency","query":{"limit":"5","timeRange":"month"},"service":"asset-service","timestamp":"2025-08-06T12:16:44.260Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","version":"1.0.0"}
-2025-08-06 20:16:44 [asset-service] [32minfo[39m: Incoming request {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482604260",
-  "method": "GET",
-  "path": "/assets/kpi/fault-frequency",
-  "query": {
-    "timeRange": "month",
-    "limit": "5"
-  },
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-  "ip": "::1"
-}
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482604260","ip":"::1","method":"GET","path":"/assets/kpi/maintenance-cost","query":{"limit":"5","timeRange":"month"},"service":"asset-service","timestamp":"2025-08-06T12:16:44.260Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","version":"1.0.0"}
-2025-08-06 20:16:44 [asset-service] [32minfo[39m: Incoming request {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482604260",
-  "method": "GET",
-  "path": "/assets/kpi/maintenance-cost",
-  "query": {
-    "timeRange": "month",
-    "limit": "5"
-  },
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-  "ip": "::1"
-}
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482604261","ip":"::1","method":"GET","path":"/assets/kpi/health-overview","query":{"timeRange":"month"},"service":"asset-service","timestamp":"2025-08-06T12:16:44.261Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","version":"1.0.0"}
-2025-08-06 20:16:44 [asset-service] [32minfo[39m: Incoming request {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482604261",
-  "method": "GET",
-  "path": "/assets/kpi/health-overview",
-  "query": {
-    "timeRange": "month"
-  },
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-  "ip": "::1"
-}
-[32minfo[39m: Request completed {"correlationId":"asset-1754482604259","duration":"52ms","method":"GET","path":"/assets/kpi/downtime-ranking","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-06T12:16:44.311Z","version":"1.0.0"}
-2025-08-06 20:16:44 [asset-service] [32minfo[39m: Request completed {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482604259",
-  "method": "GET",
-  "path": "/assets/kpi/downtime-ranking",
-  "statusCode": 200,
-  "duration": "52ms",
-  "success": true
-}
-[32minfo[39m: Request completed {"correlationId":"asset-1754482604260","duration":"51ms","method":"GET","path":"/assets/kpi/fault-frequency","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-06T12:16:44.311Z","version":"1.0.0"}
-2025-08-06 20:16:44 [asset-service] [32minfo[39m: Request completed {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482604260",
-  "method": "GET",
-  "path": "/assets/kpi/fault-frequency",
-  "statusCode": 200,
-  "duration": "51ms",
-  "success": true
-}
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482604312","ip":"::1","method":"GET","path":"/assets/kpi/downtime-ranking","query":{"limit":"5","timeRange":"month"},"service":"asset-service","timestamp":"2025-08-06T12:16:44.312Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","version":"1.0.0"}
-2025-08-06 20:16:44 [asset-service] [32minfo[39m: Incoming request {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482604312",
-  "method": "GET",
-  "path": "/assets/kpi/downtime-ranking",
-  "query": {
-    "timeRange": "month",
-    "limit": "5"
-  },
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-  "ip": "::1"
-}
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482604312","ip":"::1","method":"GET","path":"/assets/kpi/fault-frequency","query":{"limit":"5","timeRange":"month"},"service":"asset-service","timestamp":"2025-08-06T12:16:44.312Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","version":"1.0.0"}
-2025-08-06 20:16:44 [asset-service] [32minfo[39m: Incoming request {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482604312",
-  "method": "GET",
-  "path": "/assets/kpi/fault-frequency",
-  "query": {
-    "timeRange": "month",
-    "limit": "5"
-  },
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-  "ip": "::1"
-}
-[32minfo[39m: Request completed {"correlationId":"asset-1754482604260","duration":"53ms","method":"GET","path":"/assets/kpi/maintenance-cost","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-06T12:16:44.313Z","version":"1.0.0"}
-2025-08-06 20:16:44 [asset-service] [32minfo[39m: Request completed {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482604260",
-  "method": "GET",
-  "path": "/assets/kpi/maintenance-cost",
-  "statusCode": 200,
-  "duration": "53ms",
-  "success": true
-}
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482604313","ip":"::1","method":"GET","path":"/assets/kpi/maintenance-cost","query":{"limit":"5","timeRange":"month"},"service":"asset-service","timestamp":"2025-08-06T12:16:44.313Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","version":"1.0.0"}
-2025-08-06 20:16:44 [asset-service] [32minfo[39m: Incoming request {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482604313",
-  "method": "GET",
-  "path": "/assets/kpi/maintenance-cost",
-  "query": {
-    "timeRange": "month",
-    "limit": "5"
-  },
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-  "ip": "::1"
-}
-[32minfo[39m: Request completed {"correlationId":"asset-1754482604261","duration":"53ms","method":"GET","path":"/assets/kpi/health-overview","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-06T12:16:44.314Z","version":"1.0.0"}
-2025-08-06 20:16:44 [asset-service] [32minfo[39m: Request completed {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482604261",
-  "method": "GET",
-  "path": "/assets/kpi/health-overview",
-  "statusCode": 200,
-  "duration": "53ms",
-  "success": true
-}
-[32minfo[39m: Incoming request {"correlationId":"asset-1754482604314","ip":"::1","method":"GET","path":"/assets/kpi/health-overview","query":{"timeRange":"month"},"service":"asset-service","timestamp":"2025-08-06T12:16:44.314Z","userAgent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36","version":"1.0.0"}
-2025-08-06 20:16:44 [asset-service] [32minfo[39m: Incoming request {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482604314",
-  "method": "GET",
-  "path": "/assets/kpi/health-overview",
-  "query": {
-    "timeRange": "month"
-  },
-  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
-  "ip": "::1"
-}
-[32minfo[39m: Request completed {"correlationId":"asset-1754482604312","duration":"2ms","method":"GET","path":"/assets/kpi/fault-frequency","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-06T12:16:44.314Z","version":"1.0.0"}
-2025-08-06 20:16:44 [asset-service] [32minfo[39m: Request completed {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482604312",
-  "method": "GET",
-  "path": "/assets/kpi/fault-frequency",
-  "statusCode": 200,
-  "duration": "2ms",
-  "success": true
-}
-[32minfo[39m: Request completed {"correlationId":"asset-1754482604312","duration":"3ms","method":"GET","path":"/assets/kpi/downtime-ranking","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-06T12:16:44.315Z","version":"1.0.0"}
-2025-08-06 20:16:44 [asset-service] [32minfo[39m: Request completed {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482604312",
-  "method": "GET",
-  "path": "/assets/kpi/downtime-ranking",
-  "statusCode": 200,
-  "duration": "3ms",
-  "success": true
-}
-[32minfo[39m: Request completed {"correlationId":"asset-1754482604313","duration":"2ms","method":"GET","path":"/assets/kpi/maintenance-cost","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-06T12:16:44.315Z","version":"1.0.0"}
-2025-08-06 20:16:44 [asset-service] [32minfo[39m: Request completed {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482604313",
-  "method": "GET",
-  "path": "/assets/kpi/maintenance-cost",
-  "statusCode": 200,
-  "duration": "2ms",
-  "success": true
-}
-[32minfo[39m: Request completed {"correlationId":"asset-1754482604314","duration":"2ms","method":"GET","path":"/assets/kpi/health-overview","service":"asset-service","statusCode":200,"success":true,"timestamp":"2025-08-06T12:16:44.316Z","version":"1.0.0"}
-2025-08-06 20:16:44 [asset-service] [32minfo[39m: Request completed {
-  "version": "1.0.0",
-  "correlationId": "asset-1754482604314",
-  "method": "GET",
-  "path": "/assets/kpi/health-overview",
-  "statusCode": 200,
-  "duration": "2ms",
-  "success": true
-}
-[32minfo[39m: SIGTERM received, shutting down gracefully... {"service":"asset-service","timestamp":"2025-08-06T12:39:10.371Z","version":"1.0.0"}
-2025-08-06 20:39:10 [asset-service] [32minfo[39m: SIGTERM received, shutting down gracefully... {
-  "version": "1.0.0"
-}
-[32minfo[39m: Database connection closed {"service":"asset-service","timestamp":"2025-08-06T12:39:10.372Z","version":"1.0.0"}
-2025-08-06 20:39:10 [asset-service] [32minfo[39m: Database connection closed {
-  "version": "1.0.0"
 }

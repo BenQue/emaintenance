@@ -1,135 +1,81 @@
 
 > @emaintanance/work-order-service@1.0.0 dev
-> tsx watch src/index.ts
+> NODE_ENV=development tsx watch src/index.ts
 
 Work order service running on port 3002
 Environment: development
-Starting getFilterOptions query...
-Successfully fetched filter options data
-Filter options result: {
-  statusCount: 6,
-  priorityCount: 4,
-  categoryCount: 5,
-  assetCount: 3,
-  userCount: 4
+10:21:51 PM [tsx] change in ./src/services/PhotoStorageService.ts Restarting...
+cnode:events:485
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::3002
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (/Users/benque/Project/Emaintanance/node_modules/express/lib/application.js:635:24)
+    at notificationRoutes (/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/index.ts:78:5)
+    at Object.<anonymous> (/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/index.ts:81:2)
+    at Module._compile (node:internal/modules/cjs/loader:1692:14)
+    at Object.transformer (/Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:3:1104)
+    at Module.load (node:internal/modules/cjs/loader:1427:32)
+    at Module._load (node:internal/modules/cjs/loader:1250:12)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:1976:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -48,
+  syscall: 'listen',
+  address: '::',
+  port: 3002
 }
-Starting getFilterOptions query...
-Successfully fetched filter options data
-Filter options result: {
-  statusCount: 6,
-  priorityCount: 4,
-  categoryCount: 5,
-  assetCount: 3,
-  userCount: 4
-}
-Starting getFilterOptions query...
-Successfully fetched filter options data
-Filter options result: {
-  statusCount: 6,
-  priorityCount: 4,
-  categoryCount: 5,
-  assetCount: 3,
-  userCount: 4
-}
-Starting getFilterOptions query...
-Successfully fetched filter options data
-Filter options result: {
-  statusCount: 6,
-  priorityCount: 4,
-  categoryCount: 5,
-  assetCount: 3,
-  userCount: 4
-}
-TypeError: Cannot read properties of undefined (reading 'map')
-    at handleValidationError (/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/utils/errorHandler.ts:18:31)
-    at globalErrorHandler (/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/utils/errorHandler.ts:52:11)
-    at Layer.handle_error (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/layer.js:71:5)
-    at trim_prefix (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:326:13)
-    at /Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:286:9
-    at router.process_params (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:346:12)
-    at next (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:280:10)
-    at /Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:646:15
-    at next (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:265:14)
-    at next (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/route.js:141:14)
-TypeError: Cannot read properties of undefined (reading 'map')
-    at handleValidationError (/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/utils/errorHandler.ts:18:31)
-    at globalErrorHandler (/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/utils/errorHandler.ts:52:11)
-    at Layer.handle_error (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/layer.js:71:5)
-    at trim_prefix (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:326:13)
-    at /Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:286:9
-    at router.process_params (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:346:12)
-    at next (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:280:10)
-    at /Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:646:15
-    at next (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:265:14)
-    at next (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/route.js:141:14)
-Starting getFilterOptions query...
-Successfully fetched filter options data
-Filter options result: {
-  statusCount: 6,
-  priorityCount: 4,
-  categoryCount: 5,
-  assetCount: 3,
-  userCount: 4
-}
-Starting getFilterOptions query...
-Successfully fetched filter options data
-Filter options result: {
-  statusCount: 6,
-  priorityCount: 4,
-  categoryCount: 5,
-  assetCount: 3,
-  userCount: 4
-}
-Starting getFilterOptions query...
-Successfully fetched filter options data
-Filter options result: {
-  statusCount: 6,
-  priorityCount: 4,
-  categoryCount: 5,
-  assetCount: 3,
-  userCount: 4
-}
-Starting getFilterOptions query...
-Successfully fetched filter options data
-Filter options result: {
-  statusCount: 6,
-  priorityCount: 4,
-  categoryCount: 5,
-  assetCount: 3,
-  userCount: 4
-}
-TypeError: Cannot read properties of undefined (reading 'map')
-    at handleValidationError (/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/utils/errorHandler.ts:18:31)
-    at globalErrorHandler (/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/utils/errorHandler.ts:52:11)
-    at Layer.handle_error (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/layer.js:71:5)
-    at trim_prefix (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:326:13)
-    at /Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:286:9
-    at router.process_params (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:346:12)
-    at next (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:280:10)
-    at /Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:646:15
-    at next (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/index.js:265:14)
-    at next (/Users/benque/Project/Emaintanance/node_modules/express/lib/router/route.js:141:14)
-10:26:21 PM [tsx] change in ./src/utils/errorHandler.ts Restarting...
+
+Node.js v24.3.0
+10:22:02 PM [tsx] change in ./src/services/PhotoStorageService.ts Rerunning...
 cWork order service running on port 3002
 Environment: development
-10:26:50 PM [tsx] change in ./src/utils/validation.ts Restarting...
+10:22:09 PM [tsx] change in ./src/services/PhotoStorageService.ts Restarting...
 cWork order service running on port 3002
 Environment: development
-10:27:03 PM [tsx] change in ./src/services/WorkOrderService.ts Restarting...
+10:22:23 PM [tsx] change in ./src/controllers/WorkOrderController.ts Restarting...
 cWork order service running on port 3002
 Environment: development
-10:27:35 PM [tsx] change in ./src/services/WorkOrderService.ts Restarting...
+10:22:29 PM [tsx] change in ./src/controllers/WorkOrderController.ts Restarting...
 cWork order service running on port 3002
 Environment: development
-10:27:47 PM [tsx] change in ./src/repositories/WorkOrderRepository.ts Restarting...
+10:22:38 PM [tsx] change in ./src/controllers/WorkOrderController.ts Restarting...
 cWork order service running on port 3002
 Environment: development
-Starting getFilterOptions query...
-Successfully fetched filter options data
-Filter options result: {
-  statusCount: 6,
-  priorityCount: 4,
-  categoryCount: 5,
-  assetCount: 3,
-  userCount: 4
+10:22:50 PM [tsx] change in ./src/controllers/WorkOrderController.ts Restarting...
+cWork order service running on port 3002
+Environment: development
+10:27:18 PM [tsx] change in ./../../../packages/database/dist/index.js Restarting...
+cWork order service running on port 3002
+Environment: development
+10:46:35 PM [tsx] change in ./src/middleware/upload.ts Restarting...
+cnode:events:485
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::3002
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (/Users/benque/Project/Emaintanance/node_modules/express/lib/application.js:635:24)
+    at notificationRoutes (/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/index.ts:78:5)
+    at Object.<anonymous> (/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/index.ts:81:2)
+    at Module._compile (node:internal/modules/cjs/loader:1692:14)
+    at Object.transformer (/Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:3:1104)
+    at Module.load (node:internal/modules/cjs/loader:1427:32)
+    at Module._load (node:internal/modules/cjs/loader:1250:12)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:1976:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -48,
+  syscall: 'listen',
+  address: '::',
+  port: 3002
 }
+
+Node.js v24.3.0

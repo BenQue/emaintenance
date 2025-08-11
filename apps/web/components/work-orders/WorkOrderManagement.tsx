@@ -19,18 +19,22 @@ export function WorkOrderManagement() {
     filters,
     getFilterQueryParams,
     setFiltersFromUrl,
+    resetFilters,
     setError,
   } = useWorkOrderFilterStore();
 
   const [isExporting, setIsExporting] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  // Initialize filters from URL on mount
+  // Initialize filters from URL on mount, ensure default state
   useEffect(() => {
-    if (searchParams) {
+    if (searchParams && searchParams.toString()) {
       setFiltersFromUrl(searchParams);
+    } else {
+      // Ensure default filters are applied on fresh page load
+      resetFilters();
     }
-  }, [searchParams, setFiltersFromUrl]);
+  }, [searchParams, setFiltersFromUrl, resetFilters]);
 
   // Update URL when filters change
   useEffect(() => {

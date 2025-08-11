@@ -31,17 +31,35 @@ class WorkOrderService {
   ): Promise<T> {
     const token = localStorage.getItem('auth_token');
     
+    if (!token) {
+      throw new Error('认证token不存在，请重新登录');
+    }
+    
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       headers: {
         'Content-Type': 'application/json',
-        ...(token && { Authorization: `Bearer ${token}` }),
+        Authorization: `Bearer ${token}`,
         ...options.headers,
       },
       ...options,
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ message: 'Network error' }));
+      const errorData = await response.json().catch(() => ({ 
+        message: `HTTP error! status: ${response.status}` 
+      }));
+      
+      // Handle authentication errors specifically
+      if (response.status === 401) {
+        // Clear invalid token
+        localStorage.removeItem('auth_token');
+        throw new Error('认证已过期，请重新登录');
+      }
+      
+      if (response.status === 404 && errorData.message?.includes('工单不存在')) {
+        throw new Error('工单不存在或无访问权限');
+      }
+      
       throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
 
@@ -53,6 +71,47 @@ class WorkOrderService {
     return this.request<PaginatedWorkOrders>(
       `/api/work-orders/assigned?page=${page}&limit=${limit}`
     );
+  }
+
+  async getAllWorkOrders(
+    filters: {
+      status?: string;
+      priority?: string;
+      assetId?: string;
+      createdById?: string;
+      assignedToId?: string;
+      category?: string;
+      startDate?: string;
+      endDate?: string;
+      search?: string;
+      sortBy?: string;
+      sortOrder?: string;
+    } = {},
+    page: number = 1,
+    limit: number = 20
+  ): Promise<PaginatedWorkOrders> {
+    const queryParams = new URLSearchParams();
+    
+    // Add all filters, handle status separately for undefined case
+    Object.entries(filters).forEach(([key, value]) => {
+      if (key === 'status') {
+        // Only add status if it has a value (undefined means no status filter = all orders)
+        if (value !== undefined && value !== '') {
+          queryParams.append(key, value);
+        }
+      } else if (value !== undefined && value !== '') {
+        queryParams.append(key, value);
+      }
+    });
+    
+    // Add pagination
+    queryParams.append('page', page.toString());
+    queryParams.append('limit', limit.toString());
+    
+    const url = `/api/work-orders?${queryParams.toString()}`;
+    console.log('WorkOrderService - Final URL:', url);
+    
+    return this.request<PaginatedWorkOrders>(url);
   }
 
   async getWorkOrderById(id: string): Promise<WorkOrder> {
@@ -115,7 +174,17 @@ class WorkOrderService {
   }
 
   async getWorkOrderWithHistory(id: string): Promise<WorkOrderWithStatusHistory> {
-    return this.request<WorkOrderWithStatusHistory>(`/api/work-orders/${id}/history`);
+    console.log(`[DEBUG] WorkOrderService.getWorkOrderWithHistory: Requesting work order history for ID: ${id}`);
+    const result = await this.request<{workOrder: WorkOrderWithStatusHistory}>(`/api/work-orders/${id}/history`);
+    const workOrder = result.workOrder;
+    console.log(`[DEBUG] WorkOrderService.getWorkOrderWithHistory: Received response:`, {
+      id: workOrder?.id,
+      title: workOrder?.title,
+      assetId: workOrder?.asset?.id,
+      assetName: workOrder?.asset?.name,
+      statusHistoryCount: workOrder?.statusHistory?.length || 0,
+    });
+    return workOrder;
   }
 
   async getWorkOrderStatusHistory(id: string): Promise<WorkOrderStatusHistoryItem[]> {
@@ -215,7 +284,8 @@ class WorkOrderService {
   }
 
   async getWorkOrderWithResolution(id: string): Promise<WorkOrderWithResolution> {
-    return this.request<WorkOrderWithResolution>(`/api/work-orders/${id}/resolution`);
+    const result = await this.request<{workOrder: WorkOrderWithResolution}>(`/api/work-orders/${id}/resolution`);
+    return result.workOrder;
   }
 
   async uploadResolutionPhotos(

@@ -71,10 +71,22 @@ export class PhotoStorageService {
   }
 
   /**
-   * Get absolute path for a photo file
+   * Get absolute path for a photo file with security validation
    */
   async getPhotoPath(relativePath: string): Promise<string> {
+    // Security: Prevent path traversal attacks
+    if (relativePath.includes('..') || path.isAbsolute(relativePath)) {
+      throw new AppError('非法的文件路径', 400);
+    }
+    
     const fullPath = path.join(this.baseUploadDir, relativePath);
+    
+    // Security: Ensure resolved path is within upload directory
+    const resolvedPath = path.resolve(fullPath);
+    const resolvedUploadDir = path.resolve(this.baseUploadDir);
+    if (!resolvedPath.startsWith(resolvedUploadDir)) {
+      throw new AppError('非法的文件路径', 400);
+    }
     
     try {
       await fs.access(fullPath);
@@ -85,10 +97,22 @@ export class PhotoStorageService {
   }
 
   /**
-   * Get absolute path for a thumbnail file
+   * Get absolute path for a thumbnail file with security validation
    */
   async getThumbnailPath(relativePath: string): Promise<string> {
+    // Security: Prevent path traversal attacks
+    if (relativePath.includes('..') || path.isAbsolute(relativePath)) {
+      throw new AppError('非法的文件路径', 400);
+    }
+    
     const fullPath = path.join(this.baseUploadDir, relativePath);
+    
+    // Security: Ensure resolved path is within upload directory
+    const resolvedPath = path.resolve(fullPath);
+    const resolvedUploadDir = path.resolve(this.baseUploadDir);
+    if (!resolvedPath.startsWith(resolvedUploadDir)) {
+      throw new AppError('非法的文件路径', 400);
+    }
     
     try {
       await fs.access(fullPath);
@@ -130,7 +154,7 @@ export class PhotoStorageService {
   }
 
   /**
-   * Generate thumbnail using Sharp
+   * Generate thumbnail using Sharp with optimized settings
    */
   private async generateThumbnail(imageBuffer: Buffer, outputPath: string): Promise<void> {
     try {
@@ -142,6 +166,7 @@ export class PhotoStorageService {
         .jpeg({
           quality: 80,
           progressive: true,
+          mozjpeg: true, // Better compression
         })
         .toFile(outputPath);
     } catch (error) {

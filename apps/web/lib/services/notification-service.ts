@@ -1,4 +1,4 @@
-import { apiClient, ApiResponse } from './api-client';
+import { workOrderServiceClient, ApiResponse } from './api-client';
 import {
   Notification,
   NotificationFilter,
@@ -14,7 +14,7 @@ export class NotificationService {
     limit: number;
     totalPages: number;
   }> {
-    const response = await apiClient.get<Notification[]>('/api/notifications/my', filter);
+    const response = await workOrderServiceClient.get<Notification[]>('/api/notifications/my', filter);
     return {
       notifications: response.data,
       ...response.pagination!,
@@ -22,22 +22,22 @@ export class NotificationService {
   }
 
   async getNotificationById(id: string): Promise<Notification> {
-    const response = await apiClient.get<Notification>(`/api/notifications/my/${id}`);
+    const response = await workOrderServiceClient.get<Notification>(`/api/notifications/my/${id}`);
     return response.data;
   }
 
   async markAsRead(id: string): Promise<Notification> {
-    const response = await apiClient.put<Notification>(`/api/notifications/my/${id}/read`);
+    const response = await workOrderServiceClient.put<Notification>(`/api/notifications/my/${id}/read`);
     return response.data;
   }
 
   async markAllAsRead(): Promise<{ count: number }> {
-    const response = await apiClient.put<{ count: number }>('/api/notifications/my/mark-all-read');
+    const response = await workOrderServiceClient.put<{ count: number }>('/api/notifications/my/mark-all-read');
     return response.data;
   }
 
   async getUserStats(): Promise<NotificationStats> {
-    const response = await apiClient.get<NotificationStats>('/api/notifications/my/stats');
+    const response = await workOrderServiceClient.get<NotificationStats>('/api/notifications/my/stats');
     return response.data;
   }
 
@@ -49,7 +49,7 @@ export class NotificationService {
     limit: number;
     totalPages: number;
   }> {
-    const response = await apiClient.get<Notification[]>('/api/notifications/all', filter);
+    const response = await workOrderServiceClient.get<Notification[]>('/api/notifications/all', filter);
     return {
       notifications: response.data,
       ...response.pagination!,

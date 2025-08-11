@@ -24,6 +24,27 @@ export class WorkOrderController {
     this.photoStorageService = new PhotoStorageService();
   }
 
+  /**
+   * Helper method to validate work order access permissions
+   */
+  private async validateWorkOrderAccess(workOrderId: string, user: any) {
+    const workOrder = await this.workOrderService.getWorkOrderById(workOrderId);
+    if (!workOrder) {
+      throw new AppError('工单不存在', 404);
+    }
+
+    // Check access permission - only creator, assignee, or SUPERVISOR/ADMIN
+    if (
+      workOrder.createdById !== user.id &&
+      workOrder.assignedToId !== user.id &&
+      !['SUPERVISOR', 'ADMIN'].includes(user.role)
+    ) {
+      throw new AppError('权限不足：无法访问此工单', 403);
+    }
+
+    return workOrder;
+  }
+
   // Create new work order
   createWorkOrder = asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) {
@@ -478,20 +499,8 @@ export class WorkOrderController {
       throw new AppError('请选择要上传的图片文件', 400);
     }
 
-    // Check if work order exists and user has access
-    const workOrder = await this.workOrderService.getWorkOrderById(id);
-    if (!workOrder) {
-      throw new AppError('工单不存在', 404);
-    }
-
-    // Check access permission - only creator, assignee, or SUPERVISOR/ADMIN
-    if (
-      workOrder.createdById !== req.user.id &&
-      workOrder.assignedToId !== req.user.id &&
-      !['SUPERVISOR', 'ADMIN'].includes(req.user.role)
-    ) {
-      throw new AppError('权限不足：无法访问此工单', 403);
-    }
+    // Validate work order access
+    await this.validateWorkOrderAccess(id, req.user);
 
     // Save photos using PhotoStorageService
     const photoRecords = [];
@@ -529,20 +538,8 @@ export class WorkOrderController {
 
     const { id } = IdParamSchema.parse(req.params);
 
-    // Check if work order exists and user has access
-    const workOrder = await this.workOrderService.getWorkOrderById(id);
-    if (!workOrder) {
-      throw new AppError('工单不存在', 404);
-    }
-
-    // Check access permission
-    if (
-      workOrder.createdById !== req.user.id &&
-      workOrder.assignedToId !== req.user.id &&
-      !['SUPERVISOR', 'ADMIN'].includes(req.user.role)
-    ) {
-      throw new AppError('权限不足：无法访问此工单', 403);
-    }
+    // Validate work order access
+    await this.validateWorkOrderAccess(id, req.user);
 
     const photos = await this.workOrderService.getWorkOrderPhotos(id);
 
@@ -566,20 +563,8 @@ export class WorkOrderController {
       throw new AppError('工单ID和照片ID不能为空', 400);
     }
 
-    // Check if work order exists and user has access
-    const workOrder = await this.workOrderService.getWorkOrderById(id);
-    if (!workOrder) {
-      throw new AppError('工单不存在', 404);
-    }
-
-    // Check access permission
-    if (
-      workOrder.createdById !== req.user.id &&
-      workOrder.assignedToId !== req.user.id &&
-      !['SUPERVISOR', 'ADMIN'].includes(req.user.role)
-    ) {
-      throw new AppError('权限不足：无法访问此工单', 403);
-    }
+    // Validate work order access
+    await this.validateWorkOrderAccess(id, req.user);
 
     // Get photo metadata
     const photo = await this.workOrderService.getWorkOrderPhotoById(photoId);
@@ -610,20 +595,8 @@ export class WorkOrderController {
       throw new AppError('工单ID和照片ID不能为空', 400);
     }
 
-    // Check if work order exists and user has access
-    const workOrder = await this.workOrderService.getWorkOrderById(id);
-    if (!workOrder) {
-      throw new AppError('工单不存在', 404);
-    }
-
-    // Check access permission
-    if (
-      workOrder.createdById !== req.user.id &&
-      workOrder.assignedToId !== req.user.id &&
-      !['SUPERVISOR', 'ADMIN'].includes(req.user.role)
-    ) {
-      throw new AppError('权限不足：无法访问此工单', 403);
-    }
+    // Validate work order access
+    await this.validateWorkOrderAccess(id, req.user);
 
     // Get photo metadata
     const photo = await this.workOrderService.getWorkOrderPhotoById(photoId);

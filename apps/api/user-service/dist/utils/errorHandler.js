@@ -8,8 +8,8 @@ exports.getErrorStatusCode = getErrorStatusCode;
  * Format Zod validation errors into user-friendly messages
  */
 function formatValidationErrors(error) {
-    return error.errors
-        .map(err => {
+    return error.issues
+        .map((err) => {
         const field = err.path.length > 0 ? err.path.join('.') : 'field';
         return `${field}: ${err.message}`;
     })

@@ -29,6 +29,14 @@ const diskStorage = multer.diskStorage({
 
 // File filter for images and documents
 const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  // Log file details for debugging
+  console.log('FileFilter - 收到文件:', {
+    originalname: file.originalname,
+    mimetype: file.mimetype,
+    fieldname: file.fieldname,
+    encoding: file.encoding,
+  });
+  
   // Allowed image types
   const allowedImageTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
   
@@ -38,8 +46,10 @@ const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilt
   const allowedTypes = [...allowedImageTypes, ...allowedDocTypes];
   
   if (allowedTypes.includes(file.mimetype)) {
+    console.log('FileFilter - 文件类型验证通过:', file.mimetype);
     cb(null, true);
   } else {
+    console.log('FileFilter - 文件类型验证失败:', file.mimetype, '允许的类型:', allowedTypes);
     cb(new AppError('不支持的文件类型。仅支持图片(JPEG, PNG, GIF, WebP)和文档(PDF, TXT)', 400));
   }
 };

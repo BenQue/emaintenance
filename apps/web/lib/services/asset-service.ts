@@ -151,6 +151,40 @@ class AssetService {
     return this.request<{ assets: Asset[]; total: number }>(`/api/assets/search?q=${encodeURIComponent(query)}`);
   }
 
+  // Manual asset code input methods
+  async searchAssetsByCode(partialCode: string, filters: { location?: string; isActive?: boolean; limit?: number } = {}): Promise<Asset[]> {
+    const params = new URLSearchParams();
+    params.append('code', partialCode);
+    
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        params.append(key, value.toString());
+      }
+    });
+
+    return this.request<Asset[]>(`/api/assets/search-by-code?${params.toString()}`);
+  }
+
+  async validateAssetCode(assetCode: string): Promise<{ exists: boolean; asset?: Asset }> {
+    const params = new URLSearchParams();
+    params.append('code', assetCode);
+    
+    return this.request<{ exists: boolean; asset?: Asset }>(`/api/assets/validate?${params.toString()}`);
+  }
+
+  async getAssetSuggestions(input: string, filters: { location?: string; isActive?: boolean; limit?: number } = {}): Promise<Asset[]> {
+    const params = new URLSearchParams();
+    params.append('input', input);
+    
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        params.append(key, value.toString());
+      }
+    });
+
+    return this.request<Asset[]>(`/api/assets/suggest?${params.toString()}`);
+  }
+
   async getAssetStats(): Promise<AssetStats> {
     const token = localStorage.getItem('auth_token');
     

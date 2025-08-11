@@ -397,8 +397,8 @@ export function WorkOrderDetail({ workOrderId }: WorkOrderDetailProps) {
             </Card>
           )}
 
-          {/* Work Order Photos */}
-          <WorkOrderPhotos workOrderId={currentWorkOrder.id} />
+          {/* Work Order Photos - only load if work order is loaded */}
+          {currentWorkOrder.id && <WorkOrderPhotos workOrderId={currentWorkOrder.id} />}
         </div>
       </div>
     </div>
