@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:http_parser/http_parser.dart';
 import '../models/work_order.dart';
 import 'api_client.dart';
 
@@ -260,18 +262,35 @@ class WorkOrderService {
   ) async {
     try {
       print('WorkOrderService: 上传工单照片，工单ID: $workOrderId, 照片数量: ${photoPaths.length}');
+      
+      // 检查照片文件是否存在
+      for (String photoPath in photoPaths) {
+        final file = File(photoPath);
+        print('WorkOrderService: 检查照片文件: $photoPath, 存在: ${await file.exists()}, 大小: ${await file.exists() ? await file.length() : "N/A"}');
+      }
 
       final formData = FormData();
       for (int i = 0; i < photoPaths.length; i++) {
-        formData.files.add(MapEntry(
-          'photos',
-          await MultipartFile.fromFile(photoPaths[i]),
-        ));
+        final file = File(photoPaths[i]);
+        if (await file.exists()) {
+          // 显式指定MIME类型为image/jpeg
+          final multipartFile = await MultipartFile.fromFile(
+            photoPaths[i],
+            contentType: MediaType('image', 'jpeg'),
+          );
+          formData.files.add(MapEntry('photos', multipartFile));
+          print('WorkOrderService: 添加照片到FormData: ${photoPaths[i]}, ContentType: image/jpeg');
+        } else {
+          print('WorkOrderService: 照片文件不存在，跳过: ${photoPaths[i]}');
+        }
       }
 
       if (_apiClient == null) {
         throw Exception('API client not initialized');
       }
+      
+      print('WorkOrderService: 准备发送请求到: /api/work-orders/$workOrderId/work-order-photos');
+      print('WorkOrderService: FormData文件数量: ${formData.files.length}');
       
       final response = await _apiClient!.post<Map<String, dynamic>>(
         '/api/work-orders/$workOrderId/work-order-photos',
@@ -282,6 +301,8 @@ class WorkOrderService {
           },
         ),
       );
+      
+      print('WorkOrderService: 收到响应，状态码: ${response.statusCode}');
 
       if (response.data == null) {
         throw Exception('Empty response from server');

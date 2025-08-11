@@ -182,6 +182,18 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
       return;
     }
 
+    // 照片上传必选验证
+    if (_capturedImagePath == null) {
+      print('WorkOrderForm: 未拍摄故障照片');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('请拍摄设备故障照片，照片是必需的'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _isSubmitting = true;
     });
@@ -305,6 +317,26 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
         title: const Text('创建维修工单'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
+        actions: [
+          TextButton(
+            onPressed: () {
+              // 确保能够返回主界面
+              if (Navigator.of(context).canPop()) {
+                Navigator.of(context).pop();
+              } else {
+                // 如果无法pop，直接导航到主界面
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  '/home',
+                  (route) => false,
+                );
+              }
+            },
+            child: const Text(
+              '取消',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
       ),
       body: _isLoading 
           ? const Center(child: CircularProgressIndicator())
@@ -465,6 +497,12 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
             TextFormField(
               controller: _descriptionController,
               maxLines: 4,
+              keyboardType: TextInputType.multiline,
+              textInputAction: TextInputAction.done,
+              onFieldSubmitted: (value) {
+                // Hide keyboard when user presses done
+                FocusScope.of(context).unfocus();
+              },
               decoration: const InputDecoration(
                 labelText: '详细描述（可选）',
                 hintText: '请详细描述设备问题',
@@ -541,8 +579,17 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
             const Icon(Icons.camera_alt, color: Colors.blue),
             const SizedBox(width: 8),
             const Text(
-              '故障照片（可选）',
+              '故障照片',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(width: 4),
+            const Text(
+              '*',
+              style: TextStyle(
+                fontSize: 16, 
+                fontWeight: FontWeight.bold,
+                color: Colors.red,
+              ),
             ),
           ],
         ),
