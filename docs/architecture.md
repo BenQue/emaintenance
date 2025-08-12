@@ -14,43 +14,43 @@
 
 ```mermaid
 graph TD
-%% ==== 样式定义 ====
+%% ==== Style Definitions ====
 classDef user fill:#cce5ff,stroke:#3366cc,stroke-width:2px,color:#000,font-weight:bold;
 classDef service fill:#ffe6cc,stroke:#ff9933,stroke-width:2px,color:#000,font-weight:bold;
 classDef data fill:#d5f5e3,stroke:#28b463,stroke-width:2px,color:#000,font-weight:bold;
 
-%% ==== 用户部分 ====
-subgraph 用户
-    U1[一线员工 (Flutter App)]
-    U2[技术员/主管 (Web App)]
+%% ==== User Section ====
+subgraph Users
+    U1["Frontline Workers (Flutter App)"]
+    U2["Technicians/Supervisors (Web App)"]
 end
 class U1,U2 user;
 
-%% ==== 公司内部数据中心 ====
-subgraph 公司内部数据中心
-    %% Kubernetes 集群
-    subgraph Kubernetes/Docker Cluster
-        NGINX[NGINX Ingress (HTTPS)]
-        AG[API Gateway (Kong)]
+%% ==== Company Internal Data Center ====
+subgraph "Company Internal Data Center"
+    %% Kubernetes Cluster
+    subgraph "Kubernetes/Docker Cluster"
+        NGINX["NGINX Ingress (HTTPS)"]
+        AG["API Gateway (Kong)"]
         subgraph Microservices
-            MS1[用户服务]
-            MS2[工单服务]
-            MS3[设备服务]
+            MS1[User Service]
+            MS2[Work Order Service]
+            MS3[Asset Service]
         end
-        WebApp[Next.js Web App]
+        WebApp["Next.js Web App"]
     end
 
-    %% 数据基础设施
-    subgraph Data Infrastructure
-        DB[(PostgreSQL Server)]
-        S3[(Object Storage (MinIO))]
+    %% Data Infrastructure
+    subgraph "Data Infrastructure"
+        DB[("PostgreSQL Server")]
+        S3[("Object Storage (MinIO)")]
     end
 end
 
 class NGINX,AG,MS1,MS2,MS3,WebApp service;
 class DB,S3 data;
 
-%% ==== 连接关系 ====
+%% ==== Connection Relationships ====
 U1 ==> NGINX
 U2 ==> NGINX
 NGINX -- /api/_ --> AG
