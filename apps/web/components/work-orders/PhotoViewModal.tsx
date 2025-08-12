@@ -2,8 +2,89 @@
 
 import { useEffect, useState } from 'react';
 import { X, ChevronLeft, ChevronRight, Download, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
-import Image from 'next/image';
 import { Button } from '../ui/button';
+
+// Authenticated image component for modal
+const ModalAuthenticatedImage: React.FC<{
+  src: string;
+  alt: string;
+  style?: React.CSSProperties;
+  className?: string;
+}> = ({ src, alt, style, className }) => {
+  const [imageSrc, setImageSrc] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    const loadImage = async () => {
+      try {
+        const token = localStorage.getItem('auth_token');
+        
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+
+        const response = await fetch(src, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to load image: ${response.status} ${response.statusText}`);
+        }
+
+        const blob = await response.blob();
+        const imageUrl = URL.createObjectURL(blob);
+        setImageSrc(imageUrl);
+        setLoading(false);
+      } catch (err) {
+        console.error('Failed to load modal image:', err);
+        setError(true);
+        setLoading(false);
+      }
+    };
+
+    if (src) {
+      loadImage();
+    }
+
+    // Cleanup function to revoke object URL
+    return () => {
+      if (imageSrc) {
+        URL.revokeObjectURL(imageSrc);
+      }
+    };
+  }, [src, imageSrc]);
+
+  if (loading) {
+    return (
+      <div className={`${className} bg-gray-900 flex items-center justify-center`} style={style}>
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white"></div>
+      </div>
+    );
+  }
+
+  if (error || !imageSrc) {
+    return (
+      <div className={`${className} bg-gray-900 flex items-center justify-center`} style={style}>
+        <div className="text-center">
+          <div className="text-white text-lg mb-2">图片加载失败</div>
+          <div className="text-gray-400 text-sm">{alt}</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={imageSrc}
+      alt={alt}
+      className={className}
+      style={style}
+    />
+  );
+};
 
 interface Photo {
   id: string;
@@ -72,6 +153,12 @@ export function PhotoViewModal({ photos, initialIndex, onClose, onDownload }: Ph
   }, []);
 
   const currentPhoto = photos[currentIndex];
+  
+  // Safety check - if currentPhoto is undefined, don't render
+  if (!currentPhoto) {
+    console.error('PhotoViewModal: currentPhoto is undefined', { currentIndex, photosLength: photos.length });
+    return null;
+  }
 
   const goToPrevious = () => {
     setCurrentIndex((prev) => (prev > 0 ? prev - 1 : photos.length - 1));
@@ -128,11 +215,9 @@ export function PhotoViewModal({ photos, initialIndex, onClose, onDownload }: Ph
             transition: 'transform 0.2s ease-in-out',
           }}
         >
-          <Image
+          <ModalAuthenticatedImage
             src={currentPhoto.url}
             alt={currentPhoto.name}
-            width={800}
-            height={600}
             className="max-w-full max-h-full object-contain"
             style={{ 
               maxWidth: '90vw', 
@@ -140,7 +225,6 @@ export function PhotoViewModal({ photos, initialIndex, onClose, onDownload }: Ph
               userSelect: 'none',
               pointerEvents: 'none',
             }}
-            priority
           />
         </div>
 
@@ -170,7 +254,9 @@ export function PhotoViewModal({ photos, initialIndex, onClose, onDownload }: Ph
           <div className="bg-black bg-opacity-50 rounded-lg px-4 py-2 text-white">
             <h3 className="text-lg font-semibold truncate max-w-64">{currentPhoto.name}</h3>
             <p className="text-sm text-gray-300">
-              {currentIndex + 1} / {photos.length} • {formatFileSize(currentPhoto.size)} • {formatDate(currentPhoto.uploadedAt)}
+              {currentIndex + 1} / {photos.length}
+              {currentPhoto.size > 0 && ` • ${formatFileSize(currentPhoto.size)}`}
+              {currentPhoto.uploadedAt && ` • ${formatDate(currentPhoto.uploadedAt)}`}
             </p>
           </div>
 

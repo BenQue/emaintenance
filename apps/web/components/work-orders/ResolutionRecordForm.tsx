@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 interface ResolutionRecordFormProps {
   workOrderId: string;
-  onSubmit: (resolutionData: CreateResolutionRequest) => Promise<void>;
+  onSubmit: (resolutionData: CreateResolutionRequest, photos?: File[]) => Promise<void>;
   onCancel: () => void;
   loading?: boolean;
 }
@@ -66,25 +66,20 @@ export function ResolutionRecordForm({
       return;
     }
 
+    if (solutionDescription.trim().length < 10) {
+      setError('解决方案描述至少需要10个字符');
+      return;
+    }
+
     setError('');
     
     try {
-      // Convert File objects to base64 for upload
-      const photoPromises = selectedPhotos.map(photo => {
-        return new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.readAsDataURL(photo);
-        });
-      });
-      
-      const photoData = await Promise.all(photoPromises);
-      
+      // Submit completion data without photos first, then upload photos separately
       await onSubmit({
         solutionDescription: solutionDescription.trim(),
         faultCode,
-        photos: photoData.length > 0 ? photoData : undefined,
-      });
+        // Don't include photos in completion request anymore
+      }, selectedPhotos.length > 0 ? selectedPhotos : undefined);
     } catch (err) {
       setError(err instanceof Error ? err.message : '提交失败');
     }
@@ -111,12 +106,13 @@ export function ResolutionRecordForm({
           <div>
             <label htmlFor="solution" className="block text-sm font-medium text-gray-700 mb-2">
               解决方案描述 <span className="text-red-500">*</span>
+              <span className="text-xs text-gray-500 ml-2">(至少10个字符)</span>
             </label>
             <textarea
               id="solution"
               rows={4}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-              placeholder="请详细描述问题解决过程和方案..."
+              placeholder="请详细描述问题解决过程和方案，至少10个字符..."
               value={solutionDescription}
               onChange={(e) => setSolutionDescription(e.target.value)}
               required
@@ -199,7 +195,7 @@ export function ResolutionRecordForm({
           <div className="flex space-x-3">
             <Button
               type="submit"
-              disabled={loading || !solutionDescription.trim()}
+              disabled={loading || !solutionDescription.trim() || solutionDescription.trim().length < 10}
               className="flex-1"
             >
               {loading ? '提交中...' : '完成工单'}

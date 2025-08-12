@@ -1,11 +1,14 @@
 'use client';
 
+import { useState } from 'react';
 import { format, isValid } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { CheckCircle, User, Calendar, Tag, Image as ImageIcon } from 'lucide-react';
 import { ResolutionRecord, FaultCodeLabels } from '../../lib/types/work-order';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';
+import { PhotoViewModal } from './PhotoViewModal';
+import { AuthenticatedImage } from '../ui/AuthenticatedImage';
 
 // Safe date formatting utility
 const safeFormatDate = (dateValue: string | Date | null | undefined, formatString: string): string => {
@@ -26,6 +29,39 @@ interface ResolutionRecordDisplayProps {
 }
 
 export function ResolutionRecordDisplay({ resolutionRecord }: ResolutionRecordDisplayProps) {
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handlePhotoClick = (index: number) => {
+    setSelectedPhotoIndex(index);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedPhotoIndex(null);
+  };
+
+  const handleDownload = (index: number) => {
+    const photo = resolutionRecord.photos[index];
+    if (photo) {
+      // Trigger download by creating a temporary anchor element
+      const link = document.createElement('a');
+      link.href = photo.filePath;
+      link.download = photo.originalName;
+      link.click();
+    }
+  };
+
+  // Convert ResolutionPhoto to PhotoViewModal expected format
+  const modalPhotos = resolutionRecord.photos.map(photo => ({
+    id: photo.id,
+    url: photo.filePath,
+    name: photo.originalName || photo.filename || 'unknown',
+    size: photo.fileSize || 0,
+    uploadedAt: photo.uploadedAt ? new Date(photo.uploadedAt).toISOString() : new Date().toISOString(),
+  }));
+
   return (
     <Card>
       <CardHeader>
@@ -89,17 +125,24 @@ export function ResolutionRecordDisplay({ resolutionRecord }: ResolutionRecordDi
               <ImageIcon className="w-4 h-4 mr-1" />
               完成照片 ({resolutionRecord.photos.length})
             </h4>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {resolutionRecord.photos.map((photo) => (
-                <div key={photo.id} className="relative group">
-                  <img
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {resolutionRecord.photos.map((photo, index) => (
+                <div 
+                  key={photo.id} 
+                  className="relative group cursor-pointer"
+                  onClick={() => handlePhotoClick(index)}
+                >
+                  <AuthenticatedImage
                     src={photo.filePath}
                     alt={photo.originalName}
-                    className="w-full h-24 object-cover rounded-md border border-gray-200 group-hover:border-gray-300 transition-colors"
+                    className="w-full h-48 object-cover rounded-lg border border-gray-200 group-hover:border-gray-300 transition-colors"
+                    onError={() => {
+                      console.error('Failed to load ResolutionPhoto in display:', photo.filePath);
+                    }}
                   />
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-opacity rounded-md" />
-                  <div className="absolute bottom-1 left-1 right-1">
-                    <p className="text-xs text-white bg-black bg-opacity-50 rounded px-1 py-0.5 truncate">
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-opacity rounded-lg" />
+                  <div className="absolute bottom-2 left-2 right-2">
+                    <p className="text-sm text-white bg-black bg-opacity-60 rounded px-2 py-1 truncate">
                       {photo.originalName}
                     </p>
                   </div>
@@ -119,6 +162,16 @@ export function ResolutionRecordDisplay({ resolutionRecord }: ResolutionRecordDi
               ))}
             </div>
           </div>
+        )}
+
+        {/* Photo View Modal */}
+        {isModalOpen && selectedPhotoIndex !== null && (
+          <PhotoViewModal
+            photos={modalPhotos}
+            initialIndex={selectedPhotoIndex}
+            onClose={handleCloseModal}
+            onDownload={handleDownload}
+          />
         )}
       </CardContent>
     </Card>

@@ -551,27 +551,8 @@ export class WorkOrderService {
         }
       });
 
-      // Create photo records if photos provided
-      if (resolutionData.photos && resolutionData.photos.length > 0) {
-        // Validate photo count limit
-        if (resolutionData.photos.length > 5) {
-          throw new Error('Cannot upload more than 5 photos per resolution');
-        }
-
-        await tx.resolutionPhoto.createMany({
-          data: resolutionData.photos.map((photoPath, index) => {
-            const filename = photoPath.split('/').pop() || `photo_${index + 1}`;
-            return {
-              resolutionRecordId: resolutionRecord.id,
-              filename: filename,
-              originalName: filename,
-              filePath: photoPath,
-              fileSize: 0, // Will be updated by file upload handler
-              mimeType: 'image/jpeg', // Will be updated by file upload handler
-            };
-          })
-        });
-      }
+      // Note: Photos are now handled separately via the uploadResolutionPhotos endpoint
+      // This prevents the creation of invalid ResolutionPhoto records with missing metadata
 
       // Update work order status to COMPLETED
       const completedWorkOrder = await tx.workOrder.update({

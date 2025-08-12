@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useWorkOrderStore } from '../../lib/stores/work-order-store';
+import { useAuthStore } from '../../lib/stores/auth-store';
 import { WorkOrderStatusLabels, PriorityLabels, StatusColors, PriorityColors, WorkOrderStatus, CreateResolutionRequest } from '../../lib/types/work-order';
 import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
@@ -27,6 +28,9 @@ import { StatusUpdateForm } from './StatusUpdateForm';
 import { ResolutionRecordForm } from './ResolutionRecordForm';
 import { ResolutionRecordDisplay } from './ResolutionRecordDisplay';
 import { WorkOrderPhotos } from './WorkOrderPhotos';
+import { ReportPhotos } from './ReportPhotos';
+import WorkOrderAssignment from '../assignment/WorkOrderAssignment';
+import { AuthenticatedImage } from '../ui/AuthenticatedImage';
 import { cn } from '../../lib/utils';
 
 // Safe date formatting utility
@@ -49,6 +53,7 @@ interface WorkOrderDetailProps {
 
 export function WorkOrderDetail({ workOrderId }: WorkOrderDetailProps) {
   const [showCompletionForm, setShowCompletionForm] = useState(false);
+  const [showAssignmentModal, setShowAssignmentModal] = useState(false);
   
   const {
     currentWorkOrder,
@@ -59,9 +64,12 @@ export function WorkOrderDetail({ workOrderId }: WorkOrderDetailProps) {
     loadWorkOrderWithHistory,
     loadWorkOrderWithResolution,
     completeWorkOrder,
+    uploadResolutionPhotos,
     clearError,
     clearCurrentWorkOrder,
   } = useWorkOrderStore();
+
+  const { user } = useAuthStore();
 
   useEffect(() => {
     loadWorkOrderWithHistory(workOrderId);
@@ -78,9 +86,22 @@ export function WorkOrderDetail({ workOrderId }: WorkOrderDetailProps) {
     loadWorkOrderWithResolution(workOrderId);
   };
 
-  const handleCompleteWorkOrder = async (resolutionData: CreateResolutionRequest) => {
+  const handleCompleteWorkOrder = async (resolutionData: CreateResolutionRequest, photos?: File[]) => {
     try {
+      // First complete the work order without photos
       await completeWorkOrder(workOrderId, resolutionData);
+      
+      // Then upload photos if any were provided
+      if (photos && photos.length > 0) {
+        try {
+          await uploadResolutionPhotos(workOrderId, photos);
+        } catch (photoError) {
+          console.error('Failed to upload resolution photos:', photoError);
+          // Don't fail the entire completion if photo upload fails
+          // The work order is already completed
+        }
+      }
+      
       setShowCompletionForm(false);
       // Reload to get updated data
       loadWorkOrderWithHistory(workOrderId);
@@ -91,10 +112,21 @@ export function WorkOrderDetail({ workOrderId }: WorkOrderDetailProps) {
     }
   };
 
+  const handleAssignmentSuccess = () => {
+    setShowAssignmentModal(false);
+    // Reload work order to get updated assignment data
+    loadWorkOrderWithHistory(workOrderId);
+    loadWorkOrderWithResolution(workOrderId);
+  };
+
   const canCompleteWorkOrder = (workOrder: any) => {
     return workOrder?.status === WorkOrderStatus.IN_PROGRESS || 
            workOrder?.status === WorkOrderStatus.WAITING_PARTS || 
            workOrder?.status === WorkOrderStatus.WAITING_EXTERNAL;
+  };
+
+  const canManageAssignment = () => {
+    return user?.role === 'SUPERVISOR' || user?.role === 'ADMIN';
   };
 
   if (loading && !currentWorkOrder) {
@@ -181,6 +213,11 @@ export function WorkOrderDetail({ workOrderId }: WorkOrderDetailProps) {
                   <h4 className="font-medium text-gray-900 mb-2">报修原因</h4>
                   <p className="text-gray-700">{currentWorkOrder.reason}</p>
                 </div>
+              </div>
+
+              {/* Report Photos - Show photos uploaded during work order creation */}
+              <div>
+                <WorkOrderPhotos workOrderId={currentWorkOrder.id} />
               </div>
 
               {currentWorkOrder.location && (
@@ -334,6 +371,52 @@ export function WorkOrderDetail({ workOrderId }: WorkOrderDetailProps) {
             />
           )}
 
+          {/* Assignment Management - Only for supervisors */}
+          {canManageAssignment() && !showCompletionForm && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center text-blue-700">
+                  <Settings className="w-5 h-5 mr-2" />
+                  工单分配
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {currentWorkOrder.assignedTo ? (
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm text-gray-600">当前负责人:</p>
+                      <p className="font-medium text-gray-900">
+                        {`${currentWorkOrder.assignedTo.firstName || '未知'} ${currentWorkOrder.assignedTo.lastName || ''}`.trim()}
+                      </p>
+                      <p className="text-sm text-gray-500">{currentWorkOrder.assignedTo.email}</p>
+                    </div>
+                    <Button
+                      onClick={() => setShowAssignmentModal(true)}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      <Settings className="w-4 h-4 mr-2" />
+                      重新分配
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <p className="text-gray-600 text-sm">
+                      此工单尚未分配给技术员
+                    </p>
+                    <Button
+                      onClick={() => setShowAssignmentModal(true)}
+                      className="w-full"
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      分配技术员
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Contact Information */}
           <Card>
             <CardHeader>
@@ -371,36 +454,41 @@ export function WorkOrderDetail({ workOrderId }: WorkOrderDetailProps) {
             </CardContent>
           </Card>
 
-          {/* Attachments */}
-          {currentWorkOrder.attachments && currentWorkOrder.attachments.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">附件</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {(currentWorkOrder.attachments || []).map((attachment, index) => (
-                    <div key={index} className="flex items-center space-x-2">
-                      <FileText className="w-4 h-4 text-gray-400" />
-                      <a
-                        href={attachment}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 underline text-sm"
-                      >
-                        附件 {index + 1}
-                      </a>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
-          {/* Work Order Photos - only load if work order is loaded */}
-          {currentWorkOrder.id && <WorkOrderPhotos workOrderId={currentWorkOrder.id} />}
+          {/* Note: Resolution photos are now displayed within the ResolutionRecordDisplay component */}
         </div>
       </div>
+
+      {/* Assignment Modal */}
+      {showAssignmentModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowAssignmentModal(false)}></div>
+            
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+              <WorkOrderAssignment
+                workOrder={{
+                  id: currentWorkOrder.id,
+                  title: currentWorkOrder.title,
+                  description: currentWorkOrder.description,
+                  status: currentWorkOrder.status,
+                  priority: currentWorkOrder.priority,
+                  assignedToId: currentWorkOrder.assignedToId || undefined,
+                  assignedTo: currentWorkOrder.assignedTo ? {
+                    id: currentWorkOrder.assignedTo.id,
+                    firstName: currentWorkOrder.assignedTo.firstName || '未知',
+                    lastName: currentWorkOrder.assignedTo.lastName || '',
+                  } : undefined,
+                }}
+                onAssigned={handleAssignmentSuccess}
+                onClose={() => setShowAssignmentModal(false)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
