@@ -21,19 +21,19 @@ classDef data fill:#d5f5e3,stroke:#28b463,stroke-width:2px,color:#000,font-weigh
 classDef infra fill:#f2f2f2,stroke:#999,stroke-width:2px,color:#000;
 
 %% ==== 用户部分 ====
-subgraph Users["👥 用户"]
+subgraph Users["用户"]
     U1[一线员工 (Flutter App)]
     U2[技术员/主管 (Web App)]
 end
 class U1,U2 user;
 
 %% ==== 公司内部数据中心 ====
-subgraph 公司内部数据中心
+subgraph IDC["公司内部数据中心"]
     %% Kubernetes 集群
-    subgraph Kubernetes/Docker Cluster
+    subgraph K8sCluster["Kubernetes/Docker Cluster"]
         NGINX[NGINX Ingress (HTTPS)]
         AG[API Gateway (Kong)]
-        subgraph Microservices
+        subgraph Microservices["Microservices"]
             MS1[用户服务]
             MS2[工单服务]
             MS3[设备服务]
@@ -42,7 +42,7 @@ subgraph 公司内部数据中心
     end
 
     %% 数据基础设施
-    subgraph Data Infrastructure
+    subgraph DataInfra["Data Infrastructure"]
         DB[(PostgreSQL Server)]
         S3[(Object Storage (MinIO))]
     end
