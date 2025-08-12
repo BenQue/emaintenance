@@ -126,16 +126,32 @@ cd apps/mobile && flutter run
 - 工单服务 API: http://localhost:3002
 - 资产服务 API: http://localhost:3003
 
-## 默认登录账号
+## 测试账号
 
-系统提供以下默认账号用于测试：
+系统提供以下测试账号用于权限验证：
 
-| 角色 | 邮箱 | 密码 | 权限说明 |
-|------|------|------|----------|
-| 管理员 | admin@example.com | password123 | 完整系统管理权限 |
-| 主管 | supervisor@example.com | password123 | 团队管理、KPI查看、用户/资产管理 |
-| 技术员 | technician@example.com | password123 | 工单处理、技术更新 |
-| 员工 | employee@example.com | password123 | 基础工单创建和查看 |
+### 基础账号
+| 角色 | 邮箱 | 用户名 | 密码 | 员工ID | 权限说明 |
+|------|------|--------|------|---------|----------|
+| 管理员 | admin@emaintanance.com | admin | admin123 | EMP001 | 完整系统管理权限 |
+| 主管 | supervisor@emaintanance.com | supervisor | password123 | EMP002 | 团队管理、KPI查看、用户/资产管理 |
+| 技术员 | technician@emaintanance.com | technician | password123 | EMP003 | 工单处理、技术更新 |
+| 员工 | employee@emaintanance.com | employee | password123 | EMP004 | 基础工单创建和查看 |
+
+### 额外技术员测试账号
+| 邮箱 | 用户名 | 密码 | 员工ID | 姓名 |
+|------|--------|------|---------|------|
+| tech2@emaintanance.com | tech2 | password123 | EMP005 | 李明 技术员 |
+| tech3@emaintanance.com | tech3 | password123 | EMP006 | 王强 技术员 |
+
+### 额外一线员工测试账号
+| 邮箱 | 用户名 | 密码 | 员工ID | 姓名 |
+|------|--------|------|---------|------|
+| emp2@emaintanance.com | emp2 | password123 | EMP007 | 张三 员工 |
+| emp3@emaintanance.com | emp3 | password123 | EMP008 | 刘佳 员工 |
+| emp4@emaintanance.com | emp4 | password123 | EMP009 | 陈伟 员工 |
+
+**注意**: 所有测试账号的密码统一为 `password123`（管理员为 `admin123`）
 
 ## 项目架构
 

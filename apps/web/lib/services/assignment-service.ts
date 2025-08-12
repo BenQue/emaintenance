@@ -1,4 +1,4 @@
-import { apiClient, ApiResponse } from './api-client';
+import { apiClient, workOrderServiceClient, userServiceClient, ApiResponse } from './api-client';
 import {
   AssignmentRule,
   CreateAssignmentRuleRequest,
@@ -8,9 +8,9 @@ import {
 } from '../types/assignment';
 
 export class AssignmentService {
-  // Assignment Rules API
+  // Assignment Rules API - Use work-order-service (port 3002)
   async createRule(data: CreateAssignmentRuleRequest): Promise<AssignmentRule> {
-    const response = await apiClient.post<AssignmentRule>('/api/assignment-rules', data);
+    const response = await workOrderServiceClient.post<AssignmentRule>('/api/assignment-rules', data);
     return response.data;
   }
 
@@ -21,7 +21,7 @@ export class AssignmentService {
     limit: number;
     totalPages: number;
   }> {
-    const response = await apiClient.get<AssignmentRule[]>('/api/assignment-rules', filter);
+    const response = await workOrderServiceClient.get<AssignmentRule[]>('/api/assignment-rules', filter);
     return {
       rules: response.data,
       ...response.pagination!,
@@ -29,27 +29,27 @@ export class AssignmentService {
   }
 
   async getRuleById(id: string): Promise<AssignmentRule> {
-    const response = await apiClient.get<AssignmentRule>(`/api/assignment-rules/${id}`);
+    const response = await workOrderServiceClient.get<AssignmentRule>(`/api/assignment-rules/${id}`);
     return response.data;
   }
 
   async updateRule(id: string, data: UpdateAssignmentRuleRequest): Promise<AssignmentRule> {
-    const response = await apiClient.put<AssignmentRule>(`/api/assignment-rules/${id}`, data);
+    const response = await workOrderServiceClient.put<AssignmentRule>(`/api/assignment-rules/${id}`, data);
     return response.data;
   }
 
   async deleteRule(id: string): Promise<void> {
-    await apiClient.delete(`/api/assignment-rules/${id}`);
+    await workOrderServiceClient.delete(`/api/assignment-rules/${id}`);
   }
 
-  // Technicians API (assuming these exist)
+  // Technicians API - Use user-service (port 3001)
   async getTechnicians(): Promise<User[]> {
     try {
-      const response = await apiClient.get<User[]>('/api/users', { role: 'TECHNICIAN' });
-      return response.data;
+      const response = await userServiceClient.get<User[]>('/api/users/role/TECHNICIAN');
+      return response.data || [];
     } catch (error) {
+      console.warn('Failed to load technicians from API, using fallback data:', error);
       // Fallback for demo purposes - in real implementation this would come from user service
-      console.warn('Users API not available, using mock data');
       return [
         {
           id: 'tech1',
@@ -69,9 +69,9 @@ export class AssignmentService {
     }
   }
 
-  // Work Order Assignment API
+  // Work Order Assignment API - Use work-order-service (port 3002)
   async assignWorkOrder(workOrderId: string, assignedToId: string): Promise<void> {
-    await apiClient.put(`/api/work-orders/${workOrderId}/assign`, { assignedToId });
+    await workOrderServiceClient.put(`/api/work-orders/${workOrderId}/assign`, { assignedToId });
   }
 }
 

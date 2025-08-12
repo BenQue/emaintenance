@@ -1,11 +1,12 @@
 import { WorkOrderDetail } from '../../../../components/work-orders/WorkOrderDetail';
 
 interface WorkOrderDetailPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
-export default function WorkOrderDetailPage({ params }: WorkOrderDetailPageProps) {
-  return <WorkOrderDetail workOrderId={params.id} />;
+export default async function WorkOrderDetailPage({ params }: WorkOrderDetailPageProps) {
+  const { id } = await params;
+  return <WorkOrderDetail workOrderId={id} />;
 }

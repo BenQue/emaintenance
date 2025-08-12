@@ -79,3 +79,1306 @@ Emitted 'error' event on Server instance at:
 }
 
 Node.js v24.3.0
+9:08:33 PM [tsx] change in ./../../../packages/database/dist/index.js Rerunning...
+cWork order service running on port 3002
+Environment: development
+Starting getFilterOptions query...
+Successfully fetched filter options data
+Filter options result: {
+  statusCount: 6,
+  priorityCount: 4,
+  categoryCount: 10,
+  assetCount: 4,
+  userCount: 4
+}
+Starting getFilterOptions query...
+Successfully fetched filter options data
+Filter options result: {
+  statusCount: 6,
+  priorityCount: 4,
+  categoryCount: 10,
+  assetCount: 4,
+  userCount: 4
+}
+Starting getFilterOptions query...
+Successfully fetched filter options data
+Filter options result: {
+  statusCount: 6,
+  priorityCount: 4,
+  categoryCount: 10,
+  assetCount: 4,
+  userCount: 4
+}
+Starting getFilterOptions query...
+Successfully fetched filter options data
+Filter options result: {
+  statusCount: 6,
+  priorityCount: 4,
+  categoryCount: 10,
+  assetCount: 4,
+  userCount: 4
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+Starting getFilterOptions query...
+Successfully fetched filter options data
+Filter options result: {
+  statusCount: 6,
+  priorityCount: 4,
+  categoryCount: 10,
+  assetCount: 4,
+  userCount: 4
+}
+Starting getFilterOptions query...
+Successfully fetched filter options data
+Filter options result: {
+  statusCount: 6,
+  priorityCount: 4,
+  categoryCount: 10,
+  assetCount: 4,
+  userCount: 4
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+Starting getFilterOptions query...
+Successfully fetched filter options data
+Filter options result: {
+  statusCount: 6,
+  priorityCount: 4,
+  categoryCount: 10,
+  assetCount: 4,
+  userCount: 4
+}
+Starting getFilterOptions query...
+Successfully fetched filter options data
+Filter options result: {
+  statusCount: 6,
+  priorityCount: 4,
+  categoryCount: 10,
+  assetCount: 4,
+  userCount: 4
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+Starting getFilterOptions query...
+Successfully fetched filter options data
+Filter options result: {
+  statusCount: 6,
+  priorityCount: 4,
+  categoryCount: 10,
+  assetCount: 4,
+  userCount: 4
+}
+Starting getFilterOptions query...
+Successfully fetched filter options data
+Filter options result: {
+  statusCount: 6,
+  priorityCount: 4,
+  categoryCount: 10,
+  assetCount: 4,
+  userCount: 4
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+Starting getFilterOptions query...
+Successfully fetched filter options data
+Filter options result: {
+  statusCount: 6,
+  priorityCount: 4,
+  categoryCount: 10,
+  assetCount: 4,
+  userCount: 4
+}
+Starting getFilterOptions query...
+Successfully fetched filter options data
+Filter options result: {
+  statusCount: 6,
+  priorityCount: 4,
+  categoryCount: 10,
+  assetCount: 4,
+  userCount: 4
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+Starting getFilterOptions query...
+Successfully fetched filter options data
+Filter options result: {
+  statusCount: 6,
+  priorityCount: 4,
+  categoryCount: 10,
+  assetCount: 4,
+  userCount: 4
+}
+Starting getFilterOptions query...
+Successfully fetched filter options data
+Filter options result: {
+  statusCount: 6,
+  priorityCount: 4,
+  categoryCount: 10,
+  assetCount: 4,
+  userCount: 4
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo005
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "液压系统压力异常" with 0 status history entries and asset: {
+  assetId: 'cmdwc5djw0005orl3x6wpd8vl',
+  assetName: '生产线设备A',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo005
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "液压系统压力异常" with 0 status history entries and asset: {
+  assetId: 'cmdwc5djw0005orl3x6wpd8vl',
+  assetName: '生产线设备A',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo005
+[DEBUG] WorkOrderRepository.findById: Found work order "液压系统压力异常" with asset "生产线设备A"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo005
+[DEBUG] WorkOrderRepository.findById: Found work order "液压系统压力异常" with asset "生产线设备A"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+9:32:30 PM [tsx] change in ./../../../packages/database/dist/index.js Restarting...
+cWork order service running on port 3002
+Environment: development
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo005
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "液压系统压力异常" with 0 status history entries and asset: {
+  assetId: 'cmdwc5djw0005orl3x6wpd8vl',
+  assetName: '生产线设备A',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo005
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "液压系统压力异常" with 0 status history entries and asset: {
+  assetId: 'cmdwc5djw0005orl3x6wpd8vl',
+  assetName: '生产线设备A',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo005
+[DEBUG] WorkOrderRepository.findById: Found work order "液压系统压力异常" with asset "生产线设备A"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo005
+[DEBUG] WorkOrderRepository.findById: Found work order "液压系统压力异常" with asset "生产线设备A"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 0 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+ERROR: Error: Invalid status transition from COMPLETED to COMPLETED
+    at WorkOrderService.updateWorkOrderStatus (/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/services/WorkOrderService.ts:321:13)
+    at async <anonymous> (/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/controllers/WorkOrderController.ts:351:23)
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 1 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 1 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 1 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo005
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "液压系统压力异常" with 0 status history entries and asset: {
+  assetId: 'cmdwc5djw0005orl3x6wpd8vl',
+  assetName: '生产线设备A',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo005
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "液压系统压力异常" with 0 status history entries and asset: {
+  assetId: 'cmdwc5djw0005orl3x6wpd8vl',
+  assetName: '生产线设备A',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo005
+[DEBUG] WorkOrderRepository.findById: Found work order "液压系统压力异常" with asset "生产线设备A"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo005
+[DEBUG] WorkOrderRepository.findById: Found work order "液压系统压力异常" with asset "生产线设备A"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo005
+[DEBUG] WorkOrderRepository.findById: Found work order "液压系统压力异常" with asset "生产线设备A"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo005
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "液压系统压力异常" with 1 status history entries and asset: {
+  assetId: 'cmdwc5djw0005orl3x6wpd8vl',
+  assetName: '生产线设备A',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo005
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "液压系统压力异常" with 1 status history entries and asset: {
+  assetId: 'cmdwc5djw0005orl3x6wpd8vl',
+  assetName: '生产线设备A',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo005
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "液压系统压力异常" with 1 status history entries and asset: {
+  assetId: 'cmdwc5djw0005orl3x6wpd8vl',
+  assetName: '生产线设备A',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo005
+[DEBUG] WorkOrderRepository.findById: Found work order "液压系统压力异常" with asset "生产线设备A"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo005
+[DEBUG] WorkOrderRepository.findById: Found work order "液压系统压力异常" with asset "生产线设备A"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 1 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 1 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo002
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "设备维护检查" with 0 status history entries and asset: {
+  assetId: 'cmdwc5dk00007orl3zhdi5t5e',
+  assetName: '包装机器B',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo002
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "设备维护检查" with 0 status history entries and asset: {
+  assetId: 'cmdwc5dk00007orl3zhdi5t5e',
+  assetName: '包装机器B',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo002
+[DEBUG] WorkOrderRepository.findById: Found work order "设备维护检查" with asset "包装机器B"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo002
+[DEBUG] WorkOrderRepository.findById: Found work order "设备维护检查" with asset "包装机器B"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo002
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo002
+[DEBUG] WorkOrderRepository.findById: Found work order "设备维护检查" with asset "包装机器B"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "设备维护检查" with 0 status history entries and asset: {
+  assetId: 'cmdwc5dk00007orl3zhdi5t5e',
+  assetName: '包装机器B',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo002
+[DEBUG] WorkOrderRepository.findById: Found work order "设备维护检查" with asset "包装机器B"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo002
+[DEBUG] WorkOrderRepository.findById: Found work order "设备维护检查" with asset "包装机器B"
+10:21:43 PM [tsx] change in ./src/services/WorkOrderService.ts Restarting...
+cWork order service running on port 3002
+Environment: development
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 1 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 1 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 1 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 1 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo_1755008549290
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试ResolutionPhoto上传功能" with 0 status history entries and asset: {
+  assetId: 'cmdwc5djw0005orl3x6wpd8vl',
+  assetName: '生产线设备A',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo_1755008549290
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试ResolutionPhoto上传功能" with 0 status history entries and asset: {
+  assetId: 'cmdwc5djw0005orl3x6wpd8vl',
+  assetName: '生产线设备A',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo_1755008549290
+[DEBUG] WorkOrderRepository.findById: Found work order "测试ResolutionPhoto上传功能" with asset "生产线设备A"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo_1755008549290
+[DEBUG] WorkOrderRepository.findById: Found work order "测试ResolutionPhoto上传功能" with asset "生产线设备A"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo_1755008549290
+[DEBUG] WorkOrderRepository.findById: Found work order "测试ResolutionPhoto上传功能" with asset "生产线设备A"
+FileFilter - 收到文件: {
+  originalname: 'test-resolution-photo.png',
+  mimetype: 'image/png',
+  fieldname: 'attachments',
+  encoding: '7bit'
+}
+FileFilter - 文件类型验证通过: image/png
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo004
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "包装机调试" with 0 status history entries and asset: {
+  assetId: 'cmdwc5dk00007orl3zhdi5t5e',
+  assetName: '包装机器B',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo004
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "包装机调试" with 0 status history entries and asset: {
+  assetId: 'cmdwc5dk00007orl3zhdi5t5e',
+  assetName: '包装机器B',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo004
+[DEBUG] WorkOrderRepository.findById: Found work order "包装机调试" with asset "包装机器B"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo004
+[DEBUG] WorkOrderRepository.findById: Found work order "包装机调试" with asset "包装机器B"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo002
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "设备维护检查" with 0 status history entries and asset: {
+  assetId: 'cmdwc5dk00007orl3zhdi5t5e',
+  assetName: '包装机器B',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo002
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "设备维护检查" with 0 status history entries and asset: {
+  assetId: 'cmdwc5dk00007orl3zhdi5t5e',
+  assetName: '包装机器B',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo002
+[DEBUG] WorkOrderRepository.findById: Found work order "设备维护检查" with asset "包装机器B"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo002
+[DEBUG] WorkOrderRepository.findById: Found work order "设备维护检查" with asset "包装机器B"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo005
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "液压系统压力异常" with 1 status history entries and asset: {
+  assetId: 'cmdwc5djw0005orl3x6wpd8vl',
+  assetName: '生产线设备A',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo005
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "液压系统压力异常" with 1 status history entries and asset: {
+  assetId: 'cmdwc5djw0005orl3x6wpd8vl',
+  assetName: '生产线设备A',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo005
+[DEBUG] WorkOrderRepository.findById: Found work order "液压系统压力异常" with asset "生产线设备A"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo005
+[DEBUG] WorkOrderRepository.findById: Found work order "液压系统压力异常" with asset "生产线设备A"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo005
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "液压系统压力异常" with 1 status history entries and asset: {
+  assetId: 'cmdwc5djw0005orl3x6wpd8vl',
+  assetName: '生产线设备A',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo005
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "液压系统压力异常" with 1 status history entries and asset: {
+  assetId: 'cmdwc5djw0005orl3x6wpd8vl',
+  assetName: '生产线设备A',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo005
+[DEBUG] WorkOrderRepository.findById: Found work order "液压系统压力异常" with asset "生产线设备A"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo005
+[DEBUG] WorkOrderRepository.findById: Found work order "液压系统压力异常" with asset "生产线设备A"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo005
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "液压系统压力异常" with 1 status history entries and asset: {
+  assetId: 'cmdwc5djw0005orl3x6wpd8vl',
+  assetName: '生产线设备A',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo005
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "液压系统压力异常" with 1 status history entries and asset: {
+  assetId: 'cmdwc5djw0005orl3x6wpd8vl',
+  assetName: '生产线设备A',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo005
+[DEBUG] WorkOrderRepository.findById: Found work order "液压系统压力异常" with asset "生产线设备A"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo005
+[DEBUG] WorkOrderRepository.findById: Found work order "液压系统压力异常" with asset "生产线设备A"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo_1755008549290
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试ResolutionPhoto上传功能" with 1 status history entries and asset: {
+  assetId: 'cmdwc5djw0005orl3x6wpd8vl',
+  assetName: '生产线设备A',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo_1755008549290
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试ResolutionPhoto上传功能" with 1 status history entries and asset: {
+  assetId: 'cmdwc5djw0005orl3x6wpd8vl',
+  assetName: '生产线设备A',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo_1755008549290
+[DEBUG] WorkOrderRepository.findById: Found work order "测试ResolutionPhoto上传功能" with asset "生产线设备A"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo_1755008549290
+[DEBUG] WorkOrderRepository.findById: Found work order "测试ResolutionPhoto上传功能" with asset "生产线设备A"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 1 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 1 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo004
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "包装机调试" with 0 status history entries and asset: {
+  assetId: 'cmdwc5dk00007orl3zhdi5t5e',
+  assetName: '包装机器B',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo004
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "包装机调试" with 0 status history entries and asset: {
+  assetId: 'cmdwc5dk00007orl3zhdi5t5e',
+  assetName: '包装机器B',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo004
+[DEBUG] WorkOrderRepository.findById: Found work order "包装机调试" with asset "包装机器B"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo004
+[DEBUG] WorkOrderRepository.findById: Found work order "包装机调试" with asset "包装机器B"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo002
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "设备维护检查" with 0 status history entries and asset: {
+  assetId: 'cmdwc5dk00007orl3zhdi5t5e',
+  assetName: '包装机器B',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo002
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "设备维护检查" with 0 status history entries and asset: {
+  assetId: 'cmdwc5dk00007orl3zhdi5t5e',
+  assetName: '包装机器B',
+  hasStatusHistory: true,
+  statusHistoryCount: 0
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo002
+[DEBUG] WorkOrderRepository.findById: Found work order "设备维护检查" with asset "包装机器B"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo002
+[DEBUG] WorkOrderRepository.findById: Found work order "设备维护检查" with asset "包装机器B"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo002
+[DEBUG] WorkOrderRepository.findById: Found work order "设备维护检查" with asset "包装机器B"
+FileFilter - 收到文件: {
+  originalname: 'CAP_30A2836B-A740-48B2-B480-96C74778FA55.jpg',
+  mimetype: 'image/jpeg',
+  fieldname: 'attachments',
+  encoding: '7bit'
+}
+FileFilter - 文件类型验证通过: image/jpeg
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo002
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "设备维护检查" with 1 status history entries and asset: {
+  assetId: 'cmdwc5dk00007orl3zhdi5t5e',
+  assetName: '包装机器B',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo002
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "设备维护检查" with 1 status history entries and asset: {
+  assetId: 'cmdwc5dk00007orl3zhdi5t5e',
+  assetName: '包装机器B',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo002
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "设备维护检查" with 1 status history entries and asset: {
+  assetId: 'cmdwc5dk00007orl3zhdi5t5e',
+  assetName: '包装机器B',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo002
+[DEBUG] WorkOrderRepository.findById: Found work order "设备维护检查" with asset "包装机器B"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo002
+[DEBUG] WorkOrderRepository.findById: Found work order "设备维护检查" with asset "包装机器B"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo002
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "设备维护检查" with 1 status history entries and asset: {
+  assetId: 'cmdwc5dk00007orl3zhdi5t5e',
+  assetName: '包装机器B',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo002
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "设备维护检查" with 1 status history entries and asset: {
+  assetId: 'cmdwc5dk00007orl3zhdi5t5e',
+  assetName: '包装机器B',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo002
+[DEBUG] WorkOrderRepository.findById: Found work order "设备维护检查" with asset "包装机器B"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo002
+[DEBUG] WorkOrderRepository.findById: Found work order "设备维护检查" with asset "包装机器B"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo002
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "设备维护检查" with 1 status history entries and asset: {
+  assetId: 'cmdwc5dk00007orl3zhdi5t5e',
+  assetName: '包装机器B',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo002
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "设备维护检查" with 1 status history entries and asset: {
+  assetId: 'cmdwc5dk00007orl3zhdi5t5e',
+  assetName: '包装机器B',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo002
+[DEBUG] WorkOrderRepository.findById: Found work order "设备维护检查" with asset "包装机器B"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo002
+[DEBUG] WorkOrderRepository.findById: Found work order "设备维护检查" with asset "包装机器B"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo002
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "设备维护检查" with 1 status history entries and asset: {
+  assetId: 'cmdwc5dk00007orl3zhdi5t5e',
+  assetName: '包装机器B',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo002
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "设备维护检查" with 1 status history entries and asset: {
+  assetId: 'cmdwc5dk00007orl3zhdi5t5e',
+  assetName: '包装机器B',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo002
+[DEBUG] WorkOrderRepository.findById: Found work order "设备维护检查" with asset "包装机器B"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo002
+[DEBUG] WorkOrderRepository.findById: Found work order "设备维护检查" with asset "包装机器B"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo002
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "设备维护检查" with 1 status history entries and asset: {
+  assetId: 'cmdwc5dk00007orl3zhdi5t5e',
+  assetName: '包装机器B',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo002
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "设备维护检查" with 1 status history entries and asset: {
+  assetId: 'cmdwc5dk00007orl3zhdi5t5e',
+  assetName: '包装机器B',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo002
+[DEBUG] WorkOrderRepository.findById: Found work order "设备维护检查" with asset "包装机器B"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo002
+[DEBUG] WorkOrderRepository.findById: Found work order "设备维护检查" with asset "包装机器B"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo002
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "设备维护检查" with 1 status history entries and asset: {
+  assetId: 'cmdwc5dk00007orl3zhdi5t5e',
+  assetName: '包装机器B',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo002
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "设备维护检查" with 1 status history entries and asset: {
+  assetId: 'cmdwc5dk00007orl3zhdi5t5e',
+  assetName: '包装机器B',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo002
+[DEBUG] WorkOrderRepository.findById: Found work order "设备维护检查" with asset "包装机器B"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo002
+[DEBUG] WorkOrderRepository.findById: Found work order "设备维护检查" with asset "包装机器B"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo002
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "设备维护检查" with 1 status history entries and asset: {
+  assetId: 'cmdwc5dk00007orl3zhdi5t5e',
+  assetName: '包装机器B',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo002
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "设备维护检查" with 1 status history entries and asset: {
+  assetId: 'cmdwc5dk00007orl3zhdi5t5e',
+  assetName: '包装机器B',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo002
+[DEBUG] WorkOrderRepository.findById: Found work order "设备维护检查" with asset "包装机器B"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo002
+[DEBUG] WorkOrderRepository.findById: Found work order "设备维护检查" with asset "包装机器B"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 1 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "测试打印机 维修请求" with 1 status history entries and asset: {
+  assetId: 'cme1eznrk0000zabwz6wsdsct',
+  assetName: '测试打印机',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: cme79ikia000d5oy9b8thigvh
+[DEBUG] WorkOrderRepository.findById: Found work order "测试打印机 维修请求" with asset "测试打印机"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo005
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "液压系统压力异常" with 1 status history entries and asset: {
+  assetId: 'cmdwc5djw0005orl3x6wpd8vl',
+  assetName: '生产线设备A',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo005
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "液压系统压力异常" with 1 status history entries and asset: {
+  assetId: 'cmdwc5djw0005orl3x6wpd8vl',
+  assetName: '生产线设备A',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo005
+[DEBUG] WorkOrderRepository.findById: Found work order "液压系统压力异常" with asset "生产线设备A"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo005
+[DEBUG] WorkOrderRepository.findById: Found work order "液压系统压力异常" with asset "生产线设备A"
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo002
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "设备维护检查" with 1 status history entries and asset: {
+  assetId: 'cmdwc5dk00007orl3zhdi5t5e',
+  assetName: '包装机器B',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Fetching work order history for ID: wo002
+[DEBUG] WorkOrderController.getWorkOrderWithHistory: Successfully retrieved work order "设备维护检查" with 1 status history entries and asset: {
+  assetId: 'cmdwc5dk00007orl3zhdi5t5e',
+  assetName: '包装机器B',
+  hasStatusHistory: true,
+  statusHistoryCount: 1
+}
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo002
+[DEBUG] WorkOrderRepository.findById: Found work order "设备维护检查" with asset "包装机器B"
+[DEBUG] WorkOrderRepository.findById: Searching for work order ID: wo002
+[DEBUG] WorkOrderRepository.findById: Found work order "设备维护检查" with asset "包装机器B"
+10:43:49 PM [tsx] change in ./../../../packages/database/dist/index.js Restarting...
+cnode:events:485
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::3002
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (/Users/benque/Project/Emaintanance/node_modules/express/lib/application.js:635:24)
+    at notificationRoutes (/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/index.ts:78:5)
+    at Object.<anonymous> (/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/index.ts:81:2)
+    at Module._compile (node:internal/modules/cjs/loader:1692:14)
+    at Object.transformer (/Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:3:1104)
+    at Module.load (node:internal/modules/cjs/loader:1427:32)
+    at Module._load (node:internal/modules/cjs/loader:1250:12)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:1976:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -48,
+  syscall: 'listen',
+  address: '::',
+  port: 3002
+}
+
+Node.js v24.3.0

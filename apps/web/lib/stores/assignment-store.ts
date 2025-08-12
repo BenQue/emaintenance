@@ -143,11 +143,13 @@ export const useAssignmentStore = create<AssignmentState>()(
         try {
           const technicians = await assignmentService.getTechnicians();
           set({
-            technicians,
+            technicians: Array.isArray(technicians) ? technicians : [],
             techniciansLoading: false,
           });
         } catch (error) {
+          console.error('Failed to load technicians:', error);
           set({
+            technicians: [], // Ensure technicians is always an array
             techniciansError: error instanceof Error ? error.message : 'Failed to load technicians',
             techniciansLoading: false,
           });

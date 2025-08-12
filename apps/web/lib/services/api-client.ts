@@ -205,7 +205,7 @@ export class ApiAuthError extends Error {
 export const apiClient = new ApiClient();
 
 export const userServiceClient = new ApiClient(
-  process.env.NEXT_PUBLIC_USER_SERVICE_URL || 'http://localhost:3001'
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 );
 
 export const workOrderServiceClient = new ApiClient(

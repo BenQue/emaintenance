@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../hooks/useAuth';
 
 export default function Home() {
-  const { isAuthenticated, isLoading, checkAuth } = useAuth();
+  const { isAuthenticated, isLoading, checkAuth, user } = useAuth();
   const router = useRouter();
   const hasRedirected = useRef(false);
 
@@ -21,10 +21,18 @@ export default function Home() {
       if (!isAuthenticated) {
         router.push('/login');
       } else {
-        router.push('/dashboard');
+        // 根据用户角色导航到不同的首页
+        if (user?.role === 'TECHNICIAN') {
+          router.push('/dashboard/my-tasks');
+        } else if (user?.role === 'SUPERVISOR' || user?.role === 'ADMIN') {
+          router.push('/dashboard');
+        } else {
+          // 默认情况下，员工也跳转到仪表板
+          router.push('/dashboard');
+        }
       }
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, router, user]);
 
   if (isLoading) {
     return (

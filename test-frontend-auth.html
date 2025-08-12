@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Frontend Auth</title>
+</head>
+<body>
+    <h1>Frontend Auth Test</h1>
+    <div id="result"></div>
+    
+    <script>
+        const resultDiv = document.getElementById('result');
+        
+        // Check if token exists
+        const token = localStorage.getItem('auth_token');
+        resultDiv.innerHTML += `<p>Token exists: ${!!token}</p>`;
+        
+        if (token) {
+            resultDiv.innerHTML += `<p>Token preview: ${token.substring(0, 50)}...</p>`;
+            
+            // Test API call
+            fetch('http://localhost:3002/api/work-orders/cme76b8st000j57wjxmvvrcya/work-order-photos/cme79eiry00011xf3efs9tmv6/thumbnail', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => {
+                resultDiv.innerHTML += `<p>API Response status: ${response.status}</p>`;
+                if (response.ok) {
+                    resultDiv.innerHTML += `<p>API call successful!</p>`;
+                } else {
+                    return response.text().then(text => {
+                        resultDiv.innerHTML += `<p>API Error: ${text}</p>`;
+                    });
+                }
+            })
+            .catch(error => {
+                resultDiv.innerHTML += `<p>Fetch Error: ${error.message}</p>`;
+            });
+        } else {
+            resultDiv.innerHTML += `<p>No token found. Please login first.</p>`;
+        }
+    </script>
+</body>
+</html>

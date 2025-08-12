@@ -68,7 +68,7 @@ export default function WorkOrderAssignment({
     }
   };
 
-  const selectedTechnician = technicians.find(tech => tech.id === selectedTechnicianId);
+  const selectedTechnician = Array.isArray(technicians) ? technicians.find(tech => tech.id === selectedTechnicianId) : undefined;
   const currentlyAssigned = workOrder.assignedTo;
 
   if (success) {
@@ -139,7 +139,7 @@ export default function WorkOrderAssignment({
           disabled={techniciansLoading || loading}
         >
           <option value="">请选择技术员</option>
-          {technicians.map((technician) => (
+          {Array.isArray(technicians) && technicians.map((technician) => (
             <option key={technician.id} value={technician.id}>
               {technician.firstName} {technician.lastName} ({technician.email})
             </option>

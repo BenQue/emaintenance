@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { Camera, X, ZoomIn, Download } from 'lucide-react';
-import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { useWorkOrderStore } from '../../lib/stores/work-order-store';
@@ -18,6 +17,86 @@ interface WorkOrderPhoto {
   mimeType: string;
   uploadedAt: string;
 }
+
+// Custom authenticated image component
+const AuthenticatedImage: React.FC<{
+  src: string;
+  alt: string;
+  className?: string;
+}> = ({ src, alt, className }) => {
+  const [imageSrc, setImageSrc] = useState<string>('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    const loadImage = async () => {
+      try {
+        const token = localStorage.getItem('auth_token');
+        
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+
+        const response = await fetch(src, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Image load error response:', errorText);
+          throw new Error(`Failed to load image: ${response.status} ${response.statusText}`);
+        }
+
+        const blob = await response.blob();
+        const imageUrl = URL.createObjectURL(blob);
+        setImageSrc(imageUrl);
+        setLoading(false);
+      } catch (err) {
+        console.error('Failed to load image:', err);
+        setError(true);
+        setLoading(false);
+      }
+    };
+
+    if (src) {
+      loadImage();
+    }
+
+    // Cleanup function to revoke object URL
+    return () => {
+      if (imageSrc) {
+        URL.revokeObjectURL(imageSrc);
+      }
+    };
+  }, [src, imageSrc]);
+
+  if (loading) {
+    return (
+      <div className={`${className} bg-gray-200 flex items-center justify-center`}>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (error || !imageSrc) {
+    return (
+      <div className={`${className} bg-gray-200 flex items-center justify-center`}>
+        <Camera className="w-8 h-8 text-gray-400" />
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={imageSrc}
+      alt={alt}
+      className={className}
+    />
+  );
+};
 
 interface WorkOrderPhotosProps {
   workOrderId: string;
@@ -68,12 +147,12 @@ export function WorkOrderPhotos({ workOrderId }: WorkOrderPhotosProps) {
   };
 
   const getPhotoUrl = (photo: WorkOrderPhoto) => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
+    const baseUrl = process.env.NEXT_PUBLIC_WORK_ORDER_SERVICE_URL || 'http://localhost:3002';
     return `${baseUrl}/api/work-orders/${workOrderId}/work-order-photos/${photo.id}`;
   };
 
   const getThumbnailUrl = (photo: WorkOrderPhoto) => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
+    const baseUrl = process.env.NEXT_PUBLIC_WORK_ORDER_SERVICE_URL || 'http://localhost:3002';
     return photo.thumbnailPath 
       ? `${baseUrl}/api/work-orders/${workOrderId}/work-order-photos/${photo.id}/thumbnail`
       : getPhotoUrl(photo);
@@ -128,7 +207,7 @@ export function WorkOrderPhotos({ workOrderId }: WorkOrderPhotosProps) {
         <CardHeader>
           <CardTitle className="text-lg flex items-center">
             <Camera className="w-5 h-5 mr-2" />
-            工单照片
+报修照片
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -146,7 +225,7 @@ export function WorkOrderPhotos({ workOrderId }: WorkOrderPhotosProps) {
         <CardHeader>
           <CardTitle className="text-lg flex items-center">
             <Camera className="w-5 h-5 mr-2" />
-            工单照片
+报修照片
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -167,7 +246,7 @@ export function WorkOrderPhotos({ workOrderId }: WorkOrderPhotosProps) {
         <CardHeader>
           <CardTitle className="text-lg flex items-center">
             <Camera className="w-5 h-5 mr-2" />
-            工单照片
+报修照片
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -186,7 +265,7 @@ export function WorkOrderPhotos({ workOrderId }: WorkOrderPhotosProps) {
         <CardHeader>
           <CardTitle className="text-lg flex items-center">
             <Camera className="w-5 h-5 mr-2" />
-            工单照片 ({photos.length})
+报修照片 ({photos.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -194,45 +273,37 @@ export function WorkOrderPhotos({ workOrderId }: WorkOrderPhotosProps) {
             {photos.map((photo, index) => (
               <div
                 key={photo.id}
-                className="relative group bg-gray-100 rounded-lg overflow-hidden aspect-square"
+                className="relative group bg-gray-100 rounded-lg overflow-hidden aspect-square cursor-pointer"
+                onClick={() => setSelectedPhotoIndex(index)}
               >
-                {/* Thumbnail Image */}
-                <Image
+                {/* Actual Image */}
+                <AuthenticatedImage
                   src={getThumbnailUrl(photo)}
                   alt={photo.originalName}
-                  fill
-                  className="object-cover transition-transform group-hover:scale-105"
-                  sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                  className="w-full h-full object-cover"
                 />
 
-                {/* Overlay with actions */}
-                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center">
-                  <div className="opacity-0 group-hover:opacity-100 flex space-x-2 transition-opacity duration-200">
+                {/* Hover overlay with download button */}
+                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center pointer-events-none">
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <Button
                       size="sm"
                       variant="secondary"
-                      onClick={() => setSelectedPhotoIndex(index)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <ZoomIn className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => downloadPhoto(photo)}
-                      className="h-8 w-8 p-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        downloadPhoto(photo);
+                      }}
+                      className="h-8 w-8 p-0 pointer-events-auto"
+                      title="下载图片"
                     >
                       <Download className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
 
-                {/* Photo info */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-2">
+                {/* Photo info - smaller overlay */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-1 pointer-events-none">
                   <p className="text-white text-xs truncate">{photo.originalName}</p>
-                  <p className="text-gray-300 text-xs">
-                    {formatFileSize(photo.fileSize)} • {formatDate(photo.uploadedAt)}
-                  </p>
                 </div>
               </div>
             ))}

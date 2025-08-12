@@ -70,6 +70,78 @@ async function main() {
     },
   });
 
+  // Additional technician test accounts
+  const technician2 = await prisma.user.upsert({
+    where: { email: 'tech2@emaintanance.com' },
+    update: {},
+    create: {
+      email: 'tech2@emaintanance.com',
+      username: 'tech2',
+      password: hashedPassword,
+      employeeId: 'EMP005',
+      firstName: '李明',
+      lastName: '技术员',
+      role: UserRole.TECHNICIAN,
+    },
+  });
+
+  const technician3 = await prisma.user.upsert({
+    where: { email: 'tech3@emaintanance.com' },
+    update: {},
+    create: {
+      email: 'tech3@emaintanance.com',
+      username: 'tech3',
+      password: hashedPassword,
+      employeeId: 'EMP006',
+      firstName: '王强',
+      lastName: '技术员',
+      role: UserRole.TECHNICIAN,
+    },
+  });
+
+  // Additional employee test accounts
+  const employee2 = await prisma.user.upsert({
+    where: { email: 'emp2@emaintanance.com' },
+    update: {},
+    create: {
+      email: 'emp2@emaintanance.com',
+      username: 'emp2',
+      password: hashedPassword,
+      employeeId: 'EMP007',
+      firstName: '张三',
+      lastName: '员工',
+      role: UserRole.EMPLOYEE,
+    },
+  });
+
+  const employee3 = await prisma.user.upsert({
+    where: { email: 'emp3@emaintanance.com' },
+    update: {},
+    create: {
+      email: 'emp3@emaintanance.com',
+      username: 'emp3',
+      password: hashedPassword,
+      employeeId: 'EMP008',
+      firstName: '刘佳',
+      lastName: '员工',
+      role: UserRole.EMPLOYEE,
+    },
+  });
+
+  const employee4 = await prisma.user.upsert({
+    where: { email: 'emp4@emaintanance.com' },
+    update: {},
+    create: {
+      email: 'emp4@emaintanance.com',
+      username: 'emp4',
+      password: hashedPassword,
+      employeeId: 'EMP009',
+      firstName: '陈伟',
+      lastName: '员工',
+      role: UserRole.EMPLOYEE,
+    },
+  });
+
   // Create assets
   const asset1 = await prisma.asset.upsert({
     where: { assetCode: 'EQ001' },
