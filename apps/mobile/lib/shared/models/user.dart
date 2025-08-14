@@ -39,11 +39,11 @@ class User {
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id'] as String,
-      email: json['email'] as String,
-      username: json['username'] as String,
+      email: json['email'] as String? ?? '',
+      username: json['username'] as String? ?? json['email'] as String? ?? '',
       firstName: json['firstName'] as String,
       lastName: json['lastName'] as String,
-      role: UserRole.fromString(json['role'] as String),
+      role: UserRole.fromString(json['role'] as String? ?? 'EMPLOYEE'),
       isActive: json['isActive'] as bool? ?? true, // Default to true if not provided
       createdAt: json['createdAt'] != null 
           ? DateTime.parse(json['createdAt'] as String)

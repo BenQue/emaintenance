@@ -250,11 +250,12 @@ void main() {
       );
     }
 
-    testWidgets('should display app bar with correct title and actions', (WidgetTester tester) async {
+    testWidgets('should display app bar with correct title and actions including visibility toggle', (WidgetTester tester) async {
       await tester.pumpWidget(createTestWidget());
 
       // Check app bar
       expect(find.text('我的任务'), findsOneWidget);
+      expect(find.byIcon(Icons.visibility_off), findsOneWidget); // Hide completed toggle
       expect(find.byIcon(Icons.filter_list), findsOneWidget);
       expect(find.byIcon(Icons.refresh), findsOneWidget);
     });
@@ -533,6 +534,49 @@ void main() {
 
       // Should attempt to load more (though with mock data it won't actually add more)
       expect(find.byType(ListView), findsOneWidget);
+    });
+
+    testWidgets('should hide completed tasks by default', (WidgetTester tester) async {
+      // Test the filtering functionality to ensure completed tasks are hidden by default
+      await tester.pumpWidget(createTestWidget());
+      await tester.pumpAndSettle();
+      
+      // The visibility toggle should be in "hide" mode initially
+      expect(find.byIcon(Icons.visibility_off), findsOneWidget);
+      expect(find.byIcon(Icons.visibility), findsNothing);
+    });
+
+    testWidgets('should toggle visibility of completed tasks', (WidgetTester tester) async {
+      await tester.pumpWidget(createTestWidget());
+      await tester.pumpAndSettle();
+      
+      // Initially should show hide icon (completed tasks hidden)
+      expect(find.byIcon(Icons.visibility_off), findsOneWidget);
+      
+      // Tap to show completed tasks
+      await tester.tap(find.byIcon(Icons.visibility_off));
+      await tester.pumpAndSettle();
+      
+      // Now should show visibility icon (completed tasks visible)
+      expect(find.byIcon(Icons.visibility), findsOneWidget);
+      expect(find.byIcon(Icons.visibility_off), findsNothing);
+    });
+
+    testWidgets('should include hide completed toggle in filter dialog', (WidgetTester tester) async {
+      await tester.pumpWidget(createTestWidget());
+      await tester.pumpAndSettle();
+      
+      // Open filter dialog
+      await tester.tap(find.byIcon(Icons.filter_list));
+      await tester.pumpAndSettle();
+      
+      // Should show the hide completed toggle
+      expect(find.text('隐藏已完成任务'), findsOneWidget);
+      expect(find.byType(Switch), findsOneWidget);
+      
+      // Switch should initially be true (hide completed)
+      final Switch switchWidget = tester.widget(find.byType(Switch));
+      expect(switchWidget.value, isTrue);
     });
   });
 }

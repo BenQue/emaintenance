@@ -44,11 +44,35 @@ class Asset {
       installDate: json['installDate'] != null 
           ? DateTime.parse(json['installDate'] as String)
           : null,
-      isActive: json['isActive'] as bool,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      isActive: json['isActive'] as bool? ?? true,
+      createdAt: json['createdAt'] != null 
+          ? DateTime.parse(json['createdAt'] as String) 
+          : DateTime.now(),
+      updatedAt: json['updatedAt'] != null 
+          ? DateTime.parse(json['updatedAt'] as String) 
+          : DateTime.now(),
       ownerId: json['ownerId'] as String?,
       administratorId: json['administratorId'] as String?,
+    );
+  }
+
+  /// Factory constructor for partial asset data from work order responses
+  factory Asset.fromWorkOrderJson(Map<String, dynamic> json) {
+    return Asset(
+      id: json['id'] as String,
+      assetCode: json['assetCode'] as String,
+      name: json['name'] as String,
+      description: null,
+      model: null,
+      manufacturer: null,
+      serialNumber: null,
+      location: json['location'] as String,
+      installDate: null,
+      isActive: true, // Default to true for work order assets
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      ownerId: null,
+      administratorId: null,
     );
   }
 

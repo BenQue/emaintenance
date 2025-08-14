@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../shared/models/work_order.dart';
@@ -54,6 +55,7 @@ class _WorkOrderCompletionScreenState extends State<WorkOrderCompletionScreen> {
         maxWidth: 1920,
         maxHeight: 1920,
         imageQuality: 85,
+        requestFullMetadata: false, // Reduce metadata to avoid issues
       );
 
       if (photo != null) {
@@ -214,60 +216,136 @@ class _WorkOrderCompletionScreenState extends State<WorkOrderCompletionScreen> {
   Future<void> _submitOnline() async {
     final workOrderService = await WorkOrderService.getInstance();
     
-    // Create resolution request
-    final request = CreateResolutionRequest(
-      solutionDescription: _solutionController.text.trim(),
-      faultCode: _selectedFaultCode,
-    );
-
-    // Complete work order first
-    await workOrderService.completeWorkOrder(widget.workOrder.id, request);
-
-    // Upload photos if any
-    if (_selectedPhotos.isNotEmpty) {
-      try {
-        // Upload both as resolution photos (legacy) and work order photos (new system)
+    try {
+      // Step 1: Upload photos FIRST if any (this is critical)
+      if (_selectedPhotos.isNotEmpty) {
+        debugPrint('Uploading ${_selectedPhotos.length} photos before completing work order...');
+        
+        // Convert any HEIC photos to JPEG first
+        final convertedPhotos = await _convertPhotosToJpeg(_selectedPhotos);
+        
+        // Upload both as resolution photos and work order photos
         await Future.wait([
           workOrderService.uploadResolutionPhotos(
             widget.workOrder.id,
-            _selectedPhotos,
+            convertedPhotos,
           ),
           workOrderService.uploadWorkOrderPhotos(
             widget.workOrder.id,
-            _selectedPhotos,
+            convertedPhotos,
           ),
         ]);
-      } catch (e) {
-        print('Failed to upload some photos: $e');
-        // Try uploading just resolution photos (fallback)
-        await workOrderService.uploadResolutionPhotos(
-          widget.workOrder.id,
-          _selectedPhotos,
+        
+        debugPrint('Photos uploaded successfully');
+      }
+
+      // Step 2: Only complete work order AFTER photos are uploaded successfully
+      final request = CreateResolutionRequest(
+        solutionDescription: _solutionController.text.trim(),
+        faultCode: _selectedFaultCode,
+      );
+
+      debugPrint('Completing work order...');
+      await workOrderService.completeWorkOrder(widget.workOrder.id, request);
+      debugPrint('Work order completed successfully');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('工单完成成功'),
+            backgroundColor: Colors.green,
+          ),
         );
       }
+    } catch (e) {
+      debugPrint('Error in _submitOnline: $e');
+      // Re-throw to be handled by the calling method
+      rethrow;
     }
+  }
 
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('工单完成成功'),
-          backgroundColor: Colors.green,
-        ),
-      );
+  /// Convert HEIC photos to JPEG format for better server compatibility
+  Future<List<String>> _convertPhotosToJpeg(List<String> photoPaths) async {
+    final convertedPaths = <String>[];
+    
+    for (final photoPath in photoPaths) {
+      try {
+        final file = File(photoPath);
+        final fileName = file.uri.pathSegments.last;
+        final extension = fileName.contains('.') 
+            ? fileName.substring(fileName.lastIndexOf('.')).toLowerCase()
+            : '';
+        
+        // Check if photo is HEIC/HEIF format
+        if (extension == '.heic' || extension == '.heif') {
+          debugPrint('Converting HEIC photo to JPEG: $photoPath');
+          
+          // Create a new path with .jpg extension
+          final directory = file.parent.path;
+          final fileName = file.uri.pathSegments.last;
+          final baseName = fileName.contains('.') 
+              ? fileName.substring(0, fileName.lastIndexOf('.'))
+              : fileName;
+          final jpegPath = '$directory${Platform.pathSeparator}${baseName}_converted.jpg';
+          
+          // Read and decode the image file
+          try {
+            final imageBytes = await file.readAsBytes();
+            final image = img.decodeImage(imageBytes);
+            
+            if (image != null) {
+              // Resize image if too large to reduce file size
+              img.Image resizedImage = image;
+              if (image.width > 1920 || image.height > 1920) {
+                resizedImage = img.copyResize(image, 
+                  width: image.width > image.height ? 1920 : null,
+                  height: image.height > image.width ? 1920 : null);
+              }
+              
+              // Encode to JPEG with quality
+              final jpegBytes = img.encodeJpg(resizedImage, quality: 85);
+              final jpegFile = File(jpegPath);
+              await jpegFile.writeAsBytes(jpegBytes);
+              
+              debugPrint('Successfully converted HEIC to JPEG: $jpegPath');
+              convertedPaths.add(jpegPath);
+            } else {
+              debugPrint('Failed to decode image: $photoPath');
+              convertedPaths.add(photoPath);
+            }
+          } catch (conversionError) {
+            debugPrint('Failed to convert HEIC photo: $conversionError');
+            // If conversion fails, try using the original file
+            convertedPaths.add(photoPath);
+          }
+        } else {
+          // Photo is already in a supported format
+          convertedPaths.add(photoPath);
+        }
+      } catch (e) {
+        debugPrint('Error processing photo $photoPath: $e');
+        // Include the original photo path even if there's an error
+        convertedPaths.add(photoPath);
+      }
     }
+    
+    return convertedPaths;
   }
 
   Future<void> _submitOffline() async {
     final offlineStorage = OfflineStorageService.getInstance();
     
-    // Save photos to local storage
+    // Convert photos to JPEG format first, then save to local storage
     final List<String> localPhotoPaths = [];
-    for (final photoPath in _selectedPhotos) {
-      final localPath = await offlineStorage.savePhotoToLocal(
-        photoPath,
-        widget.workOrder.id,
-      );
-      localPhotoPaths.add(localPath);
+    if (_selectedPhotos.isNotEmpty) {
+      final convertedPhotos = await _convertPhotosToJpeg(_selectedPhotos);
+      for (final photoPath in convertedPhotos) {
+        final localPath = await offlineStorage.savePhotoToLocal(
+          photoPath,
+          widget.workOrder.id,
+        );
+        localPhotoPaths.add(localPath);
+      }
     }
 
     // Create offline resolution record

@@ -14,12 +14,12 @@ interface StatusUpdateFormProps {
 }
 
 // Define valid status transitions
+// Note: COMPLETED status is handled through dedicated completion workflow
 const statusTransitions: Record<WorkOrderStatus, WorkOrderStatus[]> = {
   [WorkOrderStatus.PENDING]: [WorkOrderStatus.IN_PROGRESS, WorkOrderStatus.CANCELLED],
   [WorkOrderStatus.IN_PROGRESS]: [
     WorkOrderStatus.WAITING_PARTS,
     WorkOrderStatus.WAITING_EXTERNAL,
-    WorkOrderStatus.COMPLETED,
     WorkOrderStatus.CANCELLED,
   ],
   [WorkOrderStatus.WAITING_PARTS]: [WorkOrderStatus.IN_PROGRESS, WorkOrderStatus.CANCELLED],

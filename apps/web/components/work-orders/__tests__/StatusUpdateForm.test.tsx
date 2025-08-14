@@ -64,11 +64,13 @@ describe('StatusUpdateForm', () => {
     const statusSelect = screen.getByRole('combobox');
     fireEvent.click(statusSelect);
 
-    // Check for valid transitions from IN_PROGRESS
+    // Check for valid transitions from IN_PROGRESS (COMPLETED removed - handled by dedicated completion workflow)
     expect(screen.getByRole('option', { name: /等待备件/ })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: /等待外部/ })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: /已完成/ })).toBeInTheDocument();
     expect(screen.getByRole('option', { name: /已取消/ })).toBeInTheDocument();
+    
+    // Ensure COMPLETED status is NOT available in regular status updates
+    expect(screen.queryByRole('option', { name: /已完成/ })).not.toBeInTheDocument();
   });
 
   it('shows no transitions available for COMPLETED status', () => {

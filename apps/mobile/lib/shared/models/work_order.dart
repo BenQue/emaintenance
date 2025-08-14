@@ -370,7 +370,7 @@ class WorkOrderWithRelations {
       assetId: json['assetId'] as String,
       createdById: json['createdById'] as String,
       assignedToId: json['assignedToId'] as String?,
-      asset: Asset.fromJson(json['asset'] as Map<String, dynamic>),
+      asset: Asset.fromWorkOrderJson(json['asset'] as Map<String, dynamic>),
       createdBy: User.fromJson(json['createdBy'] as Map<String, dynamic>),
       assignedTo: json['assignedTo'] != null 
           ? User.fromJson(json['assignedTo'] as Map<String, dynamic>)
@@ -425,10 +425,16 @@ class UpdateWorkOrderStatusRequest {
   });
 
   Map<String, dynamic> toJson() {
-    return {
+    final json = <String, dynamic>{
       'status': status.value,
-      'notes': notes,
     };
+    
+    // Only include notes if it's not null and not empty
+    if (notes != null && notes!.isNotEmpty) {
+      json['notes'] = notes;
+    }
+    
+    return json;
   }
 }
 
@@ -623,7 +629,7 @@ class WorkOrderWithResolution extends WorkOrderWithRelations {
       assetId: json['assetId'] as String,
       createdById: json['createdById'] as String,
       assignedToId: json['assignedToId'] as String?,
-      asset: Asset.fromJson(json['asset'] as Map<String, dynamic>),
+      asset: Asset.fromWorkOrderJson(json['asset'] as Map<String, dynamic>),
       createdBy: User.fromJson(json['createdBy'] as Map<String, dynamic>),
       assignedTo: json['assignedTo'] != null 
           ? User.fromJson(json['assignedTo'] as Map<String, dynamic>)
@@ -682,11 +688,21 @@ class CreateResolutionRequest {
   });
 
   Map<String, dynamic> toJson() {
-    return {
+    final json = <String, dynamic>{
       'solutionDescription': solutionDescription,
-      'faultCode': faultCode?.value,
-      'photos': photos,
     };
+    
+    // Only include faultCode if it's not null
+    if (faultCode != null) {
+      json['faultCode'] = faultCode!.value;
+    }
+    
+    // Only include photos if it's not null and not empty
+    if (photos != null && photos!.isNotEmpty) {
+      json['photos'] = photos;
+    }
+    
+    return json;
   }
 }
 

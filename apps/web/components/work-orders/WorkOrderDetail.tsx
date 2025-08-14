@@ -152,8 +152,8 @@ export function WorkOrderDetail({ workOrderId }: WorkOrderDetailProps) {
               <Button onClick={() => { clearError(); loadWorkOrderWithHistory(workOrderId); }}>
                 重试
               </Button>
-              <Link href="/dashboard/my-tasks">
-                <Button variant="outline">返回任务列表</Button>
+              <Link href="/dashboard/work-orders">
+                <Button variant="outline">返回工单列表</Button>
               </Link>
             </div>
           </CardContent>
@@ -166,10 +166,10 @@ export function WorkOrderDetail({ workOrderId }: WorkOrderDetailProps) {
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-6">
-        <Link href="/dashboard/my-tasks">
+        <Link href="/dashboard/work-orders">
           <Button variant="outline" className="mb-4">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            返回任务列表
+            返回工单列表
           </Button>
         </Link>
         

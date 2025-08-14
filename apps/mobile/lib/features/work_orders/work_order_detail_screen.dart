@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../shared/models/work_order.dart';
 import '../../shared/services/work_order_service.dart';
 import '../../shared/providers/auth_provider.dart';
+import '../../shared/config/environment.dart';
+import '../../shared/widgets/authenticated_image.dart';
 import 'work_order_completion_screen.dart';
 
 class WorkOrderDetailScreen extends StatefulWidget {
@@ -20,9 +22,11 @@ class WorkOrderDetailScreen extends StatefulWidget {
 class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
   WorkOrderWithRelations? _workOrder;
   List<WorkOrderStatusHistory>? _statusHistory;
+  List<Map<String, dynamic>>? _workOrderPhotos;
   bool _isLoading = true;
   String? _error;
   bool _isUpdatingStatus = false;
+  bool _isLoadingPhotos = false;
 
   @override
   void initState() {
@@ -46,10 +50,38 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
         _statusHistory = statusHistory;
         _isLoading = false;
       });
+
+      // Load photos separately to avoid blocking the main content
+      _loadWorkOrderPhotos();
     } catch (e) {
       setState(() {
         _error = e.toString();
         _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _loadWorkOrderPhotos() async {
+    if (_workOrder == null) return;
+
+    setState(() {
+      _isLoadingPhotos = true;
+    });
+
+    try {
+      final workOrderService = await WorkOrderService.getInstance();
+      final photos = await workOrderService.getWorkOrderPhotos(widget.workOrderId);
+
+      setState(() {
+        _workOrderPhotos = photos;
+        _isLoadingPhotos = false;
+      });
+    } catch (e) {
+      // Log error for debugging purposes
+      debugPrint('Failed to load work order photos: $e');
+      setState(() {
+        _workOrderPhotos = [];
+        _isLoadingPhotos = false;
       });
     }
   }
@@ -123,6 +155,7 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
   }
 
   List<WorkOrderStatus> _getAvailableStatusTransitions(WorkOrderStatus currentStatus) {
+    // Note: COMPLETED status is handled through dedicated completion workflow
     switch (currentStatus) {
       case WorkOrderStatus.pending:
         return [WorkOrderStatus.inProgress, WorkOrderStatus.cancelled];
@@ -130,7 +163,6 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
         return [
           WorkOrderStatus.waitingParts,
           WorkOrderStatus.waitingExternal,
-          WorkOrderStatus.completed,
           WorkOrderStatus.cancelled,
         ];
       case WorkOrderStatus.waitingParts:
@@ -387,20 +419,8 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
               _buildInfoRow('解决方案', workOrder.solution!),
             if (workOrder.faultCode != null)
               _buildInfoRow('故障代码', workOrder.faultCode!),
-            if (workOrder.attachments.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              const Text(
-                '附件:',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
-              ...workOrder.attachments.map((attachment) => 
-                Padding(
-                  padding: const EdgeInsets.only(left: 16.0),
-                  child: Text('• $attachment'),
-                ),
-              ),
-            ],
+            // Show photos if available
+            _buildPhotosSection(),
           ],
         ),
       ),
@@ -712,6 +732,186 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
   String _formatDateTime(DateTime dateTime) {
     return '${dateTime.year}/${dateTime.month}/${dateTime.day} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
   }
+
+  Widget _buildPhotosSection() {
+    if (_isLoadingPhotos) {
+      return const Padding(
+        padding: EdgeInsets.only(top: 8.0),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+            SizedBox(width: 8),
+            Text('加载照片中...', style: TextStyle(color: Colors.grey)),
+          ],
+        ),
+      );
+    }
+
+    if (_workOrderPhotos == null || _workOrderPhotos!.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 8),
+        const Text(
+          '报修照片:',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 100,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: _workOrderPhotos!.length,
+            itemBuilder: (context, index) {
+              final photo = _workOrderPhotos![index];
+              return _buildPhotoThumbnail(photo, index);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPhotoThumbnail(Map<String, dynamic> photo, int index) {
+    final photoId = photo['id'] as String;
+    
+    return GestureDetector(
+      onTap: () => _viewPhotoFullScreen(photo, index),
+      child: Container(
+        width: 100,
+        height: 100,
+        margin: const EdgeInsets.only(right: 8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: AuthenticatedImage(
+            imageUrl: _buildPhotoUrl(photoId),
+            width: 100,
+            height: 100,
+            fit: BoxFit.cover,
+            placeholder: Container(
+              color: Colors.grey.shade200,
+              child: const Center(
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            ),
+            errorWidget: Container(
+              color: Colors.grey.shade200,
+              child: const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.error, color: Colors.red, size: 24),
+                  SizedBox(height: 4),
+                  Text(
+                    '加载失败',
+                    style: TextStyle(fontSize: 10, color: Colors.red),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _buildPhotoUrl(String photoId) {
+    // Use thumbnail for better performance in grid view
+    return '${Environment.workOrderServiceUrl}/api/work-orders/${widget.workOrderId}/work-order-photos/$photoId/thumbnail';
+  }
+
+  void _viewPhotoFullScreen(Map<String, dynamic> photo, int index) {
+    final photoId = photo['id'] as String;
+    final fullImageUrl = '${Environment.workOrderServiceUrl}/api/work-orders/${widget.workOrderId}/work-order-photos/$photoId';
+    
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => _PhotoViewScreen(
+          imageUrl: fullImageUrl,
+          heroTag: 'photo_${photoId}_$index',
+          photoName: photo['originalName'] as String? ?? '照片 ${index + 1}',
+        ),
+      ),
+    );
+  }
+}
+
+class _PhotoViewScreen extends StatelessWidget {
+  final String imageUrl;
+  final String heroTag;
+  final String photoName;
+
+  const _PhotoViewScreen({
+    required this.imageUrl,
+    required this.heroTag,
+    required this.photoName,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        title: Text(
+          photoName,
+          style: const TextStyle(color: Colors.white),
+        ),
+      ),
+      body: Center(
+        child: Hero(
+          tag: heroTag,
+          child: InteractiveViewer(
+            child: AuthenticatedImage(
+              imageUrl: imageUrl,
+              fit: BoxFit.contain,
+              placeholder: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const CircularProgressIndicator(color: Colors.white),
+                    const SizedBox(height: 16),
+                    Text(
+                      '加载中...',
+                      style: TextStyle(color: Colors.white.withValues(alpha: 0.8)),
+                    ),
+                  ],
+                ),
+              ),
+              errorWidget: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.error, color: Colors.white, size: 48),
+                    const SizedBox(height: 16),
+                    Text(
+                      '图片加载失败',
+                      style: TextStyle(color: Colors.white.withValues(alpha: 0.8)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _StatusUpdateDialog extends StatefulWidget {
@@ -730,6 +930,7 @@ class _StatusUpdateDialogState extends State<_StatusUpdateDialog> {
   final _notesController = TextEditingController();
 
   List<WorkOrderStatus> get _availableStatuses {
+    // Note: COMPLETED status is handled through dedicated completion workflow
     switch (widget.currentStatus) {
       case WorkOrderStatus.pending:
         return [WorkOrderStatus.inProgress, WorkOrderStatus.cancelled];
@@ -737,7 +938,6 @@ class _StatusUpdateDialogState extends State<_StatusUpdateDialog> {
         return [
           WorkOrderStatus.waitingParts,
           WorkOrderStatus.waitingExternal,
-          WorkOrderStatus.completed,
           WorkOrderStatus.cancelled,
         ];
       case WorkOrderStatus.waitingParts:

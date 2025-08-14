@@ -25,6 +25,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
   WorkOrderStatus? _statusFilter;
   Priority? _priorityFilter;
   String _searchQuery = '';
+  bool _hideCompleted = true; // Default to hide completed tasks
 
   @override
   void initState() {
@@ -125,6 +126,11 @@ class _TaskListScreenState extends State<TaskListScreen> {
 
   List<WorkOrderWithRelations> get _filteredWorkOrders {
     return _workOrders.where((workOrder) {
+      // Hide completed tasks filter (default behavior)
+      if (_hideCompleted && workOrder.status == WorkOrderStatus.completed) {
+        return false;
+      }
+      
       // Status filter
       if (_statusFilter != null && workOrder.status != _statusFilter) {
         return false;
@@ -153,10 +159,12 @@ class _TaskListScreenState extends State<TaskListScreen> {
       builder: (context) => _FilterDialog(
         statusFilter: _statusFilter,
         priorityFilter: _priorityFilter,
-        onFiltersChanged: (status, priority) {
+        hideCompleted: _hideCompleted,
+        onFiltersChanged: (status, priority, hideCompleted) {
           setState(() {
             _statusFilter = status;
             _priorityFilter = priority;
+            _hideCompleted = hideCompleted;
           });
         },
       ),
@@ -171,6 +179,16 @@ class _TaskListScreenState extends State<TaskListScreen> {
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         actions: [
+          // Quick toggle for hide completed
+          IconButton(
+            icon: Icon(_hideCompleted ? Icons.visibility_off : Icons.visibility),
+            tooltip: _hideCompleted ? '显示已完成任务' : '隐藏已完成任务',
+            onPressed: () {
+              setState(() {
+                _hideCompleted = !_hideCompleted;
+              });
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.filter_list),
             onPressed: _showFilterDialog,
@@ -516,11 +534,13 @@ class _TaskListScreenState extends State<TaskListScreen> {
 class _FilterDialog extends StatefulWidget {
   final WorkOrderStatus? statusFilter;
   final Priority? priorityFilter;
-  final Function(WorkOrderStatus?, Priority?) onFiltersChanged;
+  final bool hideCompleted;
+  final Function(WorkOrderStatus?, Priority?, bool) onFiltersChanged;
 
   const _FilterDialog({
     required this.statusFilter,
     required this.priorityFilter,
+    required this.hideCompleted,
     required this.onFiltersChanged,
   });
 
@@ -531,12 +551,14 @@ class _FilterDialog extends StatefulWidget {
 class _FilterDialogState extends State<_FilterDialog> {
   WorkOrderStatus? _selectedStatus;
   Priority? _selectedPriority;
+  bool _selectedHideCompleted = true;
 
   @override
   void initState() {
     super.initState();
     _selectedStatus = widget.statusFilter;
     _selectedPriority = widget.priorityFilter;
+    _selectedHideCompleted = widget.hideCompleted;
   }
 
   @override
@@ -547,6 +569,23 @@ class _FilterDialogState extends State<_FilterDialog> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Hide completed toggle
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('隐藏已完成任务', style: TextStyle(fontWeight: FontWeight.bold)),
+              Switch(
+                value: _selectedHideCompleted,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedHideCompleted = value;
+                  });
+                },
+                activeColor: Colors.blue,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
           const Text('状态', style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Wrap(
@@ -606,6 +645,7 @@ class _FilterDialogState extends State<_FilterDialog> {
             setState(() {
               _selectedStatus = null;
               _selectedPriority = null;
+              _selectedHideCompleted = true; // Reset to default (hide completed)
             });
           },
           child: const Text('清除'),
@@ -616,7 +656,7 @@ class _FilterDialogState extends State<_FilterDialog> {
         ),
         ElevatedButton(
           onPressed: () {
-            widget.onFiltersChanged(_selectedStatus, _selectedPriority);
+            widget.onFiltersChanged(_selectedStatus, _selectedPriority, _selectedHideCompleted);
             Navigator.of(context).pop();
           },
           child: const Text('应用'),

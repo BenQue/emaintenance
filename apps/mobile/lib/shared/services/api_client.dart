@@ -144,6 +144,9 @@ class ApiClient {
       throw ApiException.fromDioException(e);
     }
   }
+
+  // Getter to expose the configured Dio instance for authenticated image loading
+  Dio get dio => _dio;
 }
 
 class ApiException implements Exception {

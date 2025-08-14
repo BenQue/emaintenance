@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http_parser/http_parser.dart';
 import '../models/work_order.dart';
 import 'api_client.dart';
@@ -185,9 +186,12 @@ class WorkOrderService {
         throw Exception('API client not initialized');
       }
       
+      final requestData = request.toJson();
+      debugPrint('Updating work order status: $requestData');
+      
       final response = await _apiClient!.put<Map<String, dynamic>>(
         '/api/work-orders/$workOrderId/status',
-        data: request.toJson(),
+        data: requestData,
       );
 
       if (response.data == null) {
@@ -358,9 +362,12 @@ class WorkOrderService {
         throw Exception('API client not initialized');
       }
       
+      final requestData = request.toJson();
+      debugPrint('Completing work order: $requestData');
+      
       final response = await _apiClient!.post<Map<String, dynamic>>(
         '/api/work-orders/$workOrderId/complete',
-        data: request.toJson(),
+        data: requestData,
       );
 
       if (response.data == null) {
