@@ -1,4 +1,4 @@
-import { PrismaClient, Asset } from '@emaintanance/database';
+import { PrismaClient, Asset } from '@emaintenance/database';
 import { AssetRepository, CreateAssetData, UpdateAssetData, AssetListFilters, AssetListResult } from '../repositories/AssetRepository';
 import { AssetDowntimeStatistics, AssetPerformanceRanking, AssetKPIFilters, AssetHealthMetrics } from '../types/asset';
 import { generateAssetQRCode } from '../utils/qr-generator';

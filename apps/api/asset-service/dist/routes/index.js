@@ -9,7 +9,7 @@ const AssetController_1 = require("../controllers/AssetController");
 const auth_middleware_1 = require("../middleware/auth.middleware");
 const validation_middleware_1 = require("../middleware/validation.middleware");
 const logging_middleware_1 = require("../middleware/logging.middleware");
-const database_1 = require("@emaintanance/database");
+const database_1 = require("@emaintenance/database");
 const router = (0, express_1.Router)();
 const prisma = new database_1.PrismaClient();
 const assetController = new AssetController_1.AssetController(prisma);
@@ -51,6 +51,13 @@ validation_middleware_1.validateListAssets, assetController.listAssets.bind(asse
 // Asset utility endpoints (place before parameterized routes)
 router.get('/assets/search', auth_middleware_1.authenticate, // All authenticated users can search assets
 validation_middleware_1.validateSearchAssets, assetController.searchAssets.bind(assetController));
+// Manual asset code input endpoints
+router.get('/assets/search-by-code', auth_middleware_1.authenticate, // All authenticated users can search by asset code
+assetController.searchAssetsByCode.bind(assetController));
+router.get('/assets/validate', auth_middleware_1.authenticate, // All authenticated users can validate asset codes
+assetController.validateAssetCode.bind(assetController));
+router.get('/assets/suggest', auth_middleware_1.authenticate, // All authenticated users can get asset suggestions
+assetController.getAssetSuggestions.bind(assetController));
 router.get('/assets/stats', auth_middleware_1.authenticate, auth_middleware_1.requireSupervisor, // Stats are for supervisors and above
 assetController.getAssetStats.bind(assetController));
 router.get('/assets/locations', auth_middleware_1.authenticate, // All authenticated users can get locations for filtering

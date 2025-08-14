@@ -1,4 +1,4 @@
-import { PrismaClient, Asset } from '@emaintanance/database';
+import { PrismaClient, Asset } from '@emaintenance/database';
 import { CreateAssetData, UpdateAssetData, AssetListFilters, AssetListResult } from '../repositories/AssetRepository';
 import { AssetDowntimeStatistics, AssetPerformanceRanking, AssetKPIFilters, AssetHealthMetrics } from '../types/asset';
 export declare class AssetService {
@@ -33,6 +33,29 @@ export declare class AssetService {
      * Search assets
      */
     searchAssets(query: string, filters?: {
+        location?: string;
+        isActive?: boolean;
+        limit?: number;
+    }): Promise<Asset[]>;
+    /**
+     * Search assets by partial code for autocomplete
+     */
+    searchAssetsByCode(partialCode: string, filters?: {
+        location?: string;
+        isActive?: boolean;
+        limit?: number;
+    }): Promise<Asset[]>;
+    /**
+     * Validate asset code
+     */
+    validateAssetCode(assetCode: string): Promise<{
+        exists: boolean;
+        asset?: Asset;
+    }>;
+    /**
+     * Get asset suggestions with fuzzy matching
+     */
+    getAssetSuggestions(input: string, filters?: {
         location?: string;
         isActive?: boolean;
         limit?: number;

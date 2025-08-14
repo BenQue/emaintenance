@@ -1,4 +1,4 @@
-import { Asset } from '@emaintanance/database';
+import { Asset } from '@emaintenance/database';
 export interface CreateAssetData {
     assetCode: string;
     name: string;

@@ -1,8 +1,8 @@
 import { UserRepository } from './UserRepository';
-import { UserRole } from '@emaintanance/database';
+import { UserRole } from '@emaintenance/database';
 
 // Mock the database
-jest.mock('@emaintanance/database', () => ({
+jest.mock('@emaintenance/database', () => ({
   prisma: {
     user: {
       create: jest.fn(),
@@ -17,7 +17,7 @@ jest.mock('@emaintanance/database', () => ({
   },
 }));
 
-import { prisma } from '@emaintanance/database';
+import { prisma } from '@emaintenance/database';
 
 describe('UserRepository', () => {
   let userRepository: UserRepository;

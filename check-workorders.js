@@ -4,7 +4,7 @@ async function checkWorkOrders() {
   const prisma = new PrismaClient({
     datasources: {
       db: {
-        url: process.env.DATABASE_URL || "postgresql://postgres:123456@localhost:5432/emaintanance"
+        url: process.env.DATABASE_URL || "postgresql://postgres:123456@localhost:5432/emaintenance"
       }
     }
   });

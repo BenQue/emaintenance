@@ -1,4 +1,4 @@
-import { PrismaClient, NotificationType } from '@emaintanance/database';
+import { PrismaClient, NotificationType } from '@emaintenance/database';
 import { NotificationService } from '../services/NotificationService';
 import { CreateNotificationRequest } from '../types/notification';
 

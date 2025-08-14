@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@emaintanance/database';
+import { PrismaClient } from '@emaintenance/database';
 export declare class AssetController {
     private prisma;
     private assetService;
@@ -30,6 +30,21 @@ export declare class AssetController {
      * Search assets
      */
     searchAssets(req: Request, res: Response): Promise<void>;
+    /**
+     * Search assets by partial code for autocomplete
+     * GET /api/assets/search?code={partialCode}
+     */
+    searchAssetsByCode(req: Request, res: Response): Promise<void>;
+    /**
+     * Validate exact asset code existence
+     * GET /api/assets/validate?code={fullCode}
+     */
+    validateAssetCode(req: Request, res: Response): Promise<void>;
+    /**
+     * Get asset suggestions with fuzzy matching
+     * GET /api/assets/suggest?input={userInput}
+     */
+    getAssetSuggestions(req: Request, res: Response): Promise<void>;
     /**
      * Generate QR code for asset
      */

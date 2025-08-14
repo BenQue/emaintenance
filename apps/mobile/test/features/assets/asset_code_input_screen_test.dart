@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:emaintanance_mobile/features/assets/asset_code_input_screen.dart';
-import 'package:emaintanance_mobile/shared/models/asset.dart';
+import 'package:emaintenance_mobile/features/assets/asset_code_input_screen.dart';
+import 'package:emaintenance_mobile/shared/models/asset.dart';
 
 void main() {
   final testAsset = Asset(

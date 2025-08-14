@@ -1,5 +1,5 @@
 // Check if resolution photos were created and can be retrieved
-const { PrismaClient } = require('@emaintanance/database');
+const { PrismaClient } = require('@emaintenance/database');
 
 const prisma = new PrismaClient();
 

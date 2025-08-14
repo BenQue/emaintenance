@@ -1,4 +1,4 @@
-import { Priority, WorkOrderStatus, FaultCode } from '@emaintanance/database';
+import { Priority, WorkOrderStatus, FaultCode } from '@emaintenance/database';
 
 export interface CreateWorkOrderRequest {
   title: string;

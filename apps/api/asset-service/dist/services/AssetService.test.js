@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const database_1 = require("@emaintanance/database");
+const database_1 = require("@emaintenance/database");
 const AssetService_1 = require("./AssetService");
 describe('AssetService', () => {
     let service;

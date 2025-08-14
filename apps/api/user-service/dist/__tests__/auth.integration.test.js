@@ -8,9 +8,9 @@ const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
 const auth_1 = __importDefault(require("../routes/auth"));
-const database_1 = require("@emaintanance/database");
+const database_1 = require("@emaintenance/database");
 // Mock the database
-jest.mock('@emaintanance/database', () => {
+jest.mock('@emaintenance/database', () => {
     const mockUsers = [];
     return {
         prisma: {

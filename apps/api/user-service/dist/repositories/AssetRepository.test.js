@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const AssetRepository_1 = require("./AssetRepository");
 // Mock the database
-jest.mock('@emaintanance/database', () => ({
+jest.mock('@emaintenance/database', () => ({
     prisma: {
         asset: {
             create: jest.fn(),
@@ -15,7 +15,7 @@ jest.mock('@emaintanance/database', () => ({
         $transaction: jest.fn(),
     },
 }));
-const database_1 = require("@emaintanance/database");
+const database_1 = require("@emaintenance/database");
 describe('AssetRepository', () => {
     let assetRepository;
     const mockPrismaAsset = database_1.prisma.asset;

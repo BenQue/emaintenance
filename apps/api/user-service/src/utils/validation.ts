@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { UserRole } from '@emaintanance/database';
+import { UserRole } from '@emaintenance/database';
 
 export const registerSchema = z.object({
   email: z.string().email('Invalid email format'),

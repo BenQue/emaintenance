@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const validation_1 = require("./validation");
-const database_1 = require("@emaintanance/database");
+const database_1 = require("@emaintenance/database");
 describe('Validation Schemas', () => {
     describe('registerSchema', () => {
         const validData = {

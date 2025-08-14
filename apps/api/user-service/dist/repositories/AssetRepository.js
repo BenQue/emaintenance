@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AssetRepository = void 0;
-const database_1 = require("@emaintanance/database");
+const database_1 = require("@emaintenance/database");
 class AssetRepository {
     /**
      * Create a new asset

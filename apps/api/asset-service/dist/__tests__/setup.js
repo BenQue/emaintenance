@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 // Mock Prisma client for tests
-jest.mock('@emaintanance/database', () => ({
+jest.mock('@emaintenance/database', () => ({
     PrismaClient: jest.fn().mockImplementation(() => ({
         asset: {
             create: jest.fn(),

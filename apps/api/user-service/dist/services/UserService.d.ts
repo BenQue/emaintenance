@@ -1,4 +1,4 @@
-import { User, UserRole } from '@emaintanance/database';
+import { User, UserRole } from '@emaintenance/database';
 export interface CreateUserInput {
     email: string;
     username: string;

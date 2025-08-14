@@ -227,6 +227,159 @@ class AssetRepository {
         }
     }
     /**
+     * Search assets by partial code for autocomplete
+     */
+    async searchAssetsByCode(partialCode, filters = {}) {
+        try {
+            const { location, isActive, limit = 10 } = filters;
+            if (!partialCode || partialCode.trim().length === 0) {
+                return [];
+            }
+            const trimmedCode = partialCode.trim();
+            const where = {
+                OR: [
+                    // Exact match (highest priority)
+                    { assetCode: { equals: trimmedCode, mode: 'insensitive' } },
+                    // Prefix match
+                    { assetCode: { startsWith: trimmedCode, mode: 'insensitive' } },
+                    // Contains match
+                    { assetCode: { contains: trimmedCode, mode: 'insensitive' } },
+                ],
+            };
+            if (location) {
+                where.location = { contains: location, mode: 'insensitive' };
+            }
+            if (isActive !== undefined) {
+                where.isActive = isActive;
+            }
+            const assets = await this.prisma.asset.findMany({
+                where,
+                take: limit,
+                orderBy: [
+                    // Prioritize exact matches, then prefix matches
+                    { assetCode: 'asc' },
+                    { name: 'asc' },
+                ],
+            });
+            logger_1.default.debug('Asset code search completed', {
+                partialCode: trimmedCode,
+                filters,
+                resultCount: assets.length
+            });
+            return assets;
+        }
+        catch (error) {
+            logger_1.default.error('Failed to search assets by code', {
+                partialCode,
+                filters,
+                error: error instanceof Error ? error.message : 'Unknown error'
+            });
+            throw error;
+        }
+    }
+    /**
+     * Validate if asset code exists
+     */
+    async validateAssetCode(assetCode) {
+        try {
+            if (!assetCode || assetCode.trim().length === 0) {
+                return { exists: false };
+            }
+            const asset = await this.prisma.asset.findUnique({
+                where: { assetCode: assetCode.trim() },
+            });
+            logger_1.default.debug('Asset code validation completed', {
+                assetCode: assetCode.trim(),
+                exists: !!asset
+            });
+            return {
+                exists: !!asset,
+                asset: asset || undefined,
+            };
+        }
+        catch (error) {
+            logger_1.default.error('Failed to validate asset code', {
+                assetCode,
+                error: error instanceof Error ? error.message : 'Unknown error'
+            });
+            throw error;
+        }
+    }
+    /**
+     * Get asset suggestions with fuzzy matching
+     */
+    async getAssetSuggestions(input, filters = {}) {
+        try {
+            const { location, isActive, limit = 10 } = filters;
+            if (!input || input.trim().length === 0) {
+                return [];
+            }
+            const trimmedInput = input.trim();
+            const where = {
+                OR: [
+                    // Asset code matches
+                    { assetCode: { contains: trimmedInput, mode: 'insensitive' } },
+                    // Name matches (for additional context)
+                    { name: { contains: trimmedInput, mode: 'insensitive' } },
+                ],
+            };
+            if (location) {
+                where.location = { contains: location, mode: 'insensitive' };
+            }
+            if (isActive !== undefined) {
+                where.isActive = isActive;
+            }
+            const assets = await this.prisma.asset.findMany({
+                where,
+                take: limit,
+                orderBy: [
+                    // Prioritize exact asset code matches
+                    { assetCode: 'asc' },
+                    { name: 'asc' },
+                ],
+            });
+            // Simple fuzzy matching score calculation
+            const scoredAssets = assets.map(asset => {
+                let score = 0;
+                // Exact match bonus
+                if (asset.assetCode.toLowerCase() === trimmedInput.toLowerCase()) {
+                    score += 100;
+                }
+                // Prefix match bonus
+                else if (asset.assetCode.toLowerCase().startsWith(trimmedInput.toLowerCase())) {
+                    score += 80;
+                }
+                // Contains match
+                else if (asset.assetCode.toLowerCase().includes(trimmedInput.toLowerCase())) {
+                    score += 60;
+                }
+                // Name match bonus (lower priority)
+                if (asset.name.toLowerCase().includes(trimmedInput.toLowerCase())) {
+                    score += 20;
+                }
+                return { ...asset, matchScore: score };
+            });
+            // Sort by match score and return without score
+            const sortedAssets = scoredAssets
+                .sort((a, b) => b.matchScore - a.matchScore)
+                .map(({ matchScore, ...asset }) => asset);
+            logger_1.default.debug('Asset suggestions completed', {
+                input: trimmedInput,
+                filters,
+                resultCount: sortedAssets.length
+            });
+            return sortedAssets;
+        }
+        catch (error) {
+            logger_1.default.error('Failed to get asset suggestions', {
+                input,
+                filters,
+                error: error instanceof Error ? error.message : 'Unknown error'
+            });
+            throw error;
+        }
+    }
+    /**
      * Get asset maintenance history
      */
     async getAssetMaintenanceHistory(assetId) {

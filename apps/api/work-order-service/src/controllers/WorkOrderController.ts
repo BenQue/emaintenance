@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@emaintanance/database';
+import { PrismaClient } from '@emaintenance/database';
 import { WorkOrderService } from '../services/WorkOrderService';
 import { 
   CreateWorkOrderSchema, 

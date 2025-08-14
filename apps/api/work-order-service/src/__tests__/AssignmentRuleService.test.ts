@@ -1,4 +1,4 @@
-import { PrismaClient, UserRole } from '@emaintanance/database';
+import { PrismaClient, UserRole } from '@emaintenance/database';
 import { AssignmentRuleService } from '../services/AssignmentRuleService';
 import { CreateAssignmentRuleRequest, UpdateAssignmentRuleRequest } from '../types/assignment-rule';
 

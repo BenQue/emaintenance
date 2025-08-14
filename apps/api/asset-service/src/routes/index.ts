@@ -10,7 +10,7 @@ import {
   validateSearchAssets 
 } from '../middleware/validation.middleware';
 import { requestLogger, errorLogger } from '../middleware/logging.middleware';
-import { PrismaClient } from '@emaintanance/database';
+import { PrismaClient } from '@emaintenance/database';
 
 const router = Router();
 const prisma = new PrismaClient();

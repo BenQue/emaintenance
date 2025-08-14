@@ -1,5 +1,5 @@
 {
-  "extends": "@emaintanance/typescript-config/nextjs.json",
+  "extends": "@emaintenance/typescript-config/nextjs.json",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {

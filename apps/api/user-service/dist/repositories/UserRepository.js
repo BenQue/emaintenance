@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserRepository = void 0;
-const database_1 = require("@emaintanance/database");
+const database_1 = require("@emaintenance/database");
 class UserRepository {
     /**
      * Create a new user

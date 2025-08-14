@@ -1,4 +1,4 @@
-import { prisma, Asset } from '@emaintanance/database';
+import { prisma, Asset } from '@emaintenance/database';
 
 export interface CreateAssetData {
   assetCode: string;

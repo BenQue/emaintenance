@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const AuthController_1 = require("./AuthController");
 const AuthService_1 = require("../services/AuthService");
-const database_1 = require("@emaintanance/database");
+const database_1 = require("@emaintenance/database");
 // Mock dependencies
 jest.mock('../services/AuthService');
 describe('AuthController', () => {

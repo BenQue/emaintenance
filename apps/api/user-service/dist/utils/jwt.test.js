@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const jwt_1 = require("./jwt");
-const database_1 = require("@emaintanance/database");
+const database_1 = require("@emaintenance/database");
 describe('JWT Utils', () => {
     const mockPayload = {
         userId: 'user123',

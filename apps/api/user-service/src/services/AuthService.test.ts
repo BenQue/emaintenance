@@ -2,7 +2,7 @@ import { AuthService } from './AuthService';
 import { UserRepository } from '../repositories/UserRepository';
 import { hashPassword, verifyPassword } from '../utils/crypto';
 import { generateToken, getExpirationTime } from '../utils/jwt';
-import { UserRole } from '@emaintanance/database';
+import { UserRole } from '@emaintenance/database';
 
 // Mock dependencies
 jest.mock('../repositories/UserRepository');

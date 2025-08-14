@@ -1,5 +1,5 @@
 {
-  "name": "@emaintanance/shared",
+  "name": "@emaintenance/shared",
   "version": "1.0.0",
   "private": true,
   "main": "dist/index.js",
@@ -11,8 +11,8 @@
     "format": "prettier --write src/"
   },
   "devDependencies": {
-    "@emaintanance/eslint-config": "*",
-    "@emaintanance/typescript-config": "*",
+    "@emaintenance/eslint-config": "*",
+    "@emaintenance/typescript-config": "*",
     "@types/express": "^4.17.0",
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0"

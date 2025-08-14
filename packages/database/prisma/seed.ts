@@ -11,14 +11,14 @@ async function main() {
   const adminPassword = await bcryptjs.hash('admin123', 10);
 
   const admin = await prisma.user.upsert({
-    where: { email: 'admin@emaintanance.com' },
+    where: { email: 'admin@emaintenance.com' },
     update: {
       firstName: 'System',
       lastName: 'Administrator',
       password: adminPassword,
     },
     create: {
-      email: 'admin@emaintanance.com',
+      email: 'admin@emaintenance.com',
       username: 'admin',
       password: adminPassword,
       employeeId: 'EMP001',
@@ -29,10 +29,10 @@ async function main() {
   });
 
   const supervisor = await prisma.user.upsert({
-    where: { email: 'supervisor@emaintanance.com' },
+    where: { email: 'supervisor@emaintenance.com' },
     update: {},
     create: {
-      email: 'supervisor@emaintanance.com',
+      email: 'supervisor@emaintenance.com',
       username: 'supervisor',
       password: hashedPassword,
       employeeId: 'EMP002',
@@ -43,10 +43,10 @@ async function main() {
   });
 
   const technician = await prisma.user.upsert({
-    where: { email: 'technician@emaintanance.com' },
+    where: { email: 'technician@emaintenance.com' },
     update: {},
     create: {
-      email: 'technician@emaintanance.com',
+      email: 'technician@emaintenance.com',
       username: 'technician',
       password: hashedPassword,
       employeeId: 'EMP003',
@@ -57,10 +57,10 @@ async function main() {
   });
 
   const employee = await prisma.user.upsert({
-    where: { email: 'employee@emaintanance.com' },
+    where: { email: 'employee@emaintenance.com' },
     update: {},
     create: {
-      email: 'employee@emaintanance.com',
+      email: 'employee@emaintenance.com',
       username: 'employee',
       password: hashedPassword,
       employeeId: 'EMP004',
@@ -72,10 +72,10 @@ async function main() {
 
   // Additional technician test accounts
   const technician2 = await prisma.user.upsert({
-    where: { email: 'tech2@emaintanance.com' },
+    where: { email: 'tech2@emaintenance.com' },
     update: {},
     create: {
-      email: 'tech2@emaintanance.com',
+      email: 'tech2@emaintenance.com',
       username: 'tech2',
       password: hashedPassword,
       employeeId: 'EMP005',
@@ -86,10 +86,10 @@ async function main() {
   });
 
   const technician3 = await prisma.user.upsert({
-    where: { email: 'tech3@emaintanance.com' },
+    where: { email: 'tech3@emaintenance.com' },
     update: {},
     create: {
-      email: 'tech3@emaintanance.com',
+      email: 'tech3@emaintenance.com',
       username: 'tech3',
       password: hashedPassword,
       employeeId: 'EMP006',
@@ -101,10 +101,10 @@ async function main() {
 
   // Additional employee test accounts
   const employee2 = await prisma.user.upsert({
-    where: { email: 'emp2@emaintanance.com' },
+    where: { email: 'emp2@emaintenance.com' },
     update: {},
     create: {
-      email: 'emp2@emaintanance.com',
+      email: 'emp2@emaintenance.com',
       username: 'emp2',
       password: hashedPassword,
       employeeId: 'EMP007',
@@ -115,10 +115,10 @@ async function main() {
   });
 
   const employee3 = await prisma.user.upsert({
-    where: { email: 'emp3@emaintanance.com' },
+    where: { email: 'emp3@emaintenance.com' },
     update: {},
     create: {
-      email: 'emp3@emaintanance.com',
+      email: 'emp3@emaintenance.com',
       username: 'emp3',
       password: hashedPassword,
       employeeId: 'EMP008',
@@ -129,10 +129,10 @@ async function main() {
   });
 
   const employee4 = await prisma.user.upsert({
-    where: { email: 'emp4@emaintanance.com' },
+    where: { email: 'emp4@emaintenance.com' },
     update: {},
     create: {
-      email: 'emp4@emaintanance.com',
+      email: 'emp4@emaintenance.com',
       username: 'emp4',
       password: hashedPassword,
       employeeId: 'EMP009',

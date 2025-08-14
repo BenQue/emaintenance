@@ -9,10 +9,10 @@ const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
 const assets_1 = __importDefault(require("../routes/assets"));
 const auth_1 = __importDefault(require("../routes/auth"));
-const database_1 = require("@emaintanance/database");
+const database_1 = require("@emaintenance/database");
 const rateLimiter_1 = require("../middleware/rateLimiter");
 // Mock the database
-jest.mock('@emaintanance/database', () => {
+jest.mock('@emaintenance/database', () => {
     const mockUsers = [];
     const mockAssets = [];
     let assetIdCounter = 1;
@@ -213,7 +213,7 @@ describe('Asset Management Integration Tests', () => {
     });
     beforeEach(() => {
         // Clear assets before each test
-        const { prisma } = require('@emaintanance/database');
+        const { prisma } = require('@emaintenance/database');
         const mockAssets = [];
         jest.clearAllMocks();
     });

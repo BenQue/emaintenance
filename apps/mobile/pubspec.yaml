@@ -1,4 +1,4 @@
-name: emaintanance_mobile
+name: emaintenance_mobile
 description: "E-Maintenance Mobile App - Equipment Maintenance Management System"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.

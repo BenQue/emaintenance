@@ -1,4 +1,4 @@
-import { UserRole } from '@emaintanance/database';
+import { UserRole } from '@emaintenance/database';
 
 export interface RegisterRequest {
   email: string;

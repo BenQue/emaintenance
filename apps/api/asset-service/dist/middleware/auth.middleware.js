@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.requireTechnician = exports.requireSupervisor = exports.requireAdmin = exports.authorize = exports.authenticate = void 0;
-const database_1 = require("@emaintanance/database");
+const database_1 = require("@emaintenance/database");
 const jwt_1 = require("../utils/jwt");
 const logger_1 = __importDefault(require("../utils/logger"));
 // Singleton Prisma instance for user verification

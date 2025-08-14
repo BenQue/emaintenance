@@ -1,4 +1,4 @@
-import { User, UserRole } from '@emaintanance/database';
+import { User, UserRole } from '@emaintenance/database';
 import { UserRepository } from '../repositories/UserRepository';
 import { hashPassword, verifyPassword } from '../utils/crypto';
 import { generateToken, getExpirationTime } from '../utils/jwt';

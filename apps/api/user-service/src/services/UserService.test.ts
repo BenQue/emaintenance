@@ -1,6 +1,6 @@
 import { UserService, CreateUserInput, UpdateUserInput, UserListQuery, BulkUserOperation } from './UserService';
 import { UserRepository } from '../repositories/UserRepository';
-import { UserRole } from '@emaintanance/database';
+import { UserRole } from '@emaintenance/database';
 import { hashPassword } from '../utils/crypto';
 
 // Mock dependencies

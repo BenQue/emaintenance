@@ -20,7 +20,7 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 function generateToken(payload) {
     const options = {
         expiresIn: JWT_EXPIRES_IN,
-        issuer: 'emaintanance-user-service',
+        issuer: 'emaintenance-user-service',
     };
     return jsonwebtoken_1.default.sign(payload, JWT_SECRET, options);
 }

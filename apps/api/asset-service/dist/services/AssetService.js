@@ -200,6 +200,79 @@ class AssetService {
         }
     }
     /**
+     * Search assets by partial code for autocomplete
+     */
+    async searchAssetsByCode(partialCode, filters = {}) {
+        try {
+            if (!partialCode || partialCode.trim().length === 0) {
+                return [];
+            }
+            const assets = await this.assetRepository.searchAssetsByCode(partialCode.trim(), filters);
+            logger_1.default.debug('Asset code search completed via service', {
+                partialCode: partialCode.trim(),
+                filters,
+                resultCount: assets.length
+            });
+            return assets;
+        }
+        catch (error) {
+            logger_1.default.error('Asset service: Failed to search assets by code', {
+                partialCode,
+                filters,
+                error: error instanceof Error ? error.message : 'Unknown error'
+            });
+            throw error;
+        }
+    }
+    /**
+     * Validate asset code
+     */
+    async validateAssetCode(assetCode) {
+        try {
+            if (!assetCode || assetCode.trim().length === 0) {
+                throw new Error('Asset code is required');
+            }
+            const result = await this.assetRepository.validateAssetCode(assetCode.trim());
+            logger_1.default.debug('Asset code validation completed via service', {
+                assetCode: assetCode.trim(),
+                exists: result.exists
+            });
+            return result;
+        }
+        catch (error) {
+            logger_1.default.error('Asset service: Failed to validate asset code', {
+                assetCode,
+                error: error instanceof Error ? error.message : 'Unknown error'
+            });
+            throw error;
+        }
+    }
+    /**
+     * Get asset suggestions with fuzzy matching
+     */
+    async getAssetSuggestions(input, filters = {}) {
+        try {
+            if (!input || input.trim().length === 0) {
+                return [];
+            }
+            const suggestions = await this.assetRepository.getAssetSuggestions(input.trim(), filters);
+            logger_1.default.debug('Asset suggestions completed via service', {
+                input: input.trim(),
+                filters,
+                resultCount: suggestions.length
+            });
+            return suggestions;
+        }
+        catch (error) {
+            logger_1.default.error('Asset service: Failed to get asset suggestions', {
+                input,
+                filters,
+                error: error instanceof Error ? error.message : 'Unknown error'
+            });
+            throw error;
+        }
+    }
+    /**
      * Generate QR code for asset
      */
     async generateAssetQRCode(id) {

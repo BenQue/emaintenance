@@ -1,5 +1,5 @@
 // Create a new work order for testing ResolutionPhoto functionality
-const { PrismaClient } = require('@emaintanance/database');
+const { PrismaClient } = require('@emaintenance/database');
 
 const prisma = new PrismaClient();
 

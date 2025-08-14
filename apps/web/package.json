@@ -1,5 +1,5 @@
 {
-  "name": "@emaintanance/web",
+  "name": "@emaintenance/web",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -22,8 +22,8 @@
     "zustand": "^5.0.7"
   },
   "devDependencies": {
-    "@emaintanance/eslint-config": "*",
-    "@emaintanance/typescript-config": "*",
+    "@emaintenance/eslint-config": "*",
+    "@emaintenance/typescript-config": "*",
     "@testing-library/jest-dom": "^6.6.0",
     "@testing-library/react": "^16.0.0",
     "@testing-library/user-event": "^14.5.0",

@@ -1,4 +1,4 @@
-import { PrismaClient, Asset } from '@emaintanance/database';
+import { PrismaClient, Asset } from '@emaintenance/database';
 import { AssetDowntimeStatistics, AssetPerformanceRanking, AssetKPIFilters, AssetHealthMetrics } from '../types/asset';
 import logger from '../utils/logger';
 

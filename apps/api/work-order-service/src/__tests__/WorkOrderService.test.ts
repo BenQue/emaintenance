@@ -1,9 +1,9 @@
-import { PrismaClient } from '@emaintanance/database';
+import { PrismaClient } from '@emaintenance/database';
 import { WorkOrderService } from '../services/WorkOrderService';
 import { WorkOrderRepository } from '../repositories/WorkOrderRepository';
 
 // Mock Prisma
-jest.mock('@emaintanance/database');
+jest.mock('@emaintenance/database');
 jest.mock('../repositories/WorkOrderRepository');
 
 describe('WorkOrderService', () => {

@@ -10,22 +10,22 @@ void main() async {
   // Initialize auth provider
   final authProvider = await AuthProvider.getInstance();
   
-  runApp(EmaintananceApp(authProvider: authProvider));
+  runApp(EmaintenanceApp(authProvider: authProvider));
 }
 
-class EmaintananceApp extends StatefulWidget {
+class EmaintenanceApp extends StatefulWidget {
   final AuthProvider authProvider;
   
-  const EmaintananceApp({
+  const EmaintenanceApp({
     super.key,
     required this.authProvider,
   });
 
   @override
-  State<EmaintananceApp> createState() => _EmaintananceAppState();
+  State<EmaintenanceApp> createState() => _EmaintenanceAppState();
 }
 
-class _EmaintananceAppState extends State<EmaintananceApp> {
+class _EmaintenanceAppState extends State<EmaintenanceApp> {
   @override
   void initState() {
     super.initState();

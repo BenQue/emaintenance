@@ -1,4 +1,4 @@
-import { PrismaClient, Asset } from '@emaintanance/database';
+import { PrismaClient, Asset } from '@emaintenance/database';
 import { AssetService } from './AssetService';
 
 describe('AssetService', () => {

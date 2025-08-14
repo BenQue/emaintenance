@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { UserRole } from '@emaintanance/database';
+import { UserRole } from '@emaintenance/database';
 import { verifyToken } from '../utils/jwt';
 import { AuthService } from '../services/AuthService';
 import { JWTPayload } from '../types/auth';

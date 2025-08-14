@@ -1,4 +1,4 @@
-import { User, UserRole } from '@emaintanance/database';
+import { User, UserRole } from '@emaintenance/database';
 import { UserRepository } from '../repositories/UserRepository';
 import { hashPassword } from '../utils/crypto';
 

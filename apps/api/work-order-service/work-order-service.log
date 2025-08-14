@@ -1382,3 +1382,228 @@ Emitted 'error' event on Server instance at:
 }
 
 Node.js v24.3.0
+9:55:50 PM [tsx] change in ./src/services/WorkOrderService.ts Rerunning...
+cnode:events:485
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::3002
+    at Server.setupListenHandle [as _listen2] (node:net:1940:16)
+    at listenInCluster (node:net:1997:12)
+    at Server.listen (node:net:2102:7)
+    at app.listen (/Users/benque/Project/Emaintanance/node_modules/express/lib/application.js:635:24)
+    at notificationRoutes (/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/index.ts:78:5)
+    at Object.<anonymous> (/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/index.ts:81:2)
+    at Module._compile (node:internal/modules/cjs/loader:1692:14)
+    at Object.transformer (/Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:3:1104)
+    at Module.load (node:internal/modules/cjs/loader:1427:32)
+    at Module._load (node:internal/modules/cjs/loader:1250:12)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:1976:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -48,
+  syscall: 'listen',
+  address: '::',
+  port: 3002
+}
+
+Node.js v24.3.0
+9:56:03 PM [tsx] change in ./src/controllers/WorkOrderController.ts Rerunning...
+cWork order service running on port 3002
+Environment: development
+9:56:16 PM [tsx] change in ./src/repositories/WorkOrderRepository.ts Restarting...
+cnode:internal/modules/cjs/loader:1369
+  const err = new Error(message);
+              ^
+
+Error: Cannot find module '@emaintenance/database'
+Require stack:
+- /Users/benque/Project/Emaintanance/apps/api/work-order-service/src/repositories/WorkOrderRepository.ts
+- /Users/benque/Project/Emaintanance/apps/api/work-order-service/src/services/WorkOrderService.ts
+- /Users/benque/Project/Emaintanance/apps/api/work-order-service/src/controllers/WorkOrderController.ts
+- /Users/benque/Project/Emaintanance/apps/api/work-order-service/src/routes/workOrders.ts
+- /Users/benque/Project/Emaintanance/apps/api/work-order-service/src/index.ts
+    at node:internal/modules/cjs/loader:1369:15
+    at nextResolveSimple (/Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:4:1004)
+    at /Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:3:2630
+    at /Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:3:1542
+    at resolveTsPaths (/Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:4:760)
+    at /Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:4:1102
+    at m._resolveFilename (file:///Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-B7jrtLTO.mjs:1:789)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Module._load (node:internal/modules/cjs/loader:1179:37) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/repositories/WorkOrderRepository.ts',
+    '/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/services/WorkOrderService.ts',
+    '/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/controllers/WorkOrderController.ts',
+    '/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/routes/workOrders.ts',
+    '/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/index.ts'
+  ]
+}
+
+Node.js v24.3.0
+9:56:24 PM [tsx] change in ./src/routes/workOrders.ts Rerunning...
+cnode:internal/modules/cjs/loader:1369
+  const err = new Error(message);
+              ^
+
+Error: Cannot find module '@emaintenance/database'
+Require stack:
+- /Users/benque/Project/Emaintanance/apps/api/work-order-service/src/routes/workOrders.ts
+- /Users/benque/Project/Emaintanance/apps/api/work-order-service/src/index.ts
+    at node:internal/modules/cjs/loader:1369:15
+    at nextResolveSimple (/Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:4:1004)
+    at /Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:3:2630
+    at /Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:3:1542
+    at resolveTsPaths (/Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:4:760)
+    at /Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:4:1102
+    at m._resolveFilename (file:///Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-B7jrtLTO.mjs:1:789)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Module._load (node:internal/modules/cjs/loader:1179:37) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/routes/workOrders.ts',
+    '/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/index.ts'
+  ]
+}
+
+Node.js v24.3.0
+9:56:32 PM [tsx] change in ./src/services/AssignmentRuleService.ts Rerunning...
+cnode:internal/modules/cjs/loader:1369
+  const err = new Error(message);
+              ^
+
+Error: Cannot find module '@emaintenance/database'
+Require stack:
+- /Users/benque/Project/Emaintanance/apps/api/work-order-service/src/routes/workOrders.ts
+- /Users/benque/Project/Emaintanance/apps/api/work-order-service/src/index.ts
+    at node:internal/modules/cjs/loader:1369:15
+    at nextResolveSimple (/Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:4:1004)
+    at /Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:3:2630
+    at /Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:3:1542
+    at resolveTsPaths (/Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:4:760)
+    at /Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:4:1102
+    at m._resolveFilename (file:///Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-B7jrtLTO.mjs:1:789)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Module._load (node:internal/modules/cjs/loader:1179:37) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/routes/workOrders.ts',
+    '/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/index.ts'
+  ]
+}
+
+Node.js v24.3.0
+9:56:39 PM [tsx] change in ./src/services/NotificationService.ts Rerunning...
+cnode:internal/modules/cjs/loader:1369
+  const err = new Error(message);
+              ^
+
+Error: Cannot find module '@emaintenance/database'
+Require stack:
+- /Users/benque/Project/Emaintanance/apps/api/work-order-service/src/routes/workOrders.ts
+- /Users/benque/Project/Emaintanance/apps/api/work-order-service/src/index.ts
+    at node:internal/modules/cjs/loader:1369:15
+    at nextResolveSimple (/Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:4:1004)
+    at /Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:3:2630
+    at /Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:3:1542
+    at resolveTsPaths (/Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:4:760)
+    at /Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:4:1102
+    at m._resolveFilename (file:///Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-B7jrtLTO.mjs:1:789)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Module._load (node:internal/modules/cjs/loader:1179:37) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/routes/workOrders.ts',
+    '/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/index.ts'
+  ]
+}
+
+Node.js v24.3.0
+9:56:48 PM [tsx] change in ./src/utils/validation.ts Rerunning...
+cnode:internal/modules/cjs/loader:1369
+  const err = new Error(message);
+              ^
+
+Error: Cannot find module '@emaintenance/database'
+Require stack:
+- /Users/benque/Project/Emaintanance/apps/api/work-order-service/src/routes/workOrders.ts
+- /Users/benque/Project/Emaintanance/apps/api/work-order-service/src/index.ts
+    at node:internal/modules/cjs/loader:1369:15
+    at nextResolveSimple (/Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:4:1004)
+    at /Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:3:2630
+    at /Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:3:1542
+    at resolveTsPaths (/Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:4:760)
+    at /Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:4:1102
+    at m._resolveFilename (file:///Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-B7jrtLTO.mjs:1:789)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Module._load (node:internal/modules/cjs/loader:1179:37) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/routes/workOrders.ts',
+    '/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/index.ts'
+  ]
+}
+
+Node.js v24.3.0
+9:56:55 PM [tsx] change in ./src/middleware/auth.ts Rerunning...
+cnode:internal/modules/cjs/loader:1369
+  const err = new Error(message);
+              ^
+
+Error: Cannot find module '@emaintenance/database'
+Require stack:
+- /Users/benque/Project/Emaintanance/apps/api/work-order-service/src/routes/workOrders.ts
+- /Users/benque/Project/Emaintanance/apps/api/work-order-service/src/index.ts
+    at node:internal/modules/cjs/loader:1369:15
+    at nextResolveSimple (/Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:4:1004)
+    at /Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:3:2630
+    at /Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:3:1542
+    at resolveTsPaths (/Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:4:760)
+    at /Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:4:1102
+    at m._resolveFilename (file:///Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-B7jrtLTO.mjs:1:789)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Module._load (node:internal/modules/cjs/loader:1179:37) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/routes/workOrders.ts',
+    '/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/index.ts'
+  ]
+}
+
+Node.js v24.3.0
+10:12:53 PM [tsx] change in ./../../../node_modules/.prisma/client/default.js Rerunning...
+cnode:internal/modules/cjs/loader:1369
+  const err = new Error(message);
+              ^
+
+Error: Cannot find module '@emaintenance/database'
+Require stack:
+- /Users/benque/Project/Emaintanance/apps/api/work-order-service/src/routes/workOrders.ts
+- /Users/benque/Project/Emaintanance/apps/api/work-order-service/src/index.ts
+    at node:internal/modules/cjs/loader:1369:15
+    at nextResolveSimple (/Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:4:1004)
+    at /Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:3:2630
+    at /Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:3:1542
+    at resolveTsPaths (/Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:4:760)
+    at /Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-D46fvsV_.cjs:4:1102
+    at m._resolveFilename (file:///Users/benque/Project/Emaintanance/node_modules/tsx/dist/register-B7jrtLTO.mjs:1:789)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Module._load (node:internal/modules/cjs/loader:1179:37) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/routes/workOrders.ts',
+    '/Users/benque/Project/Emaintanance/apps/api/work-order-service/src/index.ts'
+  ]
+}
+
+Node.js v24.3.0

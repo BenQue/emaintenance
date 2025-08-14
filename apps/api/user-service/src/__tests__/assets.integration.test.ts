@@ -4,11 +4,11 @@ import cors from 'cors';
 import helmet from 'helmet';
 import assetRoutes from '../routes/assets';
 import authRoutes from '../routes/auth';
-import { UserRole } from '@emaintanance/database';
+import { UserRole } from '@emaintenance/database';
 import { generalRateLimit } from '../middleware/rateLimiter';
 
 // Mock the database
-jest.mock('@emaintanance/database', () => {
+jest.mock('@emaintenance/database', () => {
   const mockUsers: any[] = [];
   const mockAssets: any[] = [];
   let assetIdCounter = 1;
@@ -220,7 +220,7 @@ describe('Asset Management Integration Tests', () => {
 
   beforeEach(() => {
     // Clear assets before each test
-    const { prisma } = require('@emaintanance/database');
+    const { prisma } = require('@emaintenance/database');
     const mockAssets = [];
     jest.clearAllMocks();
   });

@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const UserService_1 = require("./UserService");
 const UserRepository_1 = require("../repositories/UserRepository");
-const database_1 = require("@emaintanance/database");
+const database_1 = require("@emaintenance/database");
 const crypto_1 = require("../utils/crypto");
 // Mock dependencies
 jest.mock('../repositories/UserRepository');

@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.requireTechnician = exports.requireSupervisor = exports.requireAdmin = exports.authorize = exports.authenticate = void 0;
-const database_1 = require("@emaintanance/database");
+const database_1 = require("@emaintenance/database");
 const jwt_1 = require("../utils/jwt");
 const AuthService_1 = require("../services/AuthService");
 // Singleton AuthService instance to avoid creating new instances on every request

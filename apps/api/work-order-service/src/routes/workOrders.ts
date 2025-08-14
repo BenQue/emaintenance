@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { PrismaClient } from '@emaintanance/database';
+import { PrismaClient } from '@emaintenance/database';
 import { WorkOrderController } from '../controllers/WorkOrderController';
 import { authenticate, authorize, checkWorkOrderAccess } from '../middleware/auth';
 import { uploadSingle, uploadMultiple, uploadPhotos } from '../middleware/upload';

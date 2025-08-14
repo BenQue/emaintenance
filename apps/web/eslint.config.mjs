@@ -11,7 +11,7 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.config({
-    extends: ['@emaintanance/eslint-config/next'],
+    extends: ['@emaintenance/eslint-config/next'],
   }),
 ];
 

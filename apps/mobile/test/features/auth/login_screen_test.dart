@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
-import 'package:emaintanance_mobile/features/auth/login_screen.dart';
-import 'package:emaintanance_mobile/shared/providers/auth_provider.dart';
-import 'package:emaintanance_mobile/shared/models/user.dart';
+import 'package:emaintenance_mobile/features/auth/login_screen.dart';
+import 'package:emaintenance_mobile/shared/providers/auth_provider.dart';
+import 'package:emaintenance_mobile/shared/models/user.dart';
 
 // Mock AuthProvider for testing
 class MockAuthProvider extends ChangeNotifier implements AuthProvider {

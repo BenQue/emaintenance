@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@emaintanance/database';
+import { PrismaClient } from '@emaintenance/database';
 import { AssetService } from '../services/AssetService';
 import { AssetKPIFilters } from '../types/asset';
 import { CreateAssetData, UpdateAssetData, AssetListFilters } from '../repositories/AssetRepository';

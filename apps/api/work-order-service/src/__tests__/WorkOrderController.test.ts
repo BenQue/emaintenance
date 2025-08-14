@@ -1,11 +1,11 @@
 import request from 'supertest';
 import express from 'express';
-import { PrismaClient } from '@emaintanance/database';
+import { PrismaClient } from '@emaintenance/database';
 import { WorkOrderController } from '../controllers/WorkOrderController';
 import workOrderRoutes from '../routes/workOrders';
 
 // Mock Prisma
-jest.mock('@emaintanance/database');
+jest.mock('@emaintenance/database');
 
 const app = express();
 app.use(express.json());

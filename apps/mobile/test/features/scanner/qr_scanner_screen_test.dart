@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:emaintanance_mobile/features/scanner/qr_scanner_screen.dart';
+import 'package:emaintenance_mobile/features/scanner/qr_scanner_screen.dart';
 
 void main() {
   group('QRScannerScreen Tests', () {

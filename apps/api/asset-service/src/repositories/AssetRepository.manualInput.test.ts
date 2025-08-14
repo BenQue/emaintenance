@@ -1,4 +1,4 @@
-import { PrismaClient, Asset } from '@emaintanance/database';
+import { PrismaClient, Asset } from '@emaintenance/database';
 import { AssetRepository } from './AssetRepository';
 
 describe('AssetRepository - Manual Asset Code Input Features', () => {

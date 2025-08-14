@@ -1,7 +1,7 @@
 import { AssetRepository } from './AssetRepository';
 
 // Mock the database
-jest.mock('@emaintanance/database', () => ({
+jest.mock('@emaintenance/database', () => ({
   prisma: {
     asset: {
       create: jest.fn(),
@@ -15,7 +15,7 @@ jest.mock('@emaintanance/database', () => ({
   },
 }));
 
-import { prisma } from '@emaintanance/database';
+import { prisma } from '@emaintenance/database';
 
 describe('AssetRepository', () => {
   let assetRepository: AssetRepository;

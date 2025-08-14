@@ -1,5 +1,5 @@
 {
-  "name": "@emaintanance/user-service",
+  "name": "@emaintenance/user-service",
   "version": "1.0.0",
   "private": true,
   "main": "dist/index.js",
@@ -14,7 +14,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
-    "@emaintanance/database": "*",
+    "@emaintenance/database": "*",
     "express": "^4.18.0",
     "express-rate-limit": "^7.1.0",
     "cors": "^2.8.5",
@@ -24,8 +24,8 @@
     "zod": "^3.22.0"
   },
   "devDependencies": {
-    "@emaintanance/eslint-config": "*",
-    "@emaintanance/typescript-config": "*",
+    "@emaintenance/eslint-config": "*",
+    "@emaintenance/typescript-config": "*",
     "@types/express": "^4.17.0",
     "@types/cors": "^2.8.0",
     "@types/bcryptjs": "^2.4.0",

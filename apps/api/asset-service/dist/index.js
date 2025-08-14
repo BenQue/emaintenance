@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
-const database_1 = require("@emaintanance/database");
+const database_1 = require("@emaintenance/database");
 const routes_1 = __importDefault(require("./routes"));
 const logger_1 = __importDefault(require("./utils/logger"));
 const app = (0, express_1.default)();

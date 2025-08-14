@@ -1,7 +1,7 @@
-import { PrismaClient } from '@emaintanance/database';
+import { PrismaClient } from '@emaintenance/database';
 
 // Mock Prisma client for tests
-jest.mock('@emaintanance/database', () => ({
+jest.mock('@emaintenance/database', () => ({
   PrismaClient: jest.fn().mockImplementation(() => ({
     asset: {
       create: jest.fn(),

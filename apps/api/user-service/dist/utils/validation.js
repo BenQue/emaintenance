@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.bulkAssetOperationSchema = exports.updateAssetStatusSchema = exports.updateAssetOwnershipSchema = exports.bulkUserOperationSchema = exports.updateUserStatusSchema = exports.updateUserRoleSchema = exports.userListQuerySchema = exports.updateUserSchema = exports.createUserSchema = exports.bulkCreateAssetsSchema = exports.assetListQuerySchema = exports.updateAssetSchema = exports.createAssetSchema = exports.loginSchema = exports.registerSchema = void 0;
 const zod_1 = require("zod");
-const database_1 = require("@emaintanance/database");
+const database_1 = require("@emaintenance/database");
 exports.registerSchema = zod_1.z.object({
     email: zod_1.z.string().email('Invalid email format'),
     username: zod_1.z.string().min(3, 'Username must be at least 3 characters').max(50, 'Username must be less than 50 characters'),

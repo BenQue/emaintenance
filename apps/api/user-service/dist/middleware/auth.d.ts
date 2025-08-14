@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { UserRole } from '@emaintanance/database';
+import { UserRole } from '@emaintenance/database';
 import { JWTPayload } from '../types/auth';
 declare global {
     namespace Express {

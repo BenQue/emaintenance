@@ -4,7 +4,7 @@ const AuthService_1 = require("./AuthService");
 const UserRepository_1 = require("../repositories/UserRepository");
 const crypto_1 = require("../utils/crypto");
 const jwt_1 = require("../utils/jwt");
-const database_1 = require("@emaintanance/database");
+const database_1 = require("@emaintenance/database");
 // Mock dependencies
 jest.mock('../repositories/UserRepository');
 jest.mock('../utils/crypto');

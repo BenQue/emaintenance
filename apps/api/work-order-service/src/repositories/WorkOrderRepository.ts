@@ -1,4 +1,4 @@
-import { PrismaClient, WorkOrder, Priority, WorkOrderStatus } from '@emaintanance/database';
+import { PrismaClient, WorkOrder, Priority, WorkOrderStatus } from '@emaintenance/database';
 import { CreateWorkOrderRequest, UpdateWorkOrderRequest, WorkOrderWithRelations, WorkOrderFilters, PaginatedWorkOrders, FilterOptionsResponse, WorkOrderForCSV } from '../types/work-order';
 
 export class WorkOrderRepository {

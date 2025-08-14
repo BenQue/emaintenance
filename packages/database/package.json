@@ -1,5 +1,5 @@
 {
-  "name": "@emaintanance/database",
+  "name": "@emaintenance/database",
   "version": "1.0.0",
   "private": true,
   "main": "dist/index.js",
@@ -21,8 +21,8 @@
     "bcryptjs": "^2.4.3"
   },
   "devDependencies": {
-    "@emaintanance/eslint-config": "*",
-    "@emaintanance/typescript-config": "*",
+    "@emaintenance/eslint-config": "*",
+    "@emaintenance/typescript-config": "*",
     "@types/bcryptjs": "^2.4.0",
     "@types/node": "^20.0.0",
     "prisma": "^5.7.0",

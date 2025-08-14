@@ -1,4 +1,4 @@
-const { PrismaClient } = require('@emaintanance/database');
+const { PrismaClient } = require('@emaintenance/database');
 const prisma = new PrismaClient();
 
 async function checkResolutionData() {

@@ -173,7 +173,7 @@ apps/web/
 
 ### Required Environment Variables
 ```bash
-DATABASE_URL="postgresql://username:password@localhost:5432/emaintanance"
+DATABASE_URL="postgresql://username:password@localhost:5432/emaintenance"
 JWT_SECRET="your-jwt-secret"
 NEXT_PUBLIC_API_URL="http://localhost:3001"
 ```

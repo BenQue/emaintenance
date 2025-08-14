@@ -1,5 +1,5 @@
 import { generateToken, verifyToken, getExpirationTime } from './jwt';
-import { UserRole } from '@emaintanance/database';
+import { UserRole } from '@emaintenance/database';
 
 describe('JWT Utils', () => {
   const mockPayload = {

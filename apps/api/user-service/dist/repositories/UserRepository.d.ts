@@ -1,4 +1,4 @@
-import { User, UserRole } from '@emaintanance/database';
+import { User, UserRole } from '@emaintenance/database';
 import { RegisterInput } from '../utils/validation';
 export interface FindManyOptions {
     skip: number;

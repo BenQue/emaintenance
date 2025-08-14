@@ -1,6 +1,6 @@
 import { CSVGenerator } from '../csv-generator';
 import { WorkOrderForCSV } from '../../types/work-order';
-import { Priority, WorkOrderStatus } from '@emaintanance/database';
+import { Priority, WorkOrderStatus } from '@emaintenance/database';
 
 describe('CSVGenerator', () => {
   const mockWorkOrder: WorkOrderForCSV = {

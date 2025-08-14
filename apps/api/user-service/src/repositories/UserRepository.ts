@@ -1,4 +1,4 @@
-import { prisma, User, UserRole } from '@emaintanance/database';
+import { prisma, User, UserRole } from '@emaintenance/database';
 import { RegisterInput } from '../utils/validation';
 
 export interface FindManyOptions {

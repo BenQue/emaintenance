@@ -1,8 +1,8 @@
 // Jest test setup file
-import { PrismaClient } from '@emaintanance/database';
+import { PrismaClient } from '@emaintenance/database';
 
 // Mock Prisma globally
-jest.mock('@emaintanance/database', () => ({
+jest.mock('@emaintenance/database', () => ({
   PrismaClient: jest.fn().mockImplementation(() => ({
     user: {
       findUnique: jest.fn(),

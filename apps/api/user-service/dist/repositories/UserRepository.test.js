@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const UserRepository_1 = require("./UserRepository");
-const database_1 = require("@emaintanance/database");
+const database_1 = require("@emaintenance/database");
 // Mock the database
-jest.mock('@emaintanance/database', () => ({
+jest.mock('@emaintenance/database', () => ({
     prisma: {
         user: {
             create: jest.fn(),
@@ -17,7 +17,7 @@ jest.mock('@emaintanance/database', () => ({
         ADMIN: 'ADMIN',
     },
 }));
-const database_2 = require("@emaintanance/database");
+const database_2 = require("@emaintenance/database");
 describe('UserRepository', () => {
     let userRepository;
     const mockPrismaUser = database_2.prisma.user;

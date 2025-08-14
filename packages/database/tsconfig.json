@@ -1,5 +1,5 @@
 {
-  "extends": "@emaintanance/typescript-config/node.json",
+  "extends": "@emaintenance/typescript-config/node.json",
   "compilerOptions": {
     "outDir": "dist",
     "rootDir": "src"

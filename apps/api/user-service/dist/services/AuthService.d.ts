@@ -1,4 +1,4 @@
-import { User } from '@emaintanance/database';
+import { User } from '@emaintenance/database';
 import { RegisterInput, LoginInput } from '../utils/validation';
 import { AuthResponse } from '../types/auth';
 export declare class AuthService {

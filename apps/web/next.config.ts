@@ -1,7 +1,7 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  transpilePackages: ['@emaintanance/ui'],
+  transpilePackages: ['@emaintenance/ui'],
   images: {
     remotePatterns: [
       {
@@ -12,7 +12,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: '*.emaintanance.com',
+        hostname: '*.emaintenance.com',
         pathname: '/api/work-orders/**',
       },
     ],

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Priority, WorkOrderStatus, FaultCode } from '@emaintanance/database';
+import { Priority, WorkOrderStatus, FaultCode } from '@emaintenance/database';
 
 // Enum validation schemas
 export const PrioritySchema = z.nativeEnum(Priority);

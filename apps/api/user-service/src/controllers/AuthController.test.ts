@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { AuthController } from './AuthController';
 import { AuthService } from '../services/AuthService';
-import { UserRole } from '@emaintanance/database';
+import { UserRole } from '@emaintenance/database';
 
 // Mock dependencies
 jest.mock('../services/AuthService');

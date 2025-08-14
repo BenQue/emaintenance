@@ -15,7 +15,7 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '24h';
 export function generateToken(payload: Omit<JWTPayload, 'iat' | 'exp'>): string {
   const options: jwt.SignOptions = {
     expiresIn: JWT_EXPIRES_IN as any,
-    issuer: 'emaintanance-user-service',
+    issuer: 'emaintenance-user-service',
   };
   return jwt.sign(payload as any, JWT_SECRET as string, options);
 }

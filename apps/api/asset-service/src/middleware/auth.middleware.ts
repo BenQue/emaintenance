@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { UserRole, PrismaClient } from '@emaintanance/database';
+import { UserRole, PrismaClient } from '@emaintenance/database';
 import { verifyToken, JWTPayload } from '../utils/jwt';
 import logger from '../utils/logger';
 

@@ -1,5 +1,5 @@
 // Check work order assignment to understand permission issues
-const { PrismaClient } = require('@emaintanance/database');
+const { PrismaClient } = require('@emaintenance/database');
 
 const prisma = new PrismaClient();
 

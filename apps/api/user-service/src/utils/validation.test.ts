@@ -1,5 +1,5 @@
 import { registerSchema, loginSchema } from './validation';
-import { UserRole } from '@emaintanance/database';
+import { UserRole } from '@emaintenance/database';
 
 describe('Validation Schemas', () => {
   describe('registerSchema', () => {

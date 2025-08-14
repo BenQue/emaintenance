@@ -1,4 +1,4 @@
-import { Asset } from '@emaintanance/database';
+import { Asset } from '@emaintenance/database';
 import { AssetListOptions } from '../repositories/AssetRepository';
 import { CreateAssetInput, UpdateAssetInput, BulkCreateAssetsInput } from '../utils/validation';
 export interface BulkAssetOperation {

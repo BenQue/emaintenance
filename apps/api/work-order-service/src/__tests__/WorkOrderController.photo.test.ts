@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { Express } from 'express';
-import { PrismaClient } from '@emaintanance/database';
+import { PrismaClient } from '@emaintenance/database';
 import { createTestApp } from './test-utils';
 import { WorkOrderController } from '../controllers/WorkOrderController';
 import { PhotoStorageService } from '../services/PhotoStorageService';

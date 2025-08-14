@@ -3,10 +3,10 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import authRoutes from '../routes/auth';
-import { UserRole } from '@emaintanance/database';
+import { UserRole } from '@emaintenance/database';
 
 // Mock the database
-jest.mock('@emaintanance/database', () => {
+jest.mock('@emaintenance/database', () => {
   const mockUsers: any[] = [];
   
   return {
