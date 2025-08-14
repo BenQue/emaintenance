@@ -25,10 +25,21 @@ npm run lint
 # Run tests across all packages  
 npm run test
 
+# Format code across all packages
+npm run format
+
+# Type check all packages
+cd apps/web && npm run type-check
+cd apps/api/user-service && npm run type-check
+
 # Run specific service tests
 cd apps/api/user-service && npm test
 cd apps/api/work-order-service && npm test
 cd apps/api/asset-service && npm test
+
+# Run tests in watch mode
+cd apps/web && npm run test:watch
+cd apps/api/user-service && npm run test:watch
 
 # Clean all build artifacts
 npm run clean
@@ -117,6 +128,7 @@ apps/
 
 packages/
 ├── database/               # Shared Prisma schema and migrations
+├── shared/                 # Shared utilities and types
 ├── typescript-config/      # Shared TypeScript configuration
 └── eslint-config/         # Shared linting rules
 ```
@@ -137,11 +149,18 @@ src/
 ### Frontend Application Structure
 ```
 apps/web/
-├── src/app/             # Next.js App Router pages
-├── components/          # React components (ui, features, forms)
+├── app/                 # Next.js App Router pages and layouts
+├── components/          # React components organized by feature
+│   ├── ui/              # Base UI components (buttons, cards, etc.)
+│   ├── layout/          # Layout components (navigation, headers)
+│   ├── work-orders/     # Work order feature components
+│   ├── assets/          # Asset management components
+│   ├── kpi/             # KPI dashboard components
+│   └── forms/           # Reusable form components
 ├── lib/
 │   ├── services/        # API client services
-│   └── stores/          # Zustand state management stores
+│   ├── stores/          # Zustand state management stores
+│   └── types/           # TypeScript type definitions
 └── hooks/               # Custom React hooks
 ```
 
@@ -168,6 +187,8 @@ apps/web/
 - Component tests for React components using React Testing Library
 - Integration tests for complete workflows
 - Tests co-located with source files using `.test.ts` extension
+- Test coverage tracking with detailed HTML reports in `coverage/` directories
+- Run individual test suites: `npm test` in specific service directories
 
 ## Environment Setup
 
@@ -222,6 +243,12 @@ NEXT_PUBLIC_API_URL="http://localhost:3001"
 - Maintain proper test coverage (currently ~63% across the codebase)
 - Use TypeScript strictly and avoid `any` types
 
+### Build and Deploy Process
+- **Turbo Build System**: All builds use Turborepo for optimized caching and parallelization
+- **Development Mode**: Use `npm run dev` to start all services with hot reload
+- **Production Builds**: Run `npm run build` to create optimized production bundles
+- **Mobile Development**: Flutter app requires `flutter run` for iOS/Android development
+
 ## Security Considerations
 - JWT tokens should include refresh token mechanism
 - Implement CSRF protection for web application
@@ -234,5 +261,28 @@ NEXT_PUBLIC_API_URL="http://localhost:3001"
   - 查看操作：开发环境 10,000/15分钟，生产环境 1,000/15分钟
   - 写操作：开发环境 200/15分钟，生产环境 50/15分钟
   - 解决了 429 错误，提升了用户体验和系统安全性
+
+## Key Development Guidelines
+
+### Code Quality Requirements
+
+- **ALWAYS run linting and type checking** before committing: `npm run lint && npm run type-check`
+- **Follow naming conventions**: Use camelCase for variables/functions, PascalCase for components/classes
+- **Component Organization**: Group related components by feature, not by technical layer
+- **State Management**: Use Zustand stores for complex state, React state for simple UI state
+- **API Integration**: Always use the service layer pattern, never call APIs directly from components
+
+### Testing Requirements
+
+- **Write tests for all new features**: Unit tests for services, component tests for UI
+- **Maintain test coverage**: Aim for >80% coverage on business logic
+- **Integration tests**: Write end-to-end tests for critical user workflows
+- **Test file naming**: Use `.test.ts` or `.test.tsx` extensions
+
+### Mobile Development Specifics
+
+- **Flutter Development**: Use `cd apps/mobile && flutter run` for development
+- **Pub Dependencies**: Run `flutter pub get` after changes to pubspec.yaml
+- **Platform Testing**: Test on both iOS and Android simulators/devices
 
 When working with this codebase, always consider the microservices architecture, maintain consistency with established patterns, and ensure proper role-based access control is implemented for any new features.
