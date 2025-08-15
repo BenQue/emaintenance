@@ -6,8 +6,11 @@ node_modules/
 # Production
 /build
 /dist
+dist/
 .next/
 out/
+*.log
+logs/
 
 # Testing
 coverage/
@@ -15,6 +18,7 @@ coverage/
 
 # Turbo
 .turbo/
+tsconfig.tsbuildinfo
 
 # Misc
 .DS_Store

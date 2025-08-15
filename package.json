@@ -19,7 +19,11 @@
     "db:reset": "cd packages/database && npm run db:reset",
     "db:seed": "cd packages/database && npm run db:seed",
     "db:studio": "cd packages/database && npm run db:studio",
-    "install:all": "npm install && cd apps/mobile && flutter pub get"
+    "install:all": "npm install && cd apps/mobile && flutter pub get",
+    "api:start": "./scripts/start-api-services.sh start",
+    "api:stop": "./scripts/start-api-services.sh stop",
+    "api:restart": "./scripts/start-api-services.sh restart",
+    "api:status": "./scripts/start-api-services.sh status"
   },
   "keywords": [],
   "author": "",
@@ -49,6 +53,7 @@
     "bcryptjs": "^3.0.2",
     "class-variance-authority": "^0.7.1",
     "cors": "^2.8.5",
+    "csv-parser": "^3.2.0",
     "express": "^4.21.0",
     "express-rate-limit": "^8.0.1",
     "helmet": "^8.1.0",
