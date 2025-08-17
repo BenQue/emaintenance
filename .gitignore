@@ -51,3 +51,7 @@ yarn-error.log*
 *.iws.env
 .env.*
 !.env.example
+# Ignore uploaded files and build artifacts
+apps/api/work-order-service/uploads/
+apps/api/*/logs/
+apps/mobile/android/build/
