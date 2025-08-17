@@ -22,7 +22,7 @@ interface ResolutionRecordFormProps {
 
 interface ResolutionFormData {
   solutionDescription: string;
-  faultCode: FaultCode | '';
+  faultCode: FaultCode | 'NONE';
   photos: FileList | null;
 }
 
@@ -39,7 +39,7 @@ export function ResolutionRecordForm({
   const form = useForm<ResolutionFormData>({
     defaultValues: {
       solutionDescription: '',
-      faultCode: '',
+      faultCode: 'NONE',
       photos: null,
     },
     mode: 'onChange',
@@ -96,7 +96,7 @@ export function ResolutionRecordForm({
       // Submit completion data without photos first, then upload photos separately
       await onSubmit({
         solutionDescription: data.solutionDescription.trim(),
-        faultCode: data.faultCode || undefined,
+        faultCode: data.faultCode && data.faultCode !== 'NONE' ? data.faultCode : undefined,
         // Don't include photos in completion request anymore
       }, selectedPhotos.length > 0 ? selectedPhotos : undefined);
     } catch (err) {
@@ -148,7 +148,7 @@ export function ResolutionRecordForm({
             placeholder="请选择故障类型"
             description="选择最符合的故障类型代码（可选）"
             options={[
-              { value: '', label: '-- 请选择故障类型 --' },
+              { value: 'NONE', label: '-- 请选择故障类型 --' },
               ...Object.entries(FaultCodeLabels).map(([code, label]) => ({
                 value: code,
                 label: label
