@@ -71,11 +71,11 @@ describe('UserMenu', () => {
 
     render(<UserMenu />);
 
-    // Check avatar with first initial
-    expect(screen.getByText('J')).toBeInTheDocument();
+    // Check avatar with full initials (first + last name)
+    expect(screen.getByText('JD')).toBeInTheDocument();
     // Check name display
     expect(screen.getByText('John Doe')).toBeInTheDocument();
-    // Check role display
+    // Check role display  
     expect(screen.getByText('员工')).toBeInTheDocument();
   });
 
@@ -185,11 +185,8 @@ describe('UserMenu', () => {
       expect(screen.getByText('退出登录')).toBeInTheDocument();
     });
 
-    // Click outside to close
-    const overlay = document.querySelector('.fixed.inset-0');
-    if (overlay) {
-      fireEvent.click(overlay);
-    }
+    // For shadcn/ui dropdown, clicking the trigger again should close it
+    fireEvent.click(toggleButton);
 
     await waitFor(() => {
       expect(screen.queryByText('退出登录')).not.toBeInTheDocument();

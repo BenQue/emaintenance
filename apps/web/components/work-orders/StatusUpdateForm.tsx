@@ -1,16 +1,23 @@
 'use client';
 
-import { useState } from 'react';
-import { Save, Loader2 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
 import { WorkOrderStatus, WorkOrderStatusLabels, UpdateWorkOrderStatusRequest } from '../../lib/types/work-order';
 import { useWorkOrderStore } from '../../lib/stores/work-order-store';
-import { Button } from '../ui/button';
+import { FormWrapper } from '../forms/unified/FormWrapper';
+import { UnifiedFormField } from '../forms/unified/FormField';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Label } from '../ui/label';
+import { Alert, AlertDescription } from '../ui/alert';
 
 interface StatusUpdateFormProps {
   workOrderId: string;
   currentStatus: WorkOrderStatus;
   onSuccess?: () => void;
+}
+
+interface StatusUpdateFormData {
+  newStatus: WorkOrderStatus;
+  notes: string;
 }
 
 // Define valid status transitions
@@ -30,26 +37,30 @@ const statusTransitions: Record<WorkOrderStatus, WorkOrderStatus[]> = {
 
 export function StatusUpdateForm({ workOrderId, currentStatus, onSuccess }: StatusUpdateFormProps) {
   const { updateWorkOrderStatus, loading, error } = useWorkOrderStore();
-  const [newStatus, setNewStatus] = useState<WorkOrderStatus>(currentStatus);
-  const [notes, setNotes] = useState('');
-
   const availableStatuses = statusTransitions[currentStatus] || [];
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (newStatus === currentStatus) {
+  // React Hook Form setup
+  const form = useForm<StatusUpdateFormData>({
+    defaultValues: {
+      newStatus: currentStatus,
+      notes: '',
+    },
+    mode: 'onChange',
+  });
+
+  const onSubmit = async (data: StatusUpdateFormData) => {
+    if (data.newStatus === currentStatus) {
       return;
     }
 
     const statusUpdate: UpdateWorkOrderStatusRequest = {
-      status: newStatus,
-      notes: notes.trim() || undefined,
+      status: data.newStatus,
+      notes: data.notes.trim() || undefined,
     };
 
     try {
       await updateWorkOrderStatus(workOrderId, statusUpdate);
-      setNotes('');
+      form.reset();
       onSuccess?.();
     } catch (error) {
       // Error is handled by the store
@@ -60,10 +71,10 @@ export function StatusUpdateForm({ workOrderId, currentStatus, onSuccess }: Stat
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">状态更新</CardTitle>
+          <CardTitle className="text-lg text-bizlink-700">状态更新</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-gray-500 text-center py-4">
+          <p className="text-muted-foreground text-center py-4">
             当前状态无法进行变更
           </p>
         </CardContent>
@@ -74,83 +85,67 @@ export function StatusUpdateForm({ workOrderId, currentStatus, onSuccess }: Stat
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">状态更新</CardTitle>
+        <CardTitle className="text-lg text-bizlink-700">状态更新</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Current Status */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              当前状态
-            </label>
-            <div className="text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded-md">
-              {WorkOrderStatusLabels[currentStatus]}
-            </div>
+        {/* Current Status Display */}
+        <div className="space-y-2 mb-6">
+          <Label className="text-sm font-medium text-bizlink-700">当前状态</Label>
+          <div className="text-sm text-muted-foreground bg-muted px-3 py-2 rounded-md">
+            {WorkOrderStatusLabels[currentStatus]}
           </div>
+        </div>
 
-          {/* New Status */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              更新为 <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={newStatus}
-              onChange={(e) => setNewStatus(e.target.value as WorkOrderStatus)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            >
-              <option value={currentStatus}>
-                {WorkOrderStatusLabels[currentStatus]} (不变更)
-              </option>
-              {availableStatuses.map((status) => (
-                <option key={status} value={status}>
-                  {WorkOrderStatusLabels[status]}
-                </option>
-              ))}
-            </select>
+        {/* Error Message */}
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        <FormWrapper
+          form={form}
+          onSubmit={onSubmit}
+          submitButtonText={loading ? '更新中...' : '更新状态'}
+          loading={loading}
+          className="space-y-4"
+        >
+          {/* New Status Selection */}
+          <UnifiedFormField
+            control={form.control}
+            name="newStatus"
+            label="更新为"
+            type="select"
+            placeholder="选择新状态"
+            options={[
+              {
+                value: currentStatus,
+                label: `${WorkOrderStatusLabels[currentStatus]} (不变更)`
+              },
+              ...availableStatuses.map(status => ({
+                value: status,
+                label: WorkOrderStatusLabels[status]
+              }))
+            ]}
+            description="选择工单的新状态"
+          />
+
+          {/* Notes Field */}
+          <UnifiedFormField
+            control={form.control}
+            name="notes"
+            label="备注说明"
+            type="textarea"
+            placeholder="请输入状态变更的备注说明..."
+            description="描述状态变更的原因或相关信息"
+            className="min-h-[80px]"
+          />
+
+          {/* Character Count */}
+          <div className="text-xs text-muted-foreground">
+            {form.watch('notes')?.length || 0}/500 字符
           </div>
-
-          {/* Notes */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              备注说明
-            </label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="请输入状态变更的备注说明..."
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              maxLength={500}
-            />
-            <div className="text-xs text-gray-500 mt-1">
-              {notes.length}/500 字符
-            </div>
-          </div>
-
-          {/* Error Message */}
-          {error && (
-            <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-3">
-              {error}
-            </div>
-          )}
-
-          {/* Submit Button */}
-          <div className="flex justify-end">
-            <Button
-              type="submit"
-              disabled={loading || newStatus === currentStatus}
-              className="flex items-center space-x-2"
-            >
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )}
-              <span>{loading ? '更新中...' : '更新状态'}</span>
-            </Button>
-          </div>
-        </form>
+        </FormWrapper>
       </CardContent>
     </Card>
   );

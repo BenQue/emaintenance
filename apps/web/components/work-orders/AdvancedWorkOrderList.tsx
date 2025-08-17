@@ -1,16 +1,19 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Eye, Calendar, User, Wrench } from 'lucide-react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { Badge } from '../ui/badge';
+import { DataTable } from '../interactive/tables/DataTable';
+import { ColumnDef } from '../interactive/tables/types';
+import { ConfirmDialog } from '../interactive/dialogs/ConfirmDialog';
 import { WorkOrder, PaginatedWorkOrders } from '../../lib/types/work-order';
 import { workOrderService } from '../../lib/services/work-order-service';
 import {
   useWorkOrderFilterStore,
   WorkOrderFilters,
 } from '../../lib/stores/work-order-filter-store';
+import { formatDate } from '../../lib/utils';
 
 interface AdvancedWorkOrderListProps {
   filters: WorkOrderFilters;
@@ -33,6 +36,7 @@ export function AdvancedWorkOrderList({
   } = useWorkOrderFilterStore();
 
   const [workOrders, setWorkOrders] = useState<PaginatedWorkOrders | null>(null);
+  const [selectedRows, setSelectedRows] = useState<WorkOrder[]>([]);
   const loadingRef = useRef<boolean>(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -147,6 +151,98 @@ export function AdvancedWorkOrderList({
     return `${hours}小时`;
   };
 
+  // Handle bulk operations
+  const handleBulkStatusUpdate = useCallback(async (status: string) => {
+    if (selectedRows.length === 0) return;
+
+    try {
+      // TODO: Implement bulk status update service
+      console.log(`Bulk updating ${selectedRows.length} work orders to status: ${status}`);
+      setSelectedRows([]);
+      await loadWorkOrders(); // Refresh data
+    } catch (error) {
+      console.error('Failed to update work order status:', error);
+    }
+  }, [selectedRows, loadWorkOrders]);
+
+  // Define table columns
+  const columns: ColumnDef<WorkOrder>[] = useMemo(() => [
+    {
+      id: 'title',
+      header: '标题',
+      cell: (workOrder) => (
+        <div className="max-w-xs">
+          <div className="font-medium">{workOrder.title}</div>
+          <div className="text-sm text-muted-foreground line-clamp-2">
+            {workOrder.description}
+          </div>
+        </div>
+      ),
+      sortable: true,
+    },
+    {
+      id: 'asset',
+      header: '设备',
+      cell: (workOrder) => (
+        <div className="text-sm">
+          <div className="font-medium">{workOrder.asset.name}</div>
+          <div className="text-muted-foreground">{workOrder.asset.assetCode}</div>
+        </div>
+      ),
+      sortable: true,
+    },
+    {
+      id: 'status',
+      header: '状态',
+      cell: (workOrder) => (
+        <Badge variant={getStatusBadgeVariant(workOrder.status)}>
+          {getStatusLabel(workOrder.status)}
+        </Badge>
+      ),
+      sortable: true,
+    },
+    {
+      id: 'priority',
+      header: '优先级',
+      cell: (workOrder) => (
+        <Badge variant={getPriorityBadgeVariant(workOrder.priority)}>
+          {getPriorityLabel(workOrder.priority)}
+        </Badge>
+      ),
+      sortable: true,
+    },
+    {
+      id: 'assignedTo',
+      header: '分配给',
+      cell: (workOrder) => (
+        <div className="text-sm">
+          {workOrder.assignedTo 
+            ? `${workOrder.assignedTo.firstName || '未知'} ${workOrder.assignedTo.lastName || ''}`.trim()
+            : '未分配'
+          }
+        </div>
+      ),
+      sortable: true,
+    },
+    {
+      id: 'reportedAt',
+      header: '报告时间',
+      cell: (workOrder) => formatDate(workOrder.reportedAt),
+      sortable: true,
+    },
+    {
+      id: 'duration',
+      header: '耗时',
+      cell: (workOrder) => {
+        if (workOrder.status === 'COMPLETED' && workOrder.completedAt) {
+          return formatDuration(workOrder.reportedAt, workOrder.completedAt);
+        }
+        return formatDuration(workOrder.reportedAt);
+      },
+      sortable: false,
+    },
+  ], []);
+
   if (error) {
     return (
       <Card className="p-8 text-center">
@@ -173,11 +269,7 @@ export function AdvancedWorkOrderList({
     );
   }
 
-  console.log('Render check - workOrders state:', workOrders);
-  console.log('Render check - isLoading:', isLoading);
-
-  if (!workOrders || workOrders.workOrders.length === 0) {
-    console.log('Rendering empty state - workOrders:', workOrders);
+  if (!workOrders) {
     return (
       <Card className="p-8 text-center">
         <p className="text-gray-500">没有找到符合条件的工单</p>
@@ -185,162 +277,70 @@ export function AdvancedWorkOrderList({
     );
   }
 
-  const totalPages = workOrders.totalPages;
-  const startItem = (currentPage - 1) * pageSize + 1;
-  const endItem = Math.min(currentPage * pageSize, workOrders.total);
-
   return (
     <div className="space-y-4">
-      {/* Results Summary */}
-      <div className="flex justify-between items-center text-sm text-gray-600">
-        <p>
-          显示第 {startItem}-{endItem} 条，共 {workOrders.total} 条工单
-        </p>
-        <div className="flex items-center gap-2">
-          <label htmlFor="pageSize">每页显示:</label>
-          <select
-            id="pageSize"
-            value={pageSize}
-            onChange={(e) => setPageSize(parseInt(e.target.value))}
-            className="border border-gray-300 rounded px-2 py-1"
-          >
-            <option value={10}>10</option>
-            <option value={20}>20</option>
-            <option value={50}>50</option>
-            <option value={100}>100</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Work Orders List */}
-      <div className="space-y-3">
-        {workOrders.workOrders.map((workOrder) => (
-          <Card 
-            key={workOrder.id} 
-            className="p-4 hover:shadow-md transition-shadow cursor-pointer"
-            onClick={() => onWorkOrderClick?.(workOrder)}
-          >
-            <div className="flex justify-between items-start mb-3">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <h3 className="font-semibold text-lg">{workOrder.title}</h3>
-                  <Badge variant={getStatusBadgeVariant(workOrder.status)}>
-                    {getStatusLabel(workOrder.status)}
-                  </Badge>
-                  <Badge variant={getPriorityBadgeVariant(workOrder.priority)}>
-                    {getPriorityLabel(workOrder.priority)}
-                  </Badge>
-                </div>
-                <p className="text-gray-600 mb-2 line-clamp-2">{workOrder.description}</p>
-              </div>
-              <Button variant="ghost" size="sm" className="flex-shrink-0">
-                <Eye className="h-4 w-4" />
+      {/* Bulk Actions */}
+      {selectedRows.length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-blue-700">
+              已选择 {selectedRows.length} 个工单
+            </span>
+            <div className="flex gap-2">
+              <ConfirmDialog
+                trigger={
+                  <Button size="sm" variant="outline" className="text-blue-600 hover:text-blue-700">
+                    批量分配
+                  </Button>
+                }
+                title="批量分配工单"
+                description={`确定要批量分配选中的 ${selectedRows.length} 个工单吗？`}
+                onConfirm={() => handleBulkStatusUpdate('ASSIGNED')}
+              />
+              <ConfirmDialog
+                trigger={
+                  <Button size="sm" variant="outline" className="text-green-600 hover:text-green-700">
+                    标记进行中
+                  </Button>
+                }
+                title="批量更新工单状态"
+                description={`确定要将选中的 ${selectedRows.length} 个工单标记为进行中吗？`}
+                onConfirm={() => handleBulkStatusUpdate('IN_PROGRESS')}
+              />
+              <ConfirmDialog
+                trigger={
+                  <Button size="sm" variant="outline" className="text-orange-600 hover:text-orange-700">
+                    标记完成
+                  </Button>
+                }
+                title="批量完成工单"
+                description={`确定要将选中的 ${selectedRows.length} 个工单标记为完成吗？`}
+                onConfirm={() => handleBulkStatusUpdate('COMPLETED')}
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setSelectedRows([])}
+                className="text-gray-600 hover:text-gray-700"
+              >
+                取消选择
               </Button>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm text-gray-600">
-              <div className="flex items-center gap-2">
-                <Wrench className="h-4 w-4" />
-                <span>{workOrder.asset.assetCode} - {workOrder.asset.name}</span>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                <span>
-                  {workOrder.assignedTo 
-                    ? `${workOrder.assignedTo.firstName || '未知'} ${workOrder.assignedTo.lastName || ''}`.trim()
-                    : '未分配'
-                  }
-                </span>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                <span>报告: {formatDate(workOrder.reportedAt)}</span>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                <span>
-                  {workOrder.status === 'COMPLETED' && workOrder.completedAt
-                    ? `完成: ${formatDate(workOrder.completedAt)}`
-                    : `耗时: ${formatDuration(workOrder.reportedAt, workOrder.completedAt)}`
-                  }
-                </span>
-              </div>
-            </div>
-
-            <div className="mt-3 flex justify-between items-center text-xs text-gray-500">
-              <span>类别: {workOrder.category} | 原因: {workOrder.reason}</span>
-              <span>创建人: {workOrder.createdBy ? 
-                `${workOrder.createdBy.firstName || '未知'} ${workOrder.createdBy.lastName || ''}`.trim() 
-                : '创建人信息不可用'
-              }</span>
-            </div>
-          </Card>
-        ))}
-      </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <Card className="p-4">
-          <div className="flex justify-between items-center">
-            <Button
-              variant="outline"
-              onClick={() => setPage(currentPage - 1)}
-              disabled={currentPage <= 1 || isLoading}
-              className="flex items-center gap-2"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              上一页
-            </Button>
-            
-            <div className="flex items-center gap-2">
-              {/* Show page numbers */}
-              {[...Array(Math.min(5, totalPages))].map((_, i) => {
-                let pageNum;
-                if (totalPages <= 5) {
-                  pageNum = i + 1;
-                } else if (currentPage <= 3) {
-                  pageNum = i + 1;
-                } else if (currentPage >= totalPages - 2) {
-                  pageNum = totalPages - 4 + i;
-                } else {
-                  pageNum = currentPage - 2 + i;
-                }
-                
-                if (pageNum < 1 || pageNum > totalPages) return null;
-                
-                return (
-                  <Button
-                    key={pageNum}
-                    variant={currentPage === pageNum ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setPage(pageNum)}
-                    disabled={isLoading}
-                  >
-                    {pageNum}
-                  </Button>
-                );
-              })}
-            </div>
-            
-            <Button
-              variant="outline"
-              onClick={() => setPage(currentPage + 1)}
-              disabled={currentPage >= totalPages || isLoading}
-              className="flex items-center gap-2"
-            >
-              下一页
-              <ChevronRight className="h-4 w-4" />
-            </Button>
           </div>
-          
-          <div className="text-center text-sm text-gray-500 mt-2">
-            第 {currentPage} 页，共 {totalPages} 页
-          </div>
-        </Card>
+        </div>
       )}
+
+      {/* Data Table */}
+      <DataTable
+        data={workOrders.workOrders}
+        columns={columns}
+        selection={true}
+        searchable={false}
+        onSelectionChange={setSelectedRows}
+        onRowClick={onWorkOrderClick}
+        loading={isLoading}
+        emptyMessage="没有找到符合条件的工单"
+      />
     </div>
   );
 }

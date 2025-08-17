@@ -3,6 +3,7 @@ import { PrismaClient } from '@emaintenance/database';
 import { WorkOrderService } from '../services/WorkOrderService';
 import { 
   CreateWorkOrderSchema, 
+  CreateWorkOrderMultipartSchema,
   UpdateWorkOrderSchema, 
   WorkOrderQuerySchema,
   AssignWorkOrderSchema,
@@ -51,12 +52,43 @@ export class WorkOrderController {
       throw new AppError('用户未认证', 401);
     }
 
-    // Validate request body
-    const validatedData = CreateWorkOrderSchema.parse(req.body);
+    // Check if this is a multipart request (has files)
+    const hasFiles = req.files && Array.isArray(req.files) && req.files.length > 0;
+    
+    let validatedData;
+    let attachments: string[] = [];
 
-    // Create work order
+    if (hasFiles) {
+      // Use multipart schema for requests with files
+      validatedData = CreateWorkOrderMultipartSchema.parse(req.body);
+      
+      // Process uploaded files
+      const files = req.files as Express.Multer.File[];
+      attachments = files.map(file => getFileUrl(file.filename));
+      
+      console.log(`[DEBUG] WorkOrderController.createWorkOrder: Processing ${files.length} uploaded files:`, 
+        files.map(f => ({ originalname: f.originalname, filename: f.filename })));
+    } else {
+      // Use regular schema for JSON-only requests
+      validatedData = CreateWorkOrderSchema.parse(req.body);
+      attachments = validatedData.attachments || [];
+    }
+
+    // Create work order with validated data and attachments
+    const workOrderData = {
+      ...validatedData,
+      attachments,
+    };
+
+    console.log(`[DEBUG] WorkOrderController.createWorkOrder: Creating work order with data:`, {
+      title: workOrderData.title,
+      assetId: workOrderData.assetId,
+      category: workOrderData.category,
+      attachmentCount: workOrderData.attachments.length,
+    });
+
     const workOrder = await this.workOrderService.createWorkOrder(
-      validatedData,
+      workOrderData,
       req.user.id
     );
 

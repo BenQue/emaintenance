@@ -26,7 +26,7 @@ const strictLimiter = rateLimit({
 router.use(authenticate);
 
 // Public routes (authenticated users) - Apply strict rate limiting to creation
-router.post('/', strictLimiter, workOrderController.createWorkOrder);
+router.post('/', strictLimiter, uploadMultiple, workOrderController.createWorkOrder);
 router.get('/my', workOrderController.getMyWorkOrders);
 router.get('/assigned', workOrderController.getAssignedWorkOrders);
 router.get('/statistics', authorize('SUPERVISOR', 'ADMIN'), workOrderController.getStatistics);

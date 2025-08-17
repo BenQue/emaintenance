@@ -40,6 +40,39 @@ export const CreateWorkOrderSchema = z.object({
     .default([]),
 });
 
+// Create work order multipart form validation (when files are uploaded)
+export const CreateWorkOrderMultipartSchema = z.object({
+  title: z.string()
+    .min(5, '工单标题至少需要5个字符')
+    .max(200, '工单标题不能超过200个字符'),
+  
+  description: z.string()
+    .max(2000, '描述不能超过2000个字符')
+    .optional()
+    .default(''),
+  
+  category: z.string()
+    .min(1, '请选择报修类别')
+    .max(100, '类别名称过长'),
+  
+  reason: z.string()
+    .min(1, '请选择报修原因')
+    .max(100, '原因描述过长'),
+  
+  location: z.string()
+    .max(200, '位置描述过长')
+    .optional()
+    .default(''),
+  
+  priority: PrioritySchema.default(Priority.MEDIUM),
+  
+  assetId: z.string()
+    .min(1, '设备ID不能为空'),
+  
+  // For multipart form data, files are handled separately via req.files
+  // No need to validate attachments in the body schema
+});
+
 // Update work order request validation
 export const UpdateWorkOrderSchema = z.object({
   title: z.string()
@@ -167,6 +200,7 @@ export const IdParamSchema = z.object({
 
 // Export types for TypeScript
 export type CreateWorkOrderInput = z.infer<typeof CreateWorkOrderSchema>;
+export type CreateWorkOrderMultipartInput = z.infer<typeof CreateWorkOrderMultipartSchema>;
 export type UpdateWorkOrderInput = z.infer<typeof UpdateWorkOrderSchema>;
 export type WorkOrderQueryInput = z.infer<typeof WorkOrderQuerySchema>;
 export type AssignWorkOrderInput = z.infer<typeof AssignWorkOrderSchema>;

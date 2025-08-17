@@ -10,12 +10,27 @@ jest.mock('../UserMenu', () => ({
   UserMenu: () => <div data-testid="user-menu">User Menu</div>,
 }));
 
+// Mock BizLinkLogo component
+jest.mock('../../ui/BizLinkLogo', () => ({
+  NavigationLogo: () => <div data-testid="navigation-logo">BizLink Logo</div>,
+}));
+
+// Mock usePathname hook
+jest.mock('next/navigation', () => ({
+  usePathname: () => '/dashboard',
+}));
+
 // Mock Next.js Link
 jest.mock('next/link', () => {
   return ({ children, href }: { children: React.ReactNode; href: string }) => (
     <a href={href}>{children}</a>
   );
 });
+
+// Mock useIsMobile hook
+jest.mock('../../../hooks/use-mobile', () => ({
+  useIsMobile: () => false,
+}));
 
 const mockUseAuthStore = useAuthStore as jest.MockedFunction<typeof useAuthStore>;
 
@@ -60,14 +75,16 @@ describe('Navigation', () => {
 
     render(<Navigation />);
 
-    expect(screen.getByText('设备维护管理系统')).toBeInTheDocument();
+    expect(screen.getByText('E-Maintenance')).toBeInTheDocument();
+    expect(screen.getByText('设备维护管理')).toBeInTheDocument();
     expect(screen.getByText('工单管理')).toBeInTheDocument();
     expect(screen.getByText('通知中心')).toBeInTheDocument();
     expect(screen.queryByText('仪表板')).not.toBeInTheDocument();
     expect(screen.queryByText('我的任务')).not.toBeInTheDocument();
-    expect(screen.queryByText('资产管理')).not.toBeInTheDocument();
+    expect(screen.queryByText('设备管理')).not.toBeInTheDocument();
     expect(screen.queryByText('用户管理')).not.toBeInTheDocument();
     expect(screen.getByTestId('user-menu')).toBeInTheDocument();
+    expect(screen.getByTestId('navigation-logo')).toBeInTheDocument();
   });
 
   it('should render navigation for TECHNICIAN role', () => {
@@ -98,7 +115,7 @@ describe('Navigation', () => {
     expect(screen.getByText('我的任务')).toBeInTheDocument();
     expect(screen.getByText('通知中心')).toBeInTheDocument();
     expect(screen.queryByText('仪表板')).not.toBeInTheDocument();
-    expect(screen.queryByText('资产管理')).not.toBeInTheDocument();
+    expect(screen.queryByText('设备管理')).not.toBeInTheDocument();
     expect(screen.queryByText('用户管理')).not.toBeInTheDocument();
   });
 
@@ -128,7 +145,8 @@ describe('Navigation', () => {
 
     expect(screen.getByText('仪表板')).toBeInTheDocument();
     expect(screen.getByText('工单管理')).toBeInTheDocument();
-    expect(screen.getByText('资产管理')).toBeInTheDocument();
+    expect(screen.getByText('设备管理')).toBeInTheDocument();
+    expect(screen.getByText('分配规则')).toBeInTheDocument();
     expect(screen.getByText('用户管理')).toBeInTheDocument();
     expect(screen.getByText('通知中心')).toBeInTheDocument();
     expect(screen.queryByText('我的任务')).not.toBeInTheDocument();
@@ -160,7 +178,8 @@ describe('Navigation', () => {
 
     expect(screen.getByText('仪表板')).toBeInTheDocument();
     expect(screen.getByText('工单管理')).toBeInTheDocument();
-    expect(screen.getByText('资产管理')).toBeInTheDocument();
+    expect(screen.getByText('设备管理')).toBeInTheDocument();
+    expect(screen.getByText('分配规则')).toBeInTheDocument();
     expect(screen.getByText('用户管理')).toBeInTheDocument();
     expect(screen.getByText('通知中心')).toBeInTheDocument();
     expect(screen.queryByText('我的任务')).not.toBeInTheDocument();

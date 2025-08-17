@@ -101,14 +101,14 @@ export class AssetController {
   async getAssetById(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      console.log(`[DEBUG] AssetController.getAssetById: Fetching asset ID: ${id}`);
+      logger.info('Fetching asset by ID', { assetId: id });
       
       const asset = await this.assetService.getAssetById(id);
 
       if (asset) {
-        console.log(`[DEBUG] AssetController.getAssetById: Successfully retrieved asset "${asset.name}" (${asset.assetCode})`);
+        logger.info('Successfully retrieved asset', { assetId: id, assetName: asset.name, assetCode: asset.assetCode });
       } else {
-        console.log(`[WARNING] AssetController.getAssetById: Asset not found for ID: ${id}`);
+        logger.warn('Asset not found', { assetId: id });
       }
 
       res.json({
@@ -118,7 +118,7 @@ export class AssetController {
       });
     } catch (error) {
       const correlationId = req.headers['x-correlation-id'];
-      console.error(`[ERROR] AssetController.getAssetById: Failed to fetch asset ID ${req.params.id}:`, error);
+      logger.error('Failed to fetch asset by ID', { assetId: req.params.id, error: error instanceof Error ? error.message : 'Unknown error' });
       
       logger.error('Error fetching asset by ID', {
         correlationId,

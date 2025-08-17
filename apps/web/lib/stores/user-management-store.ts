@@ -21,6 +21,7 @@ interface UserManagementState {
   isUpdating: boolean;
   isDeleting: boolean;
   isBulkOperating: boolean;
+  isInitialized: boolean;
 
   // Error handling
   error: string | null;
@@ -28,6 +29,7 @@ interface UserManagementState {
   // Actions - Data fetching
   fetchUsers: (query?: UserListQuery) => Promise<void>;
   fetchUserById: (id: string) => Promise<void>;
+  getUserById: (id: string) => Promise<User>;
   refreshUsers: () => Promise<void>;
 
   // Actions - User management
@@ -76,24 +78,43 @@ export const useUserManagementStore = create<UserManagementState>()(
       isUpdating: false,
       isDeleting: false,
       isBulkOperating: false,
+      isInitialized: false,
 
       error: null,
 
       // Data fetching actions
       fetchUsers: async (query) => {
+        const currentState = get();
+        
+        // Prevent duplicate requests
+        if (currentState.isLoading) {
+          return;
+        }
+        
         set({ isLoading: true, error: null });
         try {
-          const finalQuery = { ...get().filters, ...query };
+          const finalQuery = { ...currentState.filters, ...query };
           const response = await userService.getUsers(finalQuery);
           
-          set({
-            users: response.users,
-            total: response.total,
-            page: response.page,
-            limit: response.limit,
-            filters: finalQuery,
-            isLoading: false,
-          });
+          // Only update if data has actually changed
+          const hasDataChanged = 
+            JSON.stringify(currentState.users) !== JSON.stringify(response.users) ||
+            currentState.total !== response.total ||
+            currentState.page !== response.page;
+            
+          if (hasDataChanged) {
+            set({
+              users: response.users,
+              total: response.total,
+              page: response.page,
+              limit: response.limit,
+              filters: finalQuery,
+              isLoading: false,
+              isInitialized: true,
+            });
+          } else {
+            set({ isLoading: false, isInitialized: true });
+          }
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Failed to fetch users';
           set({ error: errorMessage, isLoading: false });
@@ -109,6 +130,16 @@ export const useUserManagementStore = create<UserManagementState>()(
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Failed to fetch user';
           set({ error: errorMessage, isLoading: false });
+          throw error;
+        }
+      },
+
+      getUserById: async (id) => {
+        try {
+          return await userService.getUserById(id);
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Failed to fetch user';
+          set({ error: errorMessage });
           throw error;
         }
       },

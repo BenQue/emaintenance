@@ -3,10 +3,15 @@
 import { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { RefreshCw, Calendar, Filter } from 'lucide-react';
+import { Badge } from '../ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { RefreshCw, Calendar, Filter, Activity } from 'lucide-react';
 import { WorkOrderMetrics } from './WorkOrderMetrics';
 import { TimeMetrics } from './TimeMetrics';
 import { AssetMetrics } from './AssetMetrics';
+import { DataCard } from '../data-display/cards/DataCard';
+import { KPICard } from '../data-display/cards/KPICard';
+import { LoadingStates } from '../data-display/indicators/LoadingStates';
 import { workOrderService } from '../../lib/services/work-order-service';
 import { assetService } from '../../lib/services/asset-service';
 
@@ -125,7 +130,7 @@ export function KPIDashboard({ autoRefresh = true, refreshInterval = 30 }: KPIDa
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold">KPI 仪表板</h1>
+          <h1 className="text-3xl font-bold">数据分析</h1>
           <p className="text-gray-600 mt-1">
             最后更新: {formatLastRefresh(lastRefresh)}
           </p>
@@ -135,15 +140,19 @@ export function KPIDashboard({ autoRefresh = true, refreshInterval = 30 }: KPIDa
           {/* Time Filter */}
           <div className="flex items-center space-x-2">
             <Filter className="h-4 w-4 text-gray-500" />
-            <select
+            <Select
               value={timeFilter}
-              onChange={(e) => setTimeFilter(e.target.value as 'week' | 'month' | 'quarter')}
-              className="border rounded-md px-3 py-1 text-sm"
+              onValueChange={(value: string) => setTimeFilter(value as 'week' | 'month' | 'quarter')}
             >
-              <option value="week">最近一周</option>
-              <option value="month">最近一月</option>
-              <option value="quarter">最近三月</option>
-            </select>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="week">最近一周</SelectItem>
+                <SelectItem value="month">最近一月</SelectItem>
+                <SelectItem value="quarter">最近三月</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Manual Refresh Button */}
@@ -161,14 +170,60 @@ export function KPIDashboard({ autoRefresh = true, refreshInterval = 30 }: KPIDa
 
       {/* Auto-refresh indicator */}
       {autoRefresh && (
-        <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="py-3">
-            <div className="flex items-center text-sm text-blue-700">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              自动刷新已启用 (每 {refreshInterval} 秒)
-            </div>
-          </CardContent>
-        </Card>
+        <DataCard
+          title="自动刷新状态"
+          value="已启用"
+          subtitle={`每 ${refreshInterval} 秒自动更新数据`}
+          icon={Activity}
+          variant="info"
+          className="col-span-full"
+        />
+      )}
+
+      {/* KPI Overview Cards */}
+      {loading ? (
+        <LoadingStates type="card" count={4} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <KPICard
+            title="总工单数"
+            value={data.workOrderStats?.total || 0}
+            previousValue={data.workOrderStats?.previousTotal}
+            description="当前时间范围内的工单总数"
+            isLoading={loading}
+            error={error}
+          />
+          <KPICard
+            title="已完成工单"
+            value={data.workOrderStats?.completed || 0}
+            previousValue={data.workOrderStats?.previousCompleted}
+            trend={data.workOrderStats?.completedTrend}
+            description="已完成的工单数量"
+            isLoading={loading}
+            error={error}
+          />
+          <DataCard
+            title="平均解决时间"
+            value={data.mttrData?.average ? `${data.mttrData.average}h` : '计算中'}
+            subtitle="MTTR (Mean Time To Repair)"
+            variant={data.mttrData?.average > 24 ? 'warning' : 'success'}
+            isLoading={loading}
+            error={error}
+          />
+          <DataCard
+            title="资产健康度"
+            value={data.assetHealthOverview?.healthScore ? `${data.assetHealthOverview.healthScore}%` : '评估中'}
+            subtitle="整体资产状态评分"
+            variant={
+              data.assetHealthOverview?.healthScore >= 80 ? 'success' :
+              data.assetHealthOverview?.healthScore >= 60 ? 'warning' : 'error'
+            }
+            showProgress={true}
+            progressValue={data.assetHealthOverview?.healthScore || 0}
+            isLoading={loading}
+            error={error}
+          />
+        </div>
       )}
 
       {/* KPI Modules */}

@@ -100,10 +100,11 @@ const AuthenticatedImage: React.FC<{
 
 interface WorkOrderPhotosProps {
   workOrderId: string;
+  attachments?: string[]; // Add attachments prop to display report photos
 }
 
-export function WorkOrderPhotos({ workOrderId }: WorkOrderPhotosProps) {
-  const [photos, setPhotos] = useState<WorkOrderPhoto[]>([]);
+export function WorkOrderPhotos({ workOrderId, attachments = [] }: WorkOrderPhotosProps) {
+  const [managedPhotos, setManagedPhotos] = useState<WorkOrderPhoto[]>([]); // Photos from WorkOrderPhoto table
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
@@ -111,10 +112,14 @@ export function WorkOrderPhotos({ workOrderId }: WorkOrderPhotosProps) {
   const { fetchWorkOrderPhotos } = useWorkOrderStore();
 
   useEffect(() => {
-    loadPhotos();
-  }, [workOrderId]);
+    // Only load managed photos if there are no attachments (or if we want both)
+    // For now, prioritize showing attachments (report photos) over managed photos
+    if (attachments.length === 0) {
+      loadManagedPhotos();
+    }
+  }, [workOrderId, attachments]);
 
-  const loadPhotos = async () => {
+  const loadManagedPhotos = async () => {
     try {
       setLoading(true);
       setError(null);
@@ -128,7 +133,7 @@ export function WorkOrderPhotos({ workOrderId }: WorkOrderPhotosProps) {
       }
       
       const photosData = await fetchWorkOrderPhotos(workOrderId);
-      setPhotos(photosData || []);
+      setManagedPhotos(photosData || []);
     } catch (err) {
       console.error('Failed to load work order photos:', err);
       const errorMessage = err instanceof Error ? err.message : '加载照片失败';
@@ -146,23 +151,30 @@ export function WorkOrderPhotos({ workOrderId }: WorkOrderPhotosProps) {
     }
   };
 
-  const getPhotoUrl = (photo: WorkOrderPhoto) => {
+  // Helper functions for managed photos (WorkOrderPhoto table)
+  const getManagedPhotoUrl = (photo: WorkOrderPhoto) => {
     const baseUrl = process.env.NEXT_PUBLIC_WORK_ORDER_SERVICE_URL || 'http://localhost:3002';
     return `${baseUrl}/api/work-orders/${workOrderId}/work-order-photos/${photo.id}`;
   };
 
-  const getThumbnailUrl = (photo: WorkOrderPhoto) => {
+  const getManagedThumbnailUrl = (photo: WorkOrderPhoto) => {
     const baseUrl = process.env.NEXT_PUBLIC_WORK_ORDER_SERVICE_URL || 'http://localhost:3002';
     return photo.thumbnailPath 
       ? `${baseUrl}/api/work-orders/${workOrderId}/work-order-photos/${photo.id}/thumbnail`
-      : getPhotoUrl(photo);
+      : getManagedPhotoUrl(photo);
   };
 
-  const downloadPhoto = async (photo: WorkOrderPhoto) => {
+  // Helper functions for attachment photos (report photos)
+  const getAttachmentPhotoUrl = (attachmentUrl: string) => {
+    // Attachments are stored as full URLs, just return them
+    return attachmentUrl;
+  };
+
+  const downloadManagedPhoto = async (photo: WorkOrderPhoto) => {
     try {
       // Create authenticated download request
       const token = localStorage.getItem('auth_token');
-      const response = await fetch(getPhotoUrl(photo), {
+      const response = await fetch(getManagedPhotoUrl(photo), {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -186,6 +198,36 @@ export function WorkOrderPhotos({ workOrderId }: WorkOrderPhotosProps) {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Failed to download photo:', error);
+    }
+  };
+
+  const downloadAttachmentPhoto = async (attachmentUrl: string, filename?: string) => {
+    try {
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(attachmentUrl, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Download failed');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename || 'attachment.jpg';
+      document.body.appendChild(link);
+      link.click();
+      
+      // Cleanup
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download attachment photo:', error);
     }
   };
 
@@ -240,7 +282,11 @@ export function WorkOrderPhotos({ workOrderId }: WorkOrderPhotosProps) {
     );
   }
 
-  if (photos.length === 0) {
+  // Determine which photos to display - prioritize attachments (report photos)
+  const displayPhotos = attachments.length > 0 ? attachments : [];
+  const hasPhotos = displayPhotos.length > 0;
+
+  if (!hasPhotos) {
     return (
       <Card>
         <CardHeader>
@@ -265,48 +311,54 @@ export function WorkOrderPhotos({ workOrderId }: WorkOrderPhotosProps) {
         <CardHeader>
           <CardTitle className="text-lg flex items-center">
             <Camera className="w-5 h-5 mr-2" />
-报修照片 ({photos.length})
+报修照片 ({displayPhotos.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {photos.map((photo, index) => (
-              <div
-                key={photo.id}
-                className="relative group bg-gray-100 rounded-lg overflow-hidden aspect-square cursor-pointer"
-                onClick={() => setSelectedPhotoIndex(index)}
-              >
-                {/* Actual Image */}
-                <AuthenticatedImage
-                  src={getThumbnailUrl(photo)}
-                  alt={photo.originalName}
-                  className="w-full h-full object-cover"
-                />
+            {displayPhotos.map((attachmentUrl, index) => {
+              // Extract filename from URL for display
+              const filename = attachmentUrl.split('/').pop() || `attachment-${index + 1}`;
+              const displayName = filename.replace(/^\d+-\d+-/, ''); // Remove timestamp prefix
+              
+              return (
+                <div
+                  key={`attachment-${index}`}
+                  className="relative group bg-gray-100 rounded-lg overflow-hidden aspect-square cursor-pointer"
+                  onClick={() => setSelectedPhotoIndex(index)}
+                >
+                  {/* Actual Image */}
+                  <AuthenticatedImage
+                    src={getAttachmentPhotoUrl(attachmentUrl)}
+                    alt={displayName}
+                    className="w-full h-full object-cover"
+                  />
 
-                {/* Hover overlay with download button */}
-                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center pointer-events-none">
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        downloadPhoto(photo);
-                      }}
-                      className="h-8 w-8 p-0 pointer-events-auto"
-                      title="下载图片"
-                    >
-                      <Download className="w-4 h-4" />
-                    </Button>
+                  {/* Hover overlay with download button */}
+                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center pointer-events-none">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          downloadAttachmentPhoto(attachmentUrl, displayName);
+                        }}
+                        className="h-8 w-8 p-0 pointer-events-auto"
+                        title="下载图片"
+                      >
+                        <Download className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Photo info - smaller overlay */}
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-1 pointer-events-none">
+                    <p className="text-white text-xs truncate">{displayName}</p>
                   </div>
                 </div>
-
-                {/* Photo info - smaller overlay */}
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-1 pointer-events-none">
-                  <p className="text-white text-xs truncate">{photo.originalName}</p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </CardContent>
       </Card>
@@ -314,16 +366,20 @@ export function WorkOrderPhotos({ workOrderId }: WorkOrderPhotosProps) {
       {/* Photo View Modal */}
       {selectedPhotoIndex !== null && (
         <PhotoViewModal
-          photos={photos.map(photo => ({
-            id: photo.id,
-            url: getPhotoUrl(photo),
-            name: photo.originalName,
-            size: photo.fileSize,
-            uploadedAt: photo.uploadedAt,
-          }))}
+          photos={displayPhotos.map((attachmentUrl, index) => {
+            const filename = attachmentUrl.split('/').pop() || `attachment-${index + 1}`;
+            const displayName = filename.replace(/^\d+-\d+-/, '');
+            return {
+              id: `attachment-${index}`,
+              url: getAttachmentPhotoUrl(attachmentUrl),
+              name: displayName,
+              size: 0, // Unknown size for attachments
+              uploadedAt: '', // Unknown upload time for attachments
+            };
+          })}
           initialIndex={selectedPhotoIndex}
           onClose={() => setSelectedPhotoIndex(null)}
-          onDownload={(photoIndex) => downloadPhoto(photos[photoIndex])}
+          onDownload={(photoIndex) => downloadAttachmentPhoto(displayPhotos[photoIndex], displayPhotos[photoIndex].split('/').pop())}
         />
       )}
     </>

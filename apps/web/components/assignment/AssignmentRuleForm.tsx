@@ -9,6 +9,10 @@ import {
   PRIORITY_OPTIONS,
   CATEGORY_OPTIONS
 } from '../../lib/types/assignment';
+import { Button } from '../ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Label } from '../ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 interface AssignmentRuleFormProps {
   rule?: AssignmentRule;
@@ -145,27 +149,27 @@ export default function AssignmentRuleForm({ rule, onSubmit, onCancel }: Assignm
       </div>
 
       {/* Assigned Technician */}
-      <div>
-        <label htmlFor="assignToId" className="block text-sm font-medium text-gray-700">
-          指定技术员 <span className="text-red-500">*</span>
-        </label>
-        <select
-          id="assignToId"
+      <div className="space-y-2">
+        <Label htmlFor="assignToId">
+          指定技术员 <span className="text-destructive">*</span>
+        </Label>
+        <Select
           value={formData.assignToId}
-          onChange={(e) => setFormData(prev => ({ ...prev, assignToId: e.target.value }))}
-          className={`mt-1 block w-full rounded-md border ${
-            errors.assignToId ? 'border-red-300' : 'border-gray-300'
-          } px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
+          onValueChange={(value: string) => setFormData(prev => ({ ...prev, assignToId: value }))}
           disabled={techniciansLoading}
         >
-          <option value="">选择技术员</option>
-          {technicians.map((tech) => (
-            <option key={tech.id} value={tech.id}>
-              {tech.firstName} {tech.lastName} ({tech.email})
-            </option>
-          ))}
-        </select>
-        {errors.assignToId && <p className="mt-1 text-sm text-red-600">{errors.assignToId}</p>}
+          <SelectTrigger className={errors.assignToId ? 'border-destructive' : ''}>
+            <SelectValue placeholder="选择技术员" />
+          </SelectTrigger>
+          <SelectContent>
+            {technicians.map((tech) => (
+              <SelectItem key={tech.id} value={tech.id}>
+                {tech.firstName} {tech.lastName} ({tech.email})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {errors.assignToId && <p className="mt-1 text-sm text-destructive">{errors.assignToId}</p>}
       </div>
 
       {/* Matching Conditions */}

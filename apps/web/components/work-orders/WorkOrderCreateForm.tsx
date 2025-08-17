@@ -1,15 +1,25 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import { Priority, PriorityLabels } from '../../lib/types/work-order';
 import { workOrderService } from '../../lib/services/work-order-service';
 import { useWorkOrderStore } from '../../lib/stores/work-order-store';
 import { assetService, Asset } from '../../lib/services/asset-service';
+import { FormWrapper } from '../forms/unified/FormWrapper';
+import { UnifiedFormField } from '../forms/unified/FormField';
+import { workOrderValidationRules } from '../forms/unified/FormValidation';
+import { Alert } from '../ui/alert';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 
 // Constants for fallback data - improves maintainability
 const DEFAULT_CATEGORIES = ['设备故障', '预防性维护', '常规检查', '清洁维护'];
 const DEFAULT_REASONS = ['机械故障', '电气故障', '软件问题', '磨损老化', '操作错误', '外部因素'];
 const DEFAULT_LOCATIONS = ['生产车间A', '生产车间B', '仓库区域', '办公区域', '设备机房'];
+
 
 interface WorkOrderCreateFormProps {
   onCancel: () => void;
@@ -24,14 +34,7 @@ interface FormData {
   location: string;
   priority: Priority;
   description: string;
-  photos: File[];
-}
-
-interface FormErrors {
-  assetId?: string;
-  title?: string;
-  category?: string;
-  reason?: string;
+  photos: FileList | null;
 }
 
 export function WorkOrderCreateForm({
@@ -40,19 +43,21 @@ export function WorkOrderCreateForm({
 }: WorkOrderCreateFormProps) {
   const { createWorkOrder, creating, createError, clearCreateError } = useWorkOrderStore();
   
-  const [formData, setFormData] = useState<FormData>({
-    assetId: '',
-    title: '',
-    category: '',
-    reason: '',
-    location: '',
-    priority: Priority.MEDIUM,
-    description: '',
-    photos: [],
+  // React Hook Form setup with validation
+  const form = useForm<FormData>({
+    defaultValues: {
+      assetId: '',
+      title: '',
+      category: '',
+      reason: '',
+      location: '',
+      priority: Priority.MEDIUM,
+      description: '',
+      photos: null,
+    },
+    mode: 'onChange', // Enable real-time validation
   });
-  
-  const [formErrors, setFormErrors] = useState<FormErrors>({});
-  
+
   // Form options loaded from API
   const [assets, setAssets] = useState<Asset[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
@@ -66,9 +71,17 @@ export function WorkOrderCreateForm({
 
   const loadFormData = async () => {
     try {
+      // Check if user is authenticated
+      const token = localStorage.getItem('auth_token');
+      if (!token) {
+        console.warn('No auth token found, redirecting to login');
+        window.location.href = '/login';
+        return;
+      }
+
       // Load assets and form options in parallel
       const [assetsResponse, formOptions] = await Promise.all([
-        assetService.getAllAssets({ isActive: true, limit: 1000 }), // Get all active assets
+        assetService.getAllAssets({ isActive: true, limit: 100 }), // Get all active assets
         workOrderService.getFormOptions()
       ]);
       
@@ -78,9 +91,16 @@ export function WorkOrderCreateForm({
       setCommonLocations(formOptions.commonLocations);
       setIsLoading(false);
     } catch (error) {
-      // Use structured logging instead of console.error in production
-      // console.error('Failed to load form data:', error);
-      // Use fallback data if API fails - extract to constants for maintainability
+      // Log the error for debugging
+      console.error('Failed to load form data:', error);
+      
+      // If it's an auth error, redirect to login
+      if (error instanceof Error && error.message.includes('401')) {
+        window.location.href = '/login';
+        return;
+      }
+      
+      // For other errors, still set empty arrays
       setAssets([]);
       setCategories(DEFAULT_CATEGORIES);
       setReasons(DEFAULT_REASONS);
@@ -89,373 +109,236 @@ export function WorkOrderCreateForm({
     }
   };
 
-  const validateForm = (): boolean => {
-    const errors: FormErrors = {};
-
-    if (!formData.assetId) {
-      errors.assetId = '请选择需要维修的设备';
-    }
-
-    if (!formData.title.trim()) {
-      errors.title = '请输入工单标题';
-    } else if (formData.title.trim().length < 5) {
-      errors.title = '标题至少需要5个字符';
-    }
-
-    if (!formData.category) {
-      errors.category = '请选择报修类别';
-    }
-
-    if (!formData.reason) {
-      errors.reason = '请选择报修原因';
-    }
-
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-    
+  const onSubmit = async (data: FormData) => {
     // Clear any previous errors
     clearCreateError();
     
     try {
-      await createWorkOrder({
-        assetId: formData.assetId,
-        title: formData.title.trim(),
-        category: formData.category,
-        reason: formData.reason,
-        location: formData.location.trim() || undefined,
-        priority: formData.priority,
-        description: formData.description.trim() || undefined,
-        photos: formData.photos,
+      // Convert FileList to File[] for the API
+      const photos = data.photos ? Array.from(data.photos) : [];
+      
+      console.log('[DEBUG] Submitting work order data:', {
+        assetId: data.assetId,
+        title: data.title.trim(),
+        category: data.category,
+        reason: data.reason,
       });
+      
+      await createWorkOrder({
+        assetId: data.assetId,
+        title: data.title.trim(),
+        category: data.category,
+        reason: data.reason,
+        location: data.location.trim() || undefined,
+        priority: data.priority,
+        description: data.description.trim() || undefined,
+        photos,
+      });
+      
+      console.log('[DEBUG] Work order created successfully, calling onSuccess()');
       onSuccess();
     } catch (error) {
-      // Error handling is managed by the store - this catch is for any unexpected errors
-      // console.error('Failed to create work order:', error);
-    }
-  };
-
-  const handleInputChange = (field: keyof FormData, value: string | Priority | File[]) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-
-    // Clear error when user starts typing, but only if the input now has valid content
-    if (formErrors[field as keyof FormErrors]) {
-      if (field === 'assetId' && value) {
-        setFormErrors(prev => ({
-          ...prev,
-          [field]: undefined
-        }));
-      } else if (field === 'title' && typeof value === 'string' && value.trim().length >= 5) {
-        setFormErrors(prev => ({
-          ...prev,
-          [field]: undefined
-        }));
-      } else if (field === 'category' && value) {
-        setFormErrors(prev => ({
-          ...prev,
-          [field]: undefined
-        }));
-      } else if (field === 'reason' && value) {
-        setFormErrors(prev => ({
-          ...prev,
-          [field]: undefined
-        }));
-      }
+      console.error('[DEBUG] Error creating work order:', error);
+      // Error handling is managed by the store, but we should re-throw to prevent onSuccess
+      throw error;
     }
   };
 
   const handleLocationSuggestionClick = (location: string) => {
-    setFormData(prev => ({
-      ...prev,
-      location
-    }));
-  };
-
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    setFormData(prev => ({
-      ...prev,
-      photos: files
-    }));
-  };
-
-  const removePhoto = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      photos: prev.photos.filter((_, i) => i !== index)
-    }));
+    form.setValue('location', location);
   };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-3 text-gray-600">加载表单数据...</span>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-bizlink-500"></div>
+        <span className="ml-3 text-muted-foreground">加载表单数据...</span>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="p-6 space-y-6">
+    <div className="p-6 space-y-6">
       {/* Error Display */}
       {createError && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-md">
-          <div className="flex">
+        <Alert variant="destructive">
+          <div className="flex items-start space-x-2">
             <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+              <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
             </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">
-                创建工单失败
-              </h3>
-              <div className="mt-2 text-sm text-red-700">
-                {createError}
-              </div>
+            <div>
+              <h3 className="font-medium">创建工单失败</h3>
+              <p className="mt-1 text-sm">{createError}</p>
             </div>
           </div>
-        </div>
+        </Alert>
       )}
 
-      {/* Device Selection Field - MANDATORY */}
-      <div>
-        <label htmlFor="assetId" className="block text-sm font-medium text-gray-700 mb-2">
-          选择设备 <span className="text-red-500">*</span>
-        </label>
-        <select
-          id="assetId"
-          value={formData.assetId}
-          onChange={(e) => handleInputChange('assetId', e.target.value)}
-          className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 ${
-            formErrors.assetId
-              ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-              : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-          }`}
-        >
-          <option value="">请选择需要维修的设备</option>
-          {assets.map(asset => (
-            <option key={asset.id} value={asset.id}>
-              {asset.assetCode} - {asset.name} ({asset.location})
-            </option>
-          ))}
-        </select>
-        {formErrors.assetId && (
-          <p className="mt-1 text-sm text-red-600">{formErrors.assetId}</p>
-        )}
-        {assets.length === 0 && !isLoading && (
-          <p className="mt-1 text-sm text-yellow-600">无可用设备，请联系管理员</p>
-        )}
-      </div>
+      <FormWrapper
+        form={form}
+        onSubmit={onSubmit}
+        title="创建工单"
+        submitButtonText={creating ? '提交中...' : '提交工单'}
+        loading={creating}
+        showProgress={creating}
+        submitProgress={creating ? 75 : 0}
+      >
+        {/* Device Selection Field - MANDATORY */}
+        <UnifiedFormField
+          control={form.control}
+          name="assetId"
+          label="选择设备"
+          type="select"
+          placeholder="请选择需要维修的设备"
+          options={assets.map(asset => ({
+            value: asset.id,
+            label: `${asset.assetCode} - ${asset.name} (${asset.location})`
+          }))}
+        />
 
-      {/* Title Field */}
-      <div>
-        <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-          工单标题 <span className="text-red-500">*</span>
-        </label>
-        <input
+
+        {/* Title Field */}
+        <UnifiedFormField
+          control={form.control}
+          name="title"
+          label="工单标题"
           type="text"
-          id="title"
-          value={formData.title}
-          onChange={(e) => handleInputChange('title', e.target.value)}
-          className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 ${
-            formErrors.title 
-              ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-              : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-          }`}
           placeholder="请输入工单标题（至少5个字符）"
+          description="请简要描述需要维修的问题"
         />
-        {formErrors.title && (
-          <p className="mt-1 text-sm text-red-600">{formErrors.title}</p>
-        )}
-        {!formErrors.title && formData.title.trim().length > 0 && formData.title.trim().length < 5 && (
-          <p className="mt-1 text-sm text-yellow-600">还需要 {5 - formData.title.trim().length} 个字符</p>
-        )}
-      </div>
 
-      {/* Category Field */}
-      <div>
-        <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
-          报修类别 <span className="text-red-500">*</span>
-        </label>
-        <select
-          id="category"
-          value={formData.category}
-          onChange={(e) => handleInputChange('category', e.target.value)}
-          className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 ${
-            formErrors.category
-              ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-              : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-          }`}
-        >
-          <option value="">请选择报修类别</option>
-          {categories.map(category => (
-            <option key={category} value={category}>{category}</option>
-          ))}
-        </select>
-        {formErrors.category && (
-          <p className="mt-1 text-sm text-red-600">{formErrors.category}</p>
-        )}
-      </div>
-
-      {/* Reason Field */}
-      <div>
-        <label htmlFor="reason" className="block text-sm font-medium text-gray-700 mb-2">
-          报修原因 <span className="text-red-500">*</span>
-        </label>
-        <select
-          id="reason"
-          value={formData.reason}
-          onChange={(e) => handleInputChange('reason', e.target.value)}
-          className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 ${
-            formErrors.reason
-              ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-              : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
-          }`}
-        >
-          <option value="">请选择报修原因</option>
-          {reasons.map(reason => (
-            <option key={reason} value={reason}>{reason}</option>
-          ))}
-        </select>
-        {formErrors.reason && (
-          <p className="mt-1 text-sm text-red-600">{formErrors.reason}</p>
-        )}
-      </div>
-
-      {/* Location Field */}
-      <div>
-        <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
-          具体位置
-        </label>
-        <input
-          type="text"
-          id="location"
-          value={formData.location}
-          onChange={(e) => handleInputChange('location', e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-          placeholder="请输入或选择具体位置"
+        {/* Category Field */}
+        <UnifiedFormField
+          control={form.control}
+          name="category"
+          label="报修类别"
+          type="select"
+          placeholder="请选择报修类别"
+          options={categories.map(category => ({
+            value: category,
+            label: category
+          }))}
         />
-        {commonLocations.length > 0 && (
-          <div className="mt-2">
+
+        {/* Reason Field */}
+        <UnifiedFormField
+          control={form.control}
+          name="reason"
+          label="报修原因"
+          type="select"
+          placeholder="请选择报修原因"
+          options={reasons.map(reason => ({
+            value: reason,
+            label: reason
+          }))}
+        />
+
+        {/* Location Field */}
+        <div className="space-y-2">
+          <UnifiedFormField
+            control={form.control}
+            name="location"
+            label="具体位置"
+            type="text"
+            placeholder="请输入或选择具体位置"
+            description="可以从下方常用位置中选择"
+          />
+          
+          {commonLocations.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {commonLocations.map(location => (
-                <button
+                <Button
                   key={location}
                   type="button"
+                  variant="outline"
+                  size="sm"
                   onClick={() => handleLocationSuggestionClick(location)}
-                  className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors"
+                  className="text-xs"
                 >
                   {location}
-                </button>
+                </Button>
               ))}
             </div>
-          </div>
-        )}
-      </div>
-
-      {/* Priority Field */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          优先级
-        </label>
-        <div className="grid grid-cols-2 gap-2">
-          {Object.values(Priority).map(priority => (
-            <label
-              key={priority}
-              className="flex items-center p-3 border border-gray-300 rounded-md cursor-pointer hover:bg-gray-50"
-            >
-              <input
-                type="radio"
-                name="priority"
-                value={priority}
-                checked={formData.priority === priority}
-                onChange={(e) => handleInputChange('priority', e.target.value as Priority)}
-                className="mr-2 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-sm font-medium">{PriorityLabels[priority]}</span>
-            </label>
-          ))}
+          )}
         </div>
-      </div>
 
-      {/* Description Field */}
-      <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-          详细描述（可选）
-        </label>
-        <textarea
-          id="description"
-          rows={4}
-          value={formData.description}
-          onChange={(e) => handleInputChange('description', e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-          placeholder="请详细描述设备问题"
-        />
-      </div>
-
-      {/* Photo Upload Field */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          故障照片（可选）
-        </label>
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handlePhotoChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-        />
-        {formData.photos.length > 0 && (
-          <div className="mt-2 space-y-2">
-            {formData.photos.map((photo, index) => (
-              <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
-                <span className="text-sm text-gray-700">{photo.name}</span>
-                <button
-                  type="button"
-                  onClick={() => removePhoto(index)}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
+        {/* Priority Field */}
+        <div className="space-y-3">
+          <Label className="text-bizlink-700 font-medium">优先级</Label>
+          <RadioGroup
+            value={form.watch('priority')}
+            onValueChange={(value: string) => form.setValue('priority', value as Priority)}
+            className="grid grid-cols-2 gap-2"
+          >
+            {Object.values(Priority).map(priority => (
+              <div key={priority} className="flex items-center space-x-2 border rounded-md p-3 hover:bg-muted">
+                <RadioGroupItem value={priority} id={priority} />
+                <Label htmlFor={priority} className="cursor-pointer">
+                  {PriorityLabels[priority]}
+                </Label>
               </div>
             ))}
-          </div>
-        )}
-      </div>
+          </RadioGroup>
+        </div>
 
-      {/* Form Actions */}
-      <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        >
-          取消
-        </button>
-        <button
-          type="submit"
-          disabled={creating}
-          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-        >
-          {creating && (
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+        {/* Description Field */}
+        <UnifiedFormField
+          control={form.control}
+          name="description"
+          label="详细描述"
+          type="textarea"
+          placeholder="请详细描述设备问题"
+          description="可选项，提供更多问题详情有助于技术员快速解决"
+        />
+
+        {/* Photo Upload Field */}
+        <div className="space-y-2">
+          <Label className="text-bizlink-700 font-medium">故障照片（可选）</Label>
+          <Input
+            type="file"
+            accept="image/*"
+            multiple
+            {...form.register('photos')}
+            className="file:border-0 file:bg-transparent file:text-sm file:font-medium"
+          />
+          {form.watch('photos')?.length && form.watch('photos')!.length > 0 && (
+            <div className="space-y-2">
+              {Array.from(form.watch('photos') || []).map((file, index) => (
+                <div key={index} className="flex items-center justify-between bg-muted p-2 rounded">
+                  <span className="text-sm text-muted-foreground">{file.name}</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const files = Array.from(form.watch('photos') || []);
+                      files.splice(index, 1);
+                      const dataTransfer = new DataTransfer();
+                      files.forEach(file => dataTransfer.items.add(file));
+                      form.setValue('photos', dataTransfer.files);
+                    }}
+                  >
+                    ✕
+                  </Button>
+                </div>
+              ))}
+            </div>
           )}
-          {creating ? '提交中...' : '提交工单'}
-        </button>
-      </div>
-    </form>
+        </div>
+
+        {/* Cancel Button - Added to the form actions */}
+        <div className="flex justify-start">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+          >
+            取消
+          </Button>
+        </div>
+      </FormWrapper>
+    </div>
   );
 }

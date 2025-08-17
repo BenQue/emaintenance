@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import authRoutes from './routes/auth';
 import assetRoutes from './routes/assets';
 import userRoutes from './routes/users';
+// import importRoutes from './routes/import';
 import { generalRateLimit } from './middleware/rateLimiter';
 
 const app = express();
@@ -36,6 +37,12 @@ app.get('/health', (req: Request, res: Response) => {
     version: '1.0.0',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+    dockerUpdate: '🚀 本地开发模式启动！',
+    hotReload: true,
+    developmentMode: '⚡ 实时热重载开发',
+    feature: '代码修改立即生效！',
+    lastModified: new Date().toLocaleString('zh-CN')
   });
 });
 
@@ -43,6 +50,7 @@ app.get('/health', (req: Request, res: Response) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/assets', assetRoutes);
 app.use('/api/users', userRoutes);
+// app.use('/api/import', importRoutes);
 
 // 404 handler
 app.use('*', (req: Request, res: Response) => {

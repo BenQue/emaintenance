@@ -7,6 +7,7 @@ import { WorkOrder, WorkOrderStatus, Priority, WorkOrderStatusLabels, PriorityLa
 import { WorkOrderCard } from './WorkOrderCard';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 export function WorkOrderList() {
   const {
@@ -104,34 +105,42 @@ export function WorkOrderList() {
 
             {/* Status Filter */}
             <div>
-              <select
+              <Select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as WorkOrderStatus | 'ALL')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onValueChange={(value: string) => setStatusFilter(value as WorkOrderStatus | 'ALL')}
               >
-                <option value="ALL">所有状态</option>
-                {Object.entries(WorkOrderStatusLabels).map(([status, label]) => (
-                  <option key={status} value={status}>
-                    {label}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder="所有状态" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">所有状态</SelectItem>
+                  {Object.entries(WorkOrderStatusLabels).map(([status, label]) => (
+                    <SelectItem key={status} value={status}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Priority Filter */}
             <div>
-              <select
+              <Select
                 value={priorityFilter}
-                onChange={(e) => setPriorityFilter(e.target.value as Priority | 'ALL')}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onValueChange={(value: string) => setPriorityFilter(value as Priority | 'ALL')}
               >
-                <option value="ALL">所有优先级</option>
-                {Object.entries(PriorityLabels).map(([priority, label]) => (
-                  <option key={priority} value={priority}>
-                    {label}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder="所有优先级" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">所有优先级</SelectItem>
+                  {Object.entries(PriorityLabels).map(([priority, label]) => (
+                    <SelectItem key={priority} value={priority}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardContent>

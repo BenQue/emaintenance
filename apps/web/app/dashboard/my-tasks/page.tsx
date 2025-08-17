@@ -42,8 +42,7 @@ export default function MyTasksPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">我的任务</h1>
-        <p className="mt-2 text-gray-600">查看和管理分配给您的工单任务</p>
+        <p className="text-gray-600">查看和管理分配给您的工单任务</p>
       </div>
       <WorkOrderList />
     </div>

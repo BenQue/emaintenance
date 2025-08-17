@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAssignmentStore } from '../../lib/stores/assignment-store';
 import { assignmentService } from '../../lib/services/assignment-service';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Label } from '../ui/label';
 
 interface WorkOrder {
   id: string;
@@ -127,24 +129,27 @@ export default function WorkOrderAssignment({
         </div>
       )}
 
-      <div className="mb-6">
-        <label htmlFor="technician" className="block text-sm font-medium text-gray-700 mb-2">
+      <div className="mb-6 space-y-2">
+        <Label htmlFor="technician">
           选择技术员 <span className="text-red-500">*</span>
-        </label>
-        <select
-          id="technician"
-          value={selectedTechnicianId}
-          onChange={(e) => setSelectedTechnicianId(e.target.value)}
-          className="block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        </Label>
+        <Select
+          value={selectedTechnicianId || 'NONE'}
+          onValueChange={(value: string) => setSelectedTechnicianId(value === 'NONE' ? '' : value)}
           disabled={techniciansLoading || loading}
         >
-          <option value="">请选择技术员</option>
-          {Array.isArray(technicians) && technicians.map((technician) => (
-            <option key={technician.id} value={technician.id}>
-              {technician.firstName} {technician.lastName} ({technician.email})
-            </option>
-          ))}
-        </select>
+          <SelectTrigger>
+            <SelectValue placeholder="请选择技术员" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="NONE">请选择技术员</SelectItem>
+            {Array.isArray(technicians) && technicians.map((technician) => (
+              <SelectItem key={technician.id} value={technician.id}>
+                {technician.firstName} {technician.lastName} ({technician.email})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         
         {techniciansLoading && (
           <p className="mt-1 text-sm text-gray-500">加载技术员列表中...</p>

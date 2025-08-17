@@ -109,7 +109,10 @@ class WorkOrderService {
     queryParams.append('limit', limit.toString());
     
     const url = `/api/work-orders?${queryParams.toString()}`;
-    console.log('WorkOrderService - Final URL:', url);
+    // Debug URL construction in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('WorkOrderService - Final URL:', url);
+    }
     
     return this.request<PaginatedWorkOrders>(url);
   }
@@ -119,6 +122,11 @@ class WorkOrderService {
   }
 
   async createWorkOrder(workOrderData: CreateWorkOrderData): Promise<WorkOrder> {
+    // Debug work order creation in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[DEBUG] WorkOrderService.createWorkOrder: Starting with data:', workOrderData);
+      console.log('[DEBUG] WorkOrderService.createWorkOrder: Auth token exists:', !!localStorage.getItem('auth_token'));
+    }
     const token = localStorage.getItem('auth_token');
     
     const { photos, ...formData } = workOrderData;
@@ -174,16 +182,21 @@ class WorkOrderService {
   }
 
   async getWorkOrderWithHistory(id: string): Promise<WorkOrderWithStatusHistory> {
-    console.log(`[DEBUG] WorkOrderService.getWorkOrderWithHistory: Requesting work order history for ID: ${id}`);
+    // Debug work order history retrieval in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[DEBUG] WorkOrderService.getWorkOrderWithHistory: Requesting work order history for ID: ${id}`);
+    }
     const result = await this.request<{workOrder: WorkOrderWithStatusHistory}>(`/api/work-orders/${id}/history`);
     const workOrder = result.workOrder;
-    console.log(`[DEBUG] WorkOrderService.getWorkOrderWithHistory: Received response:`, {
-      id: workOrder?.id,
-      title: workOrder?.title,
-      assetId: workOrder?.asset?.id,
-      assetName: workOrder?.asset?.name,
-      statusHistoryCount: workOrder?.statusHistory?.length || 0,
-    });
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[DEBUG] WorkOrderService.getWorkOrderWithHistory: Received response:`, {
+        id: workOrder?.id,
+        title: workOrder?.title,
+        assetId: workOrder?.asset?.id,
+        assetName: workOrder?.asset?.name,
+        statusHistoryCount: workOrder?.statusHistory?.length || 0,
+      });
+    }
     return workOrder;
   }
 
@@ -214,35 +227,6 @@ class WorkOrderService {
     );
   }
 
-  async getAllWorkOrders(
-    filters: {
-      status?: string;
-      priority?: string;
-      assetId?: string;
-      createdById?: string;
-      assignedToId?: string;
-      category?: string;
-      startDate?: string;
-      endDate?: string;
-      search?: string;
-      sortBy?: string;
-      sortOrder?: string;
-    } = {},
-    page: number = 1,
-    limit: number = 20
-  ): Promise<PaginatedWorkOrders> {
-    const queryParams = new URLSearchParams({
-      page: page.toString(),
-      limit: limit.toString(),
-      ...Object.fromEntries(
-        Object.entries(filters).filter(([_, value]) => value !== undefined && value !== '')
-      ),
-    });
-
-    return this.request<PaginatedWorkOrders>(
-      `/api/work-orders?${queryParams}`
-    );
-  }
 
   async getWorkOrderStatistics(
     filters: {
@@ -430,7 +414,9 @@ class WorkOrderService {
   } = {}): Promise<void> {
     const queryParams = new URLSearchParams(
       Object.fromEntries(
-        Object.entries(filters).filter(([_, value]) => value !== undefined && value !== '')
+        Object.entries(filters).filter(([_, value]) => 
+          value !== undefined && value !== '' && value !== 'ALL'
+        )
       )
     );
 

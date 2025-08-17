@@ -1,6 +1,16 @@
 'use client';
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import * as React from 'react'
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid 
+} from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
+import { ChartWrapper } from '../data-display/charts/ChartWrapper';
+import { BIZLINK_CHART_CONFIG } from '../data-display/types';
 import { BarChartProps } from './types';
 
 export function CustomBarChart({ 
@@ -9,75 +19,97 @@ export function CustomBarChart({
   width = '100%', 
   height = 300,
   orientation = 'vertical',
-  barColor = '#8884d8',
+  barColor,
   loading = false,
   error 
 }: BarChartProps) {
-  if (loading) {
+  // Handle empty data
+  if (!loading && !error && (!data || data.length === 0)) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">加载中...</div>
-      </div>
+      <ChartWrapper title={title}>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-muted-foreground">暂无数据</div>
+        </div>
+      </ChartWrapper>
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-red-500">错误: {error}</div>
-      </div>
-    );
-  }
-
-  if (!data || data.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">暂无数据</div>
-      </div>
-    );
-  }
+  // Enhanced chart config with BizLink branding
+  const chartConfig = {
+    ...BIZLINK_CHART_CONFIG,
+    value: {
+      label: '数值',
+      color: barColor || 'hsl(var(--chart-1))',
+    },
+  };
 
   return (
-    <div className="w-full">
-      {title && (
-        <h3 className="text-lg font-semibold mb-4 text-center">{title}</h3>
-      )}
-      <ResponsiveContainer width={width} height={height}>
+    <ChartWrapper 
+      title={title}
+      isLoading={loading}
+      error={error}
+    >
+      <ChartContainer 
+        config={chartConfig} 
+        className="w-full"
+        style={{ minHeight: `${height}px` }}
+      >
         <BarChart 
           data={data}
           layout={orientation === 'horizontal' ? 'horizontal' : 'vertical'}
+          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
           {orientation === 'vertical' ? (
             <>
-              <XAxis 
-                dataKey="name"
-                tick={{ fontSize: 12 }}
-              />
-              <YAxis 
-                tick={{ fontSize: 12 }}
-              />
+              {React.createElement(XAxis as any, { 
+                dataKey: "name",
+                tickLine: false,
+                axisLine: false,
+                tick: { fontSize: 12, fill: 'var(--muted-foreground)' }
+              })}
+              {React.createElement(YAxis as any, { 
+                tickLine: false,
+                axisLine: false,
+                tick: { fontSize: 12, fill: 'var(--muted-foreground)' }
+              })}
             </>
           ) : (
             <>
-              <XAxis 
-                type="number"
-                tick={{ fontSize: 12 }}
-              />
-              <YAxis 
-                type="category"
-                dataKey="name"
-                tick={{ fontSize: 12 }}
-              />
+              {React.createElement(XAxis as any, { 
+                type: "number",
+                tickLine: false,
+                axisLine: false,
+                tick: { fontSize: 12, fill: 'var(--muted-foreground)' }
+              })}
+              {React.createElement(YAxis as any, { 
+                type: "category",
+                dataKey: "name",
+                tickLine: false,
+                axisLine: false,
+                tick: { fontSize: 12, fill: 'var(--muted-foreground)' }
+              })}
             </>
           )}
-          <Tooltip />
-          <Bar 
-            dataKey="value" 
-            fill={barColor}
+          <ChartTooltip 
+            content={
+              <ChartTooltipContent 
+                hideLabel={false}
+                indicator="dot"
+                formatter={(value, name) => [
+                  typeof value === 'number' ? value.toLocaleString() : value,
+                  name
+                ]}
+              />
+            }
           />
+          {React.createElement(Bar as any, { 
+            dataKey: "value",
+            fill: "var(--color-value)",
+            radius: 4
+          })}
         </BarChart>
-      </ResponsiveContainer>
-    </div>
+      </ChartContainer>
+    </ChartWrapper>
   );
 }

@@ -280,9 +280,11 @@ export const useWorkOrderStore = create<WorkOrderState>()(
       },
 
       createWorkOrder: async (workOrderData: CreateWorkOrderData): Promise<WorkOrder> => {
+        console.log('[DEBUG] WorkOrderStore.createWorkOrder: Starting creation with data:', workOrderData);
         set({ creating: true, createError: null });
         try {
           const createdWorkOrder = await workOrderService.createWorkOrder(workOrderData);
+          console.log('[DEBUG] WorkOrderStore.createWorkOrder: Successfully created work order:', createdWorkOrder.id);
           
           // Optionally refresh the work order list to include the new work order
           // This depends on whether the user should see their own created work orders
@@ -290,6 +292,7 @@ export const useWorkOrderStore = create<WorkOrderState>()(
           set({ creating: false });
           return createdWorkOrder;
         } catch (error) {
+          console.error('[DEBUG] WorkOrderStore.createWorkOrder: Error occurred:', error);
           const errorMessage = error instanceof Error ? error.message : 'Failed to create work order';
           set({
             createError: errorMessage,

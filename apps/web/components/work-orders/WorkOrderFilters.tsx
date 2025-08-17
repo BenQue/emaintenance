@@ -4,10 +4,13 @@ import { useEffect, useState } from 'react';
 import { Search, Filter, X, Download, RotateCcw } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
+import { Label } from '../ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { DatePicker } from '../ui/date-picker';
 import {
   useWorkOrderFilterStore,
-  WorkOrderFilters,
-  FilterOptions,
+  type WorkOrderFilters,
+  type FilterOptions,
 } from '../../lib/stores/work-order-filter-store';
 import { workOrderService } from '../../lib/services/work-order-service';
 
@@ -217,177 +220,187 @@ export function WorkOrderFilters({ onFiltersChange, onExport }: WorkOrderFilters
           {/* Filter Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Status Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                状态
-              </label>
-              <select
-                value={filters.status || ''}
-                onChange={(e) => setFilter('status', e.target.value || undefined)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            <div className="space-y-2">
+              <Label>状态</Label>
+              <Select
+                value={filters.status || 'ALL'}
+                onValueChange={(value: string) => setFilter('status', value === 'ALL' ? undefined : value)}
               >
-                <option value="">所有状态</option>
-                <option value="ACTIVE">进行中工单（未完成）</option>
-                {filterOptions?.statuses.map((status) => (
-                  <option key={status} value={status}>
-                    {getStatusLabel(status)}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder="所有状态" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">所有状态</SelectItem>
+                  <SelectItem value="ACTIVE">进行中工单（未完成）</SelectItem>
+                  {filterOptions?.statuses.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {getStatusLabel(status)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Priority Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                优先级
-              </label>
-              <select
-                value={filters.priority || ''}
-                onChange={(e) => setFilter('priority', e.target.value || undefined)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            <div className="space-y-2">
+              <Label>优先级</Label>
+              <Select
+                value={filters.priority || 'ALL'}
+                onValueChange={(value: string) => setFilter('priority', value === 'ALL' ? undefined : value)}
               >
-                <option value="">所有优先级</option>
-                {filterOptions?.priorities.map((priority) => (
-                  <option key={priority} value={priority}>
-                    {getPriorityLabel(priority)}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder="所有优先级" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">所有优先级</SelectItem>
+                  {filterOptions?.priorities.map((priority) => (
+                    <SelectItem key={priority} value={priority}>
+                      {getPriorityLabel(priority)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Category Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                类别
-              </label>
-              <select
-                value={filters.category || ''}
-                onChange={(e) => setFilter('category', e.target.value || undefined)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            <div className="space-y-2">
+              <Label>类别</Label>
+              <Select
+                value={filters.category || 'ALL'}
+                onValueChange={(value: string) => setFilter('category', value === 'ALL' ? undefined : value)}
               >
-                <option value="">所有类别</option>
-                {filterOptions?.categories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder="所有类别" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">所有类别</SelectItem>
+                  {filterOptions?.categories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Asset Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                设备
-              </label>
-              <select
-                value={filters.assetId || ''}
-                onChange={(e) => setFilter('assetId', e.target.value || undefined)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            <div className="space-y-2">
+              <Label>设备</Label>
+              <Select
+                value={filters.assetId || 'ALL'}
+                onValueChange={(value: string) => setFilter('assetId', value === 'ALL' ? undefined : value)}
               >
-                <option value="">所有设备</option>
-                {filterOptions?.assets.map((asset) => (
-                  <option key={asset.id} value={asset.id}>
-                    {asset.assetCode} - {asset.name}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder="所有设备" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">所有设备</SelectItem>
+                  {filterOptions?.assets.map((asset) => (
+                    <SelectItem key={asset.id} value={asset.id}>
+                      {asset.assetCode} - {asset.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Assigned To Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                负责人
-              </label>
-              <select
-                value={filters.assignedToId || ''}
-                onChange={(e) => setFilter('assignedToId', e.target.value || undefined)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            <div className="space-y-2">
+              <Label>负责人</Label>
+              <Select
+                value={filters.assignedToId || 'ALL'}
+                onValueChange={(value: string) => setFilter('assignedToId', value === 'ALL' ? undefined : value)}
               >
-                <option value="">所有负责人</option>
-                {filterOptions?.users.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.name} ({user.role})
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder="所有负责人" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">所有负责人</SelectItem>
+                  {filterOptions?.users.map((user) => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.name} ({user.role})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Created By Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                创建人
-              </label>
-              <select
-                value={filters.createdById || ''}
-                onChange={(e) => setFilter('createdById', e.target.value || undefined)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            <div className="space-y-2">
+              <Label>创建人</Label>
+              <Select
+                value={filters.createdById || 'ALL'}
+                onValueChange={(value: string) => setFilter('createdById', value === 'ALL' ? undefined : value)}
               >
-                <option value="">所有创建人</option>
-                {filterOptions?.users.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.name} ({user.role})
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder="所有创建人" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">所有创建人</SelectItem>
+                  {filterOptions?.users.map((user) => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.name} ({user.role})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Date Range Filters */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                开始日期
-              </label>
-              <input
-                type="date"
-                value={filters.startDate || ''}
-                onChange={(e) => setFilter('startDate', e.target.value || undefined)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            <div className="space-y-2">
+              <Label>开始日期</Label>
+              <DatePicker
+                value={filters.startDate ? new Date(filters.startDate) : undefined}
+                onChange={(date) => setFilter('startDate', date ? date.toISOString().split('T')[0] : undefined)}
+                placeholder="选择开始日期"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                结束日期
-              </label>
-              <input
-                type="date"
-                value={filters.endDate || ''}
-                onChange={(e) => setFilter('endDate', e.target.value || undefined)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            <div className="space-y-2">
+              <Label>结束日期</Label>
+              <DatePicker
+                value={filters.endDate ? new Date(filters.endDate) : undefined}
+                onChange={(date) => setFilter('endDate', date ? date.toISOString().split('T')[0] : undefined)}
+                placeholder="选择结束日期"
               />
             </div>
           </div>
 
           {/* Sort Options */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                排序字段
-              </label>
-              <select
+            <div className="space-y-2">
+              <Label>排序字段</Label>
+              <Select
                 value={filters.sortBy || 'reportedAt'}
-                onChange={(e) => setFilter('sortBy', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onValueChange={(value: string) => setFilter('sortBy', value)}
               >
-                <option value="reportedAt">报告时间</option>
-                <option value="completedAt">完成时间</option>
-                <option value="title">标题</option>
-                <option value="priority">优先级</option>
-                <option value="status">状态</option>
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder="选择排序字段" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="reportedAt">报告时间</SelectItem>
+                  <SelectItem value="completedAt">完成时间</SelectItem>
+                  <SelectItem value="title">标题</SelectItem>
+                  <SelectItem value="priority">优先级</SelectItem>
+                  <SelectItem value="status">状态</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                排序方向
-              </label>
-              <select
+            <div className="space-y-2">
+              <Label>排序方向</Label>
+              <Select
                 value={filters.sortOrder || 'desc'}
-                onChange={(e) => setFilter('sortOrder', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                onValueChange={(value: string) => setFilter('sortOrder', value)}
               >
-                <option value="desc">降序</option>
-                <option value="asc">升序</option>
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder="选择排序方向" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="desc">降序</SelectItem>
+                  <SelectItem value="asc">升序</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

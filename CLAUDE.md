@@ -236,6 +236,26 @@ NEXT_PUBLIC_API_URL="http://localhost:3001"
 - **Console Logging in Production**: Replace all `console.log/console.error` statements with structured logging
 - **Client-Side JWT Decoding**: JWT payload extraction should be moved to server-side for security
 
+### Recurring TypeScript Build Issues and Solutions
+
+**Issue**: TypeScript strict mode errors in Select component `onValueChange` handlers
+- **Error Pattern**: `Parameter 'value' implicitly has an 'any' type`
+- **Common Locations**: 
+  - Asset management forms (`AssetForm.tsx`)
+  - Work order forms (`WorkOrderCreateForm.tsx`, `WorkOrderFilters.tsx`)
+  - User management filters (`UserFilters.tsx`)
+  - Assignment forms (`AssignmentRuleForm.tsx`)
+  - KPI dashboard filters (`KPIDashboard.tsx`)
+- **Solution**: Add explicit type annotation `(value: string)` to all `onValueChange` handlers
+- **Quick Fix Command**: 
+  ```bash
+  # Fix all Select component type errors at once
+  find apps/web/components -name "*.tsx" -exec sed -i '' 's/onValueChange={(value) =>/onValueChange={(value: string) =>/g' {} \;
+  ```
+- **Prevention**: Always include type annotations when using shadcn/ui Select components
+
+**Docker Build Context**: These errors typically surface during Docker builds with `NODE_ENV=production` and strict TypeScript checking enabled. They may not appear in development mode but will block production deployments.
+
 ### Development Best Practices
 - Use structured logging (Winston/Pino) instead of console statements
 - Implement proper error handling and monitoring
@@ -248,6 +268,52 @@ NEXT_PUBLIC_API_URL="http://localhost:3001"
 - **Development Mode**: Use `npm run dev` to start all services with hot reload
 - **Production Builds**: Run `npm run build` to create optimized production bundles
 - **Mobile Development**: Flutter app requires `flutter run` for iOS/Android development
+
+### Docker Hybrid Deployment Mode (Recommended for Testing)
+
+**Hybrid deployment** combines Docker containers for infrastructure services with local development for API services, providing the best of both worlds for testing and development.
+
+#### Architecture:
+- **Docker Services**: Web application, PostgreSQL database, Redis cache
+- **Local Services**: All API microservices (user-service, work-order-service, asset-service)
+
+#### Setup Commands:
+```bash
+# 1. Start Docker infrastructure services
+docker-compose -f docker-compose.hybrid.yml up -d
+
+# 2. Start local API services (in separate terminals or background)
+cd apps/api/user-service && npm run dev      # Port 3001
+cd apps/api/work-order-service && npm run dev # Port 3002  
+cd apps/api/asset-service && npm run dev      # Port 3003
+
+# 3. Verify all services are running
+docker-compose -f docker-compose.hybrid.yml ps
+curl http://localhost:3001/health  # User service
+curl http://localhost:3002/health  # Work order service
+curl http://localhost:3003/health  # Asset service
+```
+
+#### Benefits:
+- **Fast API Development**: Local API services allow for rapid iteration and debugging
+- **Consistent Infrastructure**: Docker ensures consistent database and cache environments
+- **Easy Database Management**: PostgreSQL runs in container with persistent volumes
+- **Production-like Environment**: Web application runs in containerized environment
+- **Quick Troubleshooting**: Local API services can be easily restarted or debugged
+
+#### Configuration Files:
+- `docker-compose.hybrid.yml`: Infrastructure services only
+- `docker-compose.yml`: Full containerized deployment (not recommended for development)
+
+#### Common Issues and Solutions:
+- **Database Connection**: APIs connect to `localhost:5433` (Docker PostgreSQL)
+- **Network Access**: Web container can access local APIs via `host.docker.internal` or `localhost`
+- **Port Conflicts**: Ensure ports 3000, 3001, 3002, 3003, 5433, 6379 are available
+- **Service Dependencies**: Start Docker services first, then local APIs
+
+#### When to Use Full Docker vs Hybrid:
+- **Hybrid Mode**: Development, testing, debugging API services
+- **Full Docker**: Production deployment, CI/CD pipelines, environment isolation
 
 ## Security Considerations
 - JWT tokens should include refresh token mechanism
