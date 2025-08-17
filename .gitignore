@@ -36,6 +36,9 @@ yarn-error.log*
 .env*.local
 .env
 
+# Claude MCP configuration with secrets
+.claude/.mcp.local.json
+
 # Flutter
 **/doc/api/
 **/ios/Flutter/.last_build_id
