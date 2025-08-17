@@ -640,7 +640,10 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         : const Icon(Icons.update),
-                    label: Text(_isUpdatingStatus ? '更新中...' : '更新状态'),
+                    label: Text(
+                      _isUpdatingStatus ? '更新中...' : '更新状态',
+                      style: const TextStyle(fontSize: 14),
+                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.grey,
                       foregroundColor: Colors.white,
@@ -648,16 +651,18 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
             ],
             Expanded(
-              flex: availableTransitions.isNotEmpty ? 2 : 1,
               child: SizedBox(
                 height: 50,
                 child: ElevatedButton.icon(
                   onPressed: _navigateToCompletion,
                   icon: const Icon(Icons.check_circle),
-                  label: const Text('完成工单'),
+                  label: const Text(
+                    '完成工单',
+                    style: TextStyle(fontSize: 14),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
                     foregroundColor: Colors.white,
@@ -686,7 +691,10 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.update),
-            label: Text(_isUpdatingStatus ? '更新中...' : '更新状态'),
+            label: Text(
+              _isUpdatingStatus ? '更新中...' : '更新状态',
+              style: const TextStyle(fontSize: 14),
+            ),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blue,
               foregroundColor: Colors.white,

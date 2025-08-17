@@ -78,7 +78,24 @@ class _HomeScreenState extends State<HomeScreen> {
 
   PreferredSizeWidget _buildAppBar(AuthProvider authProvider) {
     return AppBar(
-      title: const Text('设备维修管理'),
+      title: Row(
+        children: [
+          Image.asset(
+            'assets/images/Bizlink_Logo_RGB.png',
+            height: 32,
+            fit: BoxFit.contain,
+            errorBuilder: (context, error, stackTrace) {
+              return const Icon(
+                Icons.business,
+                size: 24,
+                color: Colors.white,
+              );
+            },
+          ),
+          const SizedBox(width: 12),
+          const Text('设备维修管理'),
+        ],
+      ),
       backgroundColor: Colors.blue,
       foregroundColor: Colors.white,
       actions: [
@@ -137,27 +154,44 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildHomeContent() {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
+          // Company Logo
+          Container(
+            margin: const EdgeInsets.only(bottom: 30),
+            child: Image.asset(
+              'assets/images/Bizlink_Logo_RGB.png',
+              height: 80,
+              fit: BoxFit.contain,
+              errorBuilder: (context, error, stackTrace) {
+                // Fallback if logo fails to load
+                return const Icon(
+                  Icons.business,
+                  size: 80,
+                  color: Colors.blue,
+                );
+              },
+            ),
+          ),
+          const Icon(
             Icons.build,
             size: 100,
             color: Colors.blue,
           ),
-          SizedBox(height: 20),
-          Text(
+          const SizedBox(height: 20),
+          const Text(
             '企业设备维修管理系统',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
-          SizedBox(height: 10),
-          Text(
+          const SizedBox(height: 10),
+          const Text(
             'E-Maintenance Mobile App',
             style: TextStyle(fontSize: 16, color: Colors.grey),
           ),
-          SizedBox(height: 40),
-          Text(
+          const SizedBox(height: 40),
+          const Text(
             '使用扫码报修功能快速创建工单',
             style: TextStyle(fontSize: 16, color: Colors.green),
           ),
