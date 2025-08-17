@@ -22,7 +22,7 @@ export const authRateLimit = rateLimit({
  */
 export const generalRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'development' ? 1000 : 100, // Higher limit for development
+  max: process.env.NODE_ENV === 'development' ? 10000 : 100, // Much higher limit for development
   message: {
     success: false,
     error: 'Rate limit exceeded, please try again later',
@@ -30,4 +30,6 @@ export const generalRateLimit = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  // Skip rate limiting for successful requests in development
+  skipSuccessfulRequests: process.env.NODE_ENV === 'development',
 });

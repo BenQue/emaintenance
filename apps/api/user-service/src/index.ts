@@ -12,7 +12,10 @@ const PORT = Number(process.env.PORT) || 3001;
 
 // Middleware
 app.use(helmet());
-app.use(generalRateLimit);
+// Apply rate limiting only in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(generalRateLimit);
+}
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
   credentials: true,
