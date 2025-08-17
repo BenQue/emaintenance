@@ -213,64 +213,112 @@ class _WorkOrderFormScreenState extends State<WorkOrderFormScreen> {
       }
       print('WorkOrderForm: 设备信息: ${widget.asset!.name}');
 
-      final workOrder = WorkOrderRequest(
-        title: _titleController.text.trim(),
-        description: _descriptionController.text.trim(),
-        category: _selectedCategory!,
-        reason: _selectedReason!,
-        location: _locationController.text.trim().isNotEmpty 
-            ? _locationController.text.trim() 
-            : widget.asset!.location,
-        priority: _selectedPriority,
-        assetId: widget.asset!.id,
-        attachments: _capturedImagePath != null ? [_capturedImagePath!] : [],
-      );
-      
-      print('WorkOrderForm: 工单数据: ${workOrder.title}, ${workOrder.category}, ${workOrder.reason}');
-
-      // Submit work order to backend
+      // Get WorkOrderService instance
       print('WorkOrderForm: 获取WorkOrderService实例...');
       final workOrderService = await WorkOrderService.getInstance();
       
-      print('WorkOrderForm: 调用创建工单API...');
-      final createdWorkOrder = await workOrderService.createWorkOrder(workOrder);
-      
-      print('WorkOrderForm: 工单创建成功: ${createdWorkOrder.id}');
-      
-      // Mark as submitted to prevent multiple submissions
-      setState(() {
-        _hasSubmitted = true;
-      });
-
-      // Upload photo if captured
+      // Step 1: Upload photo first if captured, get server URL
+      List<String> serverPhotoUrls = [];
       if (_capturedImagePath != null) {
-        print('WorkOrderForm: 上传工单故障照片...');
+        print('WorkOrderForm: 先上传故障照片获取服务器URL...');
         try {
+          // Create a temporary work order to get an ID for photo upload
+          // We'll use a placeholder approach by creating the work order first without attachments
+          final tempWorkOrder = WorkOrderRequest(
+            title: _titleController.text.trim(),
+            description: _descriptionController.text.trim(),
+            category: _selectedCategory!,
+            reason: _selectedReason!,
+            location: _locationController.text.trim().isNotEmpty 
+                ? _locationController.text.trim() 
+                : widget.asset!.location,
+            priority: _selectedPriority,
+            assetId: widget.asset!.id,
+            attachments: [], // Empty attachments initially
+          );
+          
+          print('WorkOrderForm: 创建临时工单...');
+          final createdWorkOrder = await workOrderService.createWorkOrder(tempWorkOrder);
+          print('WorkOrderForm: 工单创建成功: ${createdWorkOrder.id}');
+          
+          // Mark as submitted to prevent multiple submissions
+          setState(() {
+            _hasSubmitted = true;
+          });
+          
+          // Now upload the photo and get the server URL
+          print('WorkOrderForm: 上传故障照片到服务器...');
           await workOrderService.uploadWorkOrderPhotos(
             createdWorkOrder.id,
             [_capturedImagePath!],
           );
           print('WorkOrderForm: 故障照片上传成功');
+          
+          // Note: The uploadWorkOrderPhotos method doesn't return URLs,
+          // but the photos are now stored on the server in the work order photos system
+          // The web app will use the separate work order photos API to display them
+          
         } catch (e) {
-          print('WorkOrderForm: 故障照片上传失败: $e');
-          // Continue even if photo upload fails
+          print('WorkOrderForm: 照片上传失败: $e');
+          // Create work order without photos if upload fails
+          final workOrder = WorkOrderRequest(
+            title: _titleController.text.trim(),
+            description: _descriptionController.text.trim(),
+            category: _selectedCategory!,
+            reason: _selectedReason!,
+            location: _locationController.text.trim().isNotEmpty 
+                ? _locationController.text.trim() 
+                : widget.asset!.location,
+            priority: _selectedPriority,
+            assetId: widget.asset!.id,
+            attachments: [], // No attachments due to upload failure
+          );
+          
+          print('WorkOrderForm: 创建工单（无照片）...');
+          await workOrderService.createWorkOrder(workOrder);
+          
+          setState(() {
+            _hasSubmitted = true;
+          });
+          
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('照片上传失败: $e'),
+                content: Text('照片上传失败，工单已创建但不包含照片: $e'),
                 backgroundColor: Colors.orange,
               ),
             );
           }
         }
+      } else {
+        // No photo captured, create work order normally
+        final workOrder = WorkOrderRequest(
+          title: _titleController.text.trim(),
+          description: _descriptionController.text.trim(),
+          category: _selectedCategory!,
+          reason: _selectedReason!,
+          location: _locationController.text.trim().isNotEmpty 
+              ? _locationController.text.trim() 
+              : widget.asset!.location,
+          priority: _selectedPriority,
+          assetId: widget.asset!.id,
+          attachments: [],
+        );
+        
+        print('WorkOrderForm: 创建工单（无照片）...');
+        await workOrderService.createWorkOrder(workOrder);
+        
+        setState(() {
+          _hasSubmitted = true;
+        });
       }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('工单提交成功 - 工单号: ${createdWorkOrder.id}'),
+          const SnackBar(
+            content: Text('工单提交成功'),
             backgroundColor: Colors.green,
-            duration: const Duration(seconds: 2),
+            duration: Duration(seconds: 2),
           ),
         );
         

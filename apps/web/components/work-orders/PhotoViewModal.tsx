@@ -18,26 +18,44 @@ const ModalAuthenticatedImage: React.FC<{
   useEffect(() => {
     const loadImage = async () => {
       try {
-        const token = localStorage.getItem('auth_token');
+        // Check if this is a static file URL (uploads)
+        const isStaticFile = src.includes('/uploads/');
         
-        if (!token) {
-          throw new Error('No authentication token found');
+        if (isStaticFile) {
+          // For static files, try without authentication first
+          const response = await fetch(src);
+          
+          if (!response.ok) {
+            throw new Error(`Failed to load image: ${response.status} ${response.statusText}`);
+          }
+
+          const blob = await response.blob();
+          const imageUrl = URL.createObjectURL(blob);
+          setImageSrc(imageUrl);
+          setLoading(false);
+        } else {
+          // For API endpoints, use authentication
+          const token = localStorage.getItem('auth_token');
+          
+          if (!token) {
+            throw new Error('No authentication token found');
+          }
+
+          const response = await fetch(src, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error(`Failed to load image: ${response.status} ${response.statusText}`);
+          }
+
+          const blob = await response.blob();
+          const imageUrl = URL.createObjectURL(blob);
+          setImageSrc(imageUrl);
+          setLoading(false);
         }
-
-        const response = await fetch(src, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to load image: ${response.status} ${response.statusText}`);
-        }
-
-        const blob = await response.blob();
-        const imageUrl = URL.createObjectURL(blob);
-        setImageSrc(imageUrl);
-        setLoading(false);
       } catch (err) {
         console.error('Failed to load modal image:', err);
         setError(true);

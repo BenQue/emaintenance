@@ -112,12 +112,10 @@ export function WorkOrderPhotos({ workOrderId, attachments = [] }: WorkOrderPhot
   const { fetchWorkOrderPhotos } = useWorkOrderStore();
 
   useEffect(() => {
-    // Only load managed photos if there are no attachments (or if we want both)
-    // For now, prioritize showing attachments (report photos) over managed photos
-    if (attachments.length === 0) {
-      loadManagedPhotos();
-    }
-  }, [workOrderId, attachments]);
+    // Always load managed photos (from WorkOrderPhoto system)
+    // These are photos uploaded via the proper photo upload API
+    loadManagedPhotos();
+  }, [workOrderId]);
 
   const loadManagedPhotos = async () => {
     try {
@@ -165,9 +163,24 @@ export function WorkOrderPhotos({ workOrderId, attachments = [] }: WorkOrderPhot
   };
 
   // Helper functions for attachment photos (report photos)
-  const getAttachmentPhotoUrl = (attachmentUrl: string) => {
-    // Attachments are stored as full URLs, just return them
-    return attachmentUrl;
+  const getAttachmentPhotoUrl = (attachmentUrl: string): string | null => {
+    // Check if it's already a full URL (starts with http)
+    if (attachmentUrl.startsWith('http')) {
+      return attachmentUrl;
+    }
+    
+    // Filter out invalid local device paths (mobile app bug)
+    if (attachmentUrl.includes('/var/mobile/') || 
+        attachmentUrl.includes('/Users/') || 
+        attachmentUrl.includes('C:\\') ||
+        attachmentUrl.includes('/storage/emulated/')) {
+      console.warn('Invalid local file path detected in attachments:', attachmentUrl);
+      return null; // Return null for invalid paths
+    }
+    
+    // If it's a relative path, prepend the work order service base URL
+    const baseUrl = process.env.NEXT_PUBLIC_WORK_ORDER_SERVICE_URL || 'http://localhost:3002';
+    return `${baseUrl}${attachmentUrl.startsWith('/') ? '' : '/'}${attachmentUrl}`;
   };
 
   const downloadManagedPhoto = async (photo: WorkOrderPhoto) => {
@@ -203,12 +216,14 @@ export function WorkOrderPhotos({ workOrderId, attachments = [] }: WorkOrderPhot
 
   const downloadAttachmentPhoto = async (attachmentUrl: string, filename?: string) => {
     try {
-      const token = localStorage.getItem('auth_token');
-      const response = await fetch(attachmentUrl, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      // For static file downloads, no authentication is needed
+      const fullUrl = getAttachmentPhotoUrl(attachmentUrl);
+      if (!fullUrl) {
+        console.error('Cannot download invalid attachment URL:', attachmentUrl);
+        return;
+      }
+      
+      const response = await fetch(fullUrl);
 
       if (!response.ok) {
         throw new Error('Download failed');
@@ -231,17 +246,6 @@ export function WorkOrderPhotos({ workOrderId, attachments = [] }: WorkOrderPhot
     }
   };
 
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  const formatDate = (dateString: string): string => {
-    return new Date(dateString).toLocaleString('zh-CN');
-  };
 
   if (loading) {
     return (
@@ -282,9 +286,15 @@ export function WorkOrderPhotos({ workOrderId, attachments = [] }: WorkOrderPhot
     );
   }
 
-  // Determine which photos to display - prioritize attachments (report photos)
-  const displayPhotos = attachments.length > 0 ? attachments : [];
-  const hasPhotos = displayPhotos.length > 0;
+  // Categorize attachment URLs
+  const validAttachments = attachments.filter(url => {
+    const processedUrl = getAttachmentPhotoUrl(url);
+    return processedUrl !== null;
+  });
+  
+  // Combine both managed photos and valid attachments for display
+  const hasPhotos = managedPhotos.length > 0 || validAttachments.length > 0;
+  const totalPhotoCount = managedPhotos.length + validAttachments.length;
 
   if (!hasPhotos) {
     return (
@@ -292,7 +302,7 @@ export function WorkOrderPhotos({ workOrderId, attachments = [] }: WorkOrderPhot
         <CardHeader>
           <CardTitle className="text-lg flex items-center">
             <Camera className="w-5 h-5 mr-2" />
-报修照片
+            报修照片
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -311,12 +321,59 @@ export function WorkOrderPhotos({ workOrderId, attachments = [] }: WorkOrderPhot
         <CardHeader>
           <CardTitle className="text-lg flex items-center">
             <Camera className="w-5 h-5 mr-2" />
-报修照片 ({displayPhotos.length})
+            报修照片 ({totalPhotoCount})
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {displayPhotos.map((attachmentUrl, index) => {
+            {/* Render managed photos first (properly uploaded via API) */}
+            {managedPhotos.map((photo, index) => (
+              <div
+                key={`managed-${photo.id}`}
+                className="relative group bg-gray-100 rounded-lg overflow-hidden aspect-square cursor-pointer"
+                onClick={() => setSelectedPhotoIndex(index)}
+              >
+                {/* Use AuthenticatedImage for managed photos */}
+                <AuthenticatedImage
+                  src={getManagedThumbnailUrl(photo)}
+                  alt={photo.originalName}
+                  className="w-full h-full object-cover"
+                />
+
+                {/* Hover overlay with download button */}
+                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center pointer-events-none">
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        downloadManagedPhoto(photo);
+                      }}
+                      className="h-8 w-8 p-0 pointer-events-auto"
+                      title="下载图片"
+                    >
+                      <Download className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Photo info */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-1 pointer-events-none">
+                  <p className="text-white text-xs truncate">{photo.originalName}</p>
+                </div>
+              </div>
+            ))}
+            
+            {/* Then render valid attachment photos (static files) */}
+            {validAttachments.map((attachmentUrl, index) => {
+              const photoUrl = getAttachmentPhotoUrl(attachmentUrl);
+              
+              // Skip invalid URLs (they should already be filtered out, but double-check)
+              if (!photoUrl) {
+                return null;
+              }
+              
               // Extract filename from URL for display
               const filename = attachmentUrl.split('/').pop() || `attachment-${index + 1}`;
               const displayName = filename.replace(/^\d+-\d+-/, ''); // Remove timestamp prefix
@@ -325,14 +382,28 @@ export function WorkOrderPhotos({ workOrderId, attachments = [] }: WorkOrderPhot
                 <div
                   key={`attachment-${index}`}
                   className="relative group bg-gray-100 rounded-lg overflow-hidden aspect-square cursor-pointer"
-                  onClick={() => setSelectedPhotoIndex(index)}
+                  onClick={() => setSelectedPhotoIndex(managedPhotos.length + index)}
                 >
-                  {/* Actual Image */}
-                  <AuthenticatedImage
-                    src={getAttachmentPhotoUrl(attachmentUrl)}
+                  {/* Use regular img for static files */}
+                  <img
+                    src={photoUrl}
                     alt={displayName}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      console.error('Failed to load attachment image:', attachmentUrl);
+                      // Show placeholder on error
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const placeholder = target.parentElement?.querySelector('.image-placeholder');
+                      if (placeholder) {
+                        (placeholder as HTMLElement).style.display = 'flex';
+                      }
+                    }}
                   />
+                  {/* Error placeholder */}
+                  <div className="image-placeholder w-full h-full bg-gray-200 flex items-center justify-center" style={{ display: 'none' }}>
+                    <Camera className="w-8 h-8 text-gray-400" />
+                  </div>
 
                   {/* Hover overlay with download button */}
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-center justify-center pointer-events-none">
@@ -352,7 +423,7 @@ export function WorkOrderPhotos({ workOrderId, attachments = [] }: WorkOrderPhot
                     </div>
                   </div>
 
-                  {/* Photo info - smaller overlay */}
+                  {/* Photo info */}
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-1 pointer-events-none">
                     <p className="text-white text-xs truncate">{displayName}</p>
                   </div>
@@ -366,20 +437,44 @@ export function WorkOrderPhotos({ workOrderId, attachments = [] }: WorkOrderPhot
       {/* Photo View Modal */}
       {selectedPhotoIndex !== null && (
         <PhotoViewModal
-          photos={displayPhotos.map((attachmentUrl, index) => {
-            const filename = attachmentUrl.split('/').pop() || `attachment-${index + 1}`;
-            const displayName = filename.replace(/^\d+-\d+-/, '');
-            return {
-              id: `attachment-${index}`,
-              url: getAttachmentPhotoUrl(attachmentUrl),
-              name: displayName,
-              size: 0, // Unknown size for attachments
-              uploadedAt: '', // Unknown upload time for attachments
-            };
-          })}
+          photos={[
+            // First add managed photos
+            ...managedPhotos.map(photo => ({
+              id: photo.id,
+              url: getManagedPhotoUrl(photo),
+              name: photo.originalName,
+              size: photo.fileSize,
+              uploadedAt: photo.uploadedAt,
+            })),
+            // Then add valid attachment photos
+            ...validAttachments.map((attachmentUrl, index) => {
+              const photoUrl = getAttachmentPhotoUrl(attachmentUrl);
+              const filename = attachmentUrl.split('/').pop() || `attachment-${index + 1}`;
+              const displayName = filename.replace(/^\d+-\d+-/, '');
+              return {
+                id: `attachment-${index}`,
+                url: photoUrl || '',
+                name: displayName,
+                size: 0,
+                uploadedAt: '',
+              };
+            }).filter(photo => photo.url !== '')
+          ]}
           initialIndex={selectedPhotoIndex}
           onClose={() => setSelectedPhotoIndex(null)}
-          onDownload={(photoIndex) => downloadAttachmentPhoto(displayPhotos[photoIndex], displayPhotos[photoIndex].split('/').pop())}
+          onDownload={(photoIndex) => {
+            const totalManagedPhotos = managedPhotos.length;
+            if (photoIndex < totalManagedPhotos) {
+              // It's a managed photo
+              downloadManagedPhoto(managedPhotos[photoIndex]);
+            } else {
+              // It's an attachment photo
+              const attachmentIndex = photoIndex - totalManagedPhotos;
+              const attachmentUrl = validAttachments[attachmentIndex];
+              const filename = attachmentUrl.split('/').pop();
+              downloadAttachmentPhoto(attachmentUrl, filename);
+            }
+          }}
         />
       )}
     </>
