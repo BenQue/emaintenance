@@ -18,9 +18,9 @@ import { IntegratedCategoriesManagement } from './IntegratedCategoriesManagement
 
 const MASTER_DATA_TYPES = [
   { key: 'integrated-categories', label: '报修分类', description: '管理报修分类和原因', isIntegrated: true },
+  { key: 'fault-codes', label: '故障分析', description: '管理故障分析代码' },
   { key: 'locations', label: '设备位置', description: '管理设备位置信息' },
-  { key: 'fault-codes', label: '故障代码', description: '管理故障分类代码' },
-  { key: 'priority-levels', label: '优先级', description: '管理优先级等级' },
+  // { key: 'priority-levels', label: '优先级', description: '管理优先级等级' }, // 隐藏优先级设置，程序内置
 ] as const;
 
 type MasterDataType = typeof MASTER_DATA_TYPES[number]['key'];
@@ -350,7 +350,7 @@ export const SettingsManagement: React.FC = () => {
       </div>
 
       {/* Master Data Type Selector */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         {MASTER_DATA_TYPES.map((type) => (
           <Card
             key={type.key}
