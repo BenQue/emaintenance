@@ -121,4 +121,30 @@ export class AuthController {
       } as ApiResponse);
     }
   };
+
+  validateToken = async (req: Request, res: Response): Promise<void> => {
+    try {
+      // If we reach here, the authenticate middleware has already validated the token
+      // and set req.user, so the token is valid
+      res.status(200).json({
+        success: true,
+        data: {
+          valid: true,
+          user: {
+            id: req.user?.id,
+            email: req.user?.email,
+            role: req.user?.role,
+          }
+        },
+        timestamp: new Date().toISOString(),
+      } as ApiResponse);
+    } catch (error) {
+      res.status(401).json({
+        success: false,
+        data: { valid: false },
+        error: 'Invalid token',
+        timestamp: new Date().toISOString(),
+      } as ApiResponse);
+    }
+  };
 }

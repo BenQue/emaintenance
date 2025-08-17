@@ -3,6 +3,14 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { TrendChartProps } from './types';
 
+// Type assertions for Recharts v3 compatibility
+const LineChartComponent = LineChart as any;
+const LineComponent = Line as any;
+const XAxisComponent = XAxis as any;
+const YAxisComponent = YAxis as any;
+const CartesianGridComponent = CartesianGrid as any;
+const TooltipComponent = Tooltip as any;
+
 export function TrendChart({ 
   data, 
   title, 
@@ -44,17 +52,17 @@ export function TrendChart({
         <h3 className="text-lg font-semibold mb-4 text-center">{title}</h3>
       )}
       <ResponsiveContainer width={width} height={height}>
-        <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis 
+        <LineChartComponent data={data}>
+          <CartesianGridComponent strokeDasharray="3 3" />
+          <XAxisComponent 
             dataKey={xAxisKey}
             tick={{ fontSize: 12 }}
           />
-          <YAxis 
+          <YAxisComponent 
             tick={{ fontSize: 12 }}
           />
-          <Tooltip />
-          <Line 
+          <TooltipComponent />
+          <LineComponent 
             type="monotone" 
             dataKey={yAxisKey} 
             stroke={lineColor} 
@@ -62,7 +70,7 @@ export function TrendChart({
             dot={{ r: 4 }}
             activeDot={{ r: 6 }}
           />
-        </LineChart>
+        </LineChartComponent>
       </ResponsiveContainer>
     </div>
   );

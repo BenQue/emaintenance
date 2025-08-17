@@ -25,6 +25,12 @@ module.exports = {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          50: '#E3F2FD',
+          100: '#BBDEFB',
+          500: '#1E88E5', // BizLink 蓝
+          600: '#1976D2',
+          700: '#1565C0',
+          900: '#0D47A1',
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -50,6 +56,36 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        sidebar: {
+          DEFAULT: "hsl(var(--sidebar-background))",
+          foreground: "hsl(var(--sidebar-foreground))",
+          primary: "hsl(var(--sidebar-primary))",
+          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
+          accent: "hsl(var(--sidebar-accent))",
+          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
+          border: "hsl(var(--sidebar-border))",
+          ring: "hsl(var(--sidebar-ring))",
+        },
+        // BizLink 主品牌色彩
+        bizlink: {
+          50: '#E3F2FD',    // 最浅蓝
+          100: '#BBDEFB',   // 浅蓝
+          200: '#90CAF9',   // 中浅蓝
+          300: '#64B5F6',   // 中蓝
+          400: '#42A5F5',   // 浅蓝色变体
+          500: '#1E88E5',   // BizLink 标准蓝色 (主色)
+          600: '#1976D2',   // 中深蓝
+          700: '#1565C0',   // 深蓝色变体
+          800: '#0D47A1',   // 最深蓝色
+          900: '#0A3D62',   // 极深蓝
+        },
+        // 系统功能色彩
+        functional: {
+          success: '#2E7D32',   // 成功绿
+          warning: '#F57C00',   // 警告橙
+          error: '#C62828',     // 错误红
+          info: '#0097A7',      // 信息青
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -72,5 +108,17 @@ module.exports = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    function({ addUtilities }) {
+      addUtilities({
+        '.w-sidebar': {
+          width: 'var(--sidebar-width, 16rem)',
+        },
+        '.w-sidebar-icon': {
+          width: 'var(--sidebar-width-icon, 3rem)',
+        },
+      })
+    }
+  ],
 }

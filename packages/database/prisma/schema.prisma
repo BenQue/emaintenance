@@ -50,6 +50,98 @@ enum FaultCode {
   OTHER                 // 其他
 }
 
+// Master Data Models for Settings Management
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  reasons     Reason[]
+  workOrders  WorkOrder[]
+  assignmentRules AssignmentRule[] @relation("CategoryRules")
+
+  @@index([isActive])
+  @@index([name])
+  @@map("categories")
+}
+
+model Location {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  assets      Asset[]
+  workOrders  WorkOrder[]
+  assignmentRules AssignmentRule[] @relation("LocationRules")
+
+  @@index([isActive])
+  @@index([name])
+  @@map("locations")
+}
+
+model FaultCodeMaster {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  resolutionRecords ResolutionRecord[]
+  maintenanceHistory MaintenanceHistory[]
+
+  @@index([isActive])
+  @@index([name])
+  @@map("fault_codes")
+}
+
+model Reason {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  categoryId  String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  workOrders  WorkOrder[]
+
+  @@unique([name, categoryId], name: "unique_reason_per_category")
+  @@index([isActive])
+  @@index([name])
+  @@index([categoryId])
+  @@map("reasons")
+}
+
+model PriorityLevel {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  level       Int      @unique // For ordering: 1=LOW, 2=MEDIUM, 3=HIGH, 4=URGENT
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  workOrders  WorkOrder[]
+  assignmentRules AssignmentRule[] @relation("PriorityRules")
+
+  @@index([isActive])
+  @@index([level])
+  @@map("priority_levels")
+}
+
 model User {
   id            String   @id @default(cuid())
   email         String   @unique
@@ -88,7 +180,7 @@ model Asset {
   model           String?
   manufacturer    String?
   serialNumber    String?
-  location        String
+  location        String? // Keep for backward compatibility during migration
   installDate     DateTime?
   isActive        Boolean  @default(true)
   createdAt       DateTime @default(now())
@@ -97,14 +189,17 @@ model Asset {
   // Foreign keys
   ownerId         String?
   administratorId String?
+  locationId      String? // New reference to Location master data
 
   // Relations
   owner           User?       @relation("AssetOwner", fields: [ownerId], references: [id])
   administrator   User?       @relation("AssetAdministrator", fields: [administratorId], references: [id])
+  locationRef     Location?   @relation(fields: [locationId], references: [id])
   workOrders      WorkOrder[]
   maintenanceHistory MaintenanceHistory[]
 
   @@index([location, isActive])
+  @@index([locationId, isActive])
   @@index([assetCode])
   @@index([ownerId])
   @@index([administratorId])
@@ -115,9 +210,9 @@ model WorkOrder {
   id              String          @id @default(cuid())
   title           String
   description     String
-  category        String
-  reason          String
-  location        String?
+  category        String? // Keep for backward compatibility during migration
+  reason          String? // Keep for backward compatibility during migration
+  location        String? // Keep for backward compatibility during migration
   priority        Priority        @default(MEDIUM)
   status          WorkOrderStatus @default(PENDING)
   reportedAt      DateTime        @default(now())
@@ -133,11 +228,19 @@ model WorkOrder {
   assetId         String
   createdById     String
   assignedToId    String?
+  categoryId      String? // New reference to Category master data
+  reasonId        String? // New reference to Reason master data
+  locationId      String? // New reference to Location master data
+  priorityId      String? // New reference to PriorityLevel master data
 
   // Relations
-  asset           Asset   @relation(fields: [assetId], references: [id])
-  createdBy       User    @relation("CreatedBy", fields: [createdById], references: [id])
-  assignedTo      User?   @relation("AssignedTo", fields: [assignedToId], references: [id])
+  asset           Asset     @relation(fields: [assetId], references: [id])
+  createdBy       User      @relation("CreatedBy", fields: [createdById], references: [id])
+  assignedTo      User?     @relation("AssignedTo", fields: [assignedToId], references: [id])
+  categoryRef     Category? @relation(fields: [categoryId], references: [id])
+  reasonRef       Reason?   @relation(fields: [reasonId], references: [id])
+  locationRef     Location? @relation(fields: [locationId], references: [id])
+  priorityRef     PriorityLevel? @relation(fields: [priorityId], references: [id])
   notifications   Notification[]
   statusHistory   WorkOrderStatusHistory[]
   photos          WorkOrderPhoto[]
@@ -150,6 +253,10 @@ model WorkOrder {
   @@index([createdById])
   @@index([reportedAt])
   @@index([category])
+  @@index([categoryId])
+  @@index([reasonId])
+  @@index([locationId])
+  @@index([priorityId])
   @@map("work_orders")
 }
 
@@ -197,15 +304,20 @@ model AssignmentRule {
   priority        Int      @default(0) // Rule priority for conflict resolution
   isActive        Boolean  @default(true)
   
-  // Matching conditions
+  // Matching conditions - keep old string arrays for backward compatibility
   assetTypes      String[] // Asset type filter
-  categories      String[] // Work order category filter
-  locations       String[] // Location filter
-  priorities      String[] // Priority filter
+  categories      String[] // Work order category filter (deprecated)
+  locations       String[] // Location filter (deprecated)
+  priorities      String[] // Priority filter (deprecated)
   
   // Assignment target
   assignToId      String   // Target technician
   assignTo        User     @relation(fields: [assignToId], references: [id])
+
+  // New master data relationships
+  categoryRules   Category[]     @relation("CategoryRules")
+  locationRules   Location[]     @relation("LocationRules")
+  priorityRules   PriorityLevel[] @relation("PriorityRules")
   
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -243,13 +355,15 @@ model ResolutionRecord {
   workOrder       WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
 
   solutionDescription  String   // Required description of solution
-  faultCode           FaultCode?  // Optional fault code classification
+  faultCode           FaultCode?  // Keep for backward compatibility during migration
+  faultCodeId         String?     // New reference to FaultCodeMaster
 
   // Photo attachments
   photos          ResolutionPhoto[]
 
   resolvedById    String   // Technician who resolved the issue
   resolvedBy      User     @relation(fields: [resolvedById], references: [id])
+  faultCodeRef    FaultCodeMaster? @relation(fields: [faultCodeId], references: [id])
 
   completedAt     DateTime @default(now())
   createdAt       DateTime @default(now())
@@ -258,6 +372,7 @@ model ResolutionRecord {
   @@index([workOrderId])
   @@index([resolvedById])
   @@index([completedAt])
+  @@index([faultCodeId])
   @@map("resolution_records")
 }
 
@@ -289,13 +404,17 @@ model MaintenanceHistory {
   // Denormalized data for quick access
   workOrderTitle  String
   resolutionSummary String?
-  faultCode       FaultCode?
+  faultCode       FaultCode? // Keep for backward compatibility during migration
+  faultCodeId     String?    // New reference to FaultCodeMaster
   technician      String   // Technician name
+
+  faultCodeRef    FaultCodeMaster? @relation(fields: [faultCodeId], references: [id])
 
   completedAt     DateTime
   createdAt       DateTime @default(now())
 
   @@index([assetId, completedAt])
   @@index([workOrderId])
+  @@index([faultCodeId])
   @@map("maintenance_history")
 }

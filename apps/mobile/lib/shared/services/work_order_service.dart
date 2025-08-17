@@ -23,8 +23,6 @@ class WorkOrderService {
   /// Create a new work order
   Future<WorkOrder> createWorkOrder(WorkOrderRequest request) async {
     try {
-      print('WorkOrderService: 创建工单请求数据: ${request.toJson()}');
-      print('WorkOrderService: 正在调用work-order服务API...');
       
       if (_apiClient == null) {
         throw Exception('API client not initialized');
@@ -35,8 +33,6 @@ class WorkOrderService {
         data: request.toJson(),
       );
 
-      print('WorkOrderService: API响应状态: ${response.statusCode}');
-      print('WorkOrderService: API响应数据: ${response.data}');
 
       if (response.data == null) {
         throw Exception('Empty response from server');
@@ -45,7 +41,6 @@ class WorkOrderService {
       final workOrderData = response.data!['data']['workOrder'] as Map<String, dynamic>;
       return WorkOrder.fromJson(workOrderData);
     } catch (e) {
-      print('WorkOrderService: 创建工单错误: $e');
       throw Exception('Failed to create work order: $e');
     }
   }
@@ -265,12 +260,10 @@ class WorkOrderService {
     List<String> photoPaths,
   ) async {
     try {
-      print('WorkOrderService: 上传工单照片，工单ID: $workOrderId, 照片数量: ${photoPaths.length}');
       
       // 检查照片文件是否存在
       for (String photoPath in photoPaths) {
         final file = File(photoPath);
-        print('WorkOrderService: 检查照片文件: $photoPath, 存在: ${await file.exists()}, 大小: ${await file.exists() ? await file.length() : "N/A"}');
       }
 
       final formData = FormData();
@@ -283,9 +276,7 @@ class WorkOrderService {
             contentType: MediaType('image', 'jpeg'),
           );
           formData.files.add(MapEntry('photos', multipartFile));
-          print('WorkOrderService: 添加照片到FormData: ${photoPaths[i]}, ContentType: image/jpeg');
         } else {
-          print('WorkOrderService: 照片文件不存在，跳过: ${photoPaths[i]}');
         }
       }
 
@@ -293,8 +284,6 @@ class WorkOrderService {
         throw Exception('API client not initialized');
       }
       
-      print('WorkOrderService: 准备发送请求到: /api/work-orders/$workOrderId/work-order-photos');
-      print('WorkOrderService: FormData文件数量: ${formData.files.length}');
       
       final response = await _apiClient!.post<Map<String, dynamic>>(
         '/api/work-orders/$workOrderId/work-order-photos',
@@ -306,16 +295,13 @@ class WorkOrderService {
         ),
       );
       
-      print('WorkOrderService: 收到响应，状态码: ${response.statusCode}');
 
       if (response.data == null) {
         throw Exception('Empty response from server');
       }
 
-      print('WorkOrderService: 工单照片上传成功');
       return response.data!['data'] as Map<String, dynamic>;
     } catch (e) {
-      print('WorkOrderService: 上传工单照片错误: $e');
       throw Exception('Failed to upload work order photos: $e');
     }
   }

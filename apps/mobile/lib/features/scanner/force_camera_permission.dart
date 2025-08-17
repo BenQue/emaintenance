@@ -88,7 +88,6 @@ class _ForceCameraPermissionState extends State<ForceCameraPermission> {
           _result = '原生方法结果: $result';
         });
       } catch (e) {
-        print('原生方法失败: $e');
         
         // 方法2: 尝试直接访问相机硬件
         setState(() {

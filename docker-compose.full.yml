@@ -1,0 +1,146 @@
+services:
+  # PostgreSQL Database
+  database:
+    image: postgres:16-alpine
+    container_name: emaintenance-db-full
+    environment:
+      POSTGRES_DB: emaintenance
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-Qzy@7091!}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data_full:/var/lib/postgresql/data
+      - ./docker/database/init:/docker-entrypoint-initdb.d
+    networks:
+      - emaintenance-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: emaintenance-redis-full
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data_full:/data
+    networks:
+      - emaintenance-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  # User Service API
+  user-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.services
+      target: user-service
+    container_name: emaintenance-user-service-full
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-Qzy@7091!}@database:5432/emaintenance
+      JWT_SECRET: ${JWT_SECRET:-emaintenance-development-jwt-secret-key-2025-docker}
+      REDIS_URL: redis://redis:6379
+      CORS_ORIGIN: http://localhost:3000
+    ports:
+      - "3001:3001"
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - emaintenance-network
+    restart: unless-stopped
+
+  # Asset Service API
+  asset-service:
+    build:
+      context: .
+      dockerfile: Dockerfile.services
+      target: asset-service
+    container_name: emaintenance-asset-service-full
+    environment:
+      NODE_ENV: development
+      PORT: 3003
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-Qzy@7091!}@database:5432/emaintenance
+      JWT_SECRET: ${JWT_SECRET:-emaintenance-development-jwt-secret-key-2025-docker}
+      USER_SERVICE_URL: http://user-service:3001
+      CORS_ORIGIN: http://localhost:3000
+    ports:
+      - "3003:3003"
+    depends_on:
+      - database
+      - user-service
+    networks:
+      - emaintenance-network
+    restart: unless-stopped
+
+  # Next.js Web Application
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile.optimized
+      target: runner
+    container_name: emaintenance-web-full
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NEXT_PUBLIC_USER_SERVICE_URL: http://localhost:3001
+      NEXT_PUBLIC_WORK_ORDER_SERVICE_URL: http://localhost:3002
+      NEXT_PUBLIC_ASSET_SERVICE_URL: http://localhost:3003
+    ports:
+      - "3000:3000"
+    depends_on:
+      - user-service
+      - asset-service
+    networks:
+      - emaintenance-network
+    restart: unless-stopped
+
+  # Database Migration Tool
+  db-migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.services
+      target: service-base
+    container_name: emaintenance-db-migrate-full
+    environment:
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-Qzy@7091!}@database:5432/emaintenance
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - emaintenance-network
+    profiles:
+      - tools
+    command: >
+      sh -c "
+        echo 'Running database migrations...' &&
+        npm run db:generate &&
+        npm run db:push &&
+        npm run db:seed &&
+        echo 'Database setup completed!'
+      "
+
+volumes:
+  postgres_data_full:
+    driver: local
+  redis_data_full:
+    driver: local
+
+networks:
+  emaintenance-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16

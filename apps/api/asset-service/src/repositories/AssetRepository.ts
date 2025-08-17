@@ -609,7 +609,7 @@ export class AssetRepository {
         assetId: asset.id,
         assetCode: asset.assetCode,
         assetName: asset.name,
-        location: asset.location,
+        location: asset.location || '未知位置',
         downtimeHours,
         faultFrequency,
         maintenanceCost,

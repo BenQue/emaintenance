@@ -74,9 +74,7 @@ class _CameraPermissionTestState extends State<CameraPermissionTest> {
 
     try {
       // 直接尝试获取相机列表 - 这会强制触发权限对话框
-      print('尝试直接获取相机列表...');
       final cameras = await availableCameras();
-      print('找到 ${cameras.length} 个相机');
       
       if (cameras.isEmpty) {
         setState(() {
@@ -95,9 +93,7 @@ class _CameraPermissionTestState extends State<CameraPermissionTest> {
         ResolutionPreset.medium,
       );
 
-      print('正在初始化相机控制器...');
       await _controller!.initialize();
-      print('相机控制器初始化成功！');
 
       setState(() {
         _status = '✅ 相机访问成功！权限已正确设置。\n\n'
@@ -108,10 +104,8 @@ class _CameraPermissionTestState extends State<CameraPermissionTest> {
       await Future.delayed(const Duration(seconds: 2));
       await _controller!.dispose();
       _controller = null;
-      print('相机控制器已清理');
 
     } catch (e) {
-      print('相机访问错误: $e');
       
       // 检查具体的错误类型
       String errorMessage = '相机访问失败: ${e.toString()}';

@@ -77,7 +77,7 @@ export class UserService {
 
     const url = `${this.baseUrl}?${searchParams.toString()}`;
     const response = await apiClient.get(url);
-    return response.data;
+    return response.data as UserListResponse;
   }
 
   /**
@@ -85,7 +85,7 @@ export class UserService {
    */
   async getUserById(id: string): Promise<User> {
     const response = await apiClient.get(`${this.baseUrl}/${id}`);
-    return response.data;
+    return response.data as User;
   }
 
   /**
@@ -93,7 +93,7 @@ export class UserService {
    */
   async createUser(userData: CreateUserInput): Promise<User> {
     const response = await apiClient.post(this.baseUrl, userData);
-    return response.data;
+    return response.data as User;
   }
 
   /**
@@ -101,7 +101,7 @@ export class UserService {
    */
   async updateUser(id: string, userData: UpdateUserInput): Promise<User> {
     const response = await apiClient.put(`${this.baseUrl}/${id}`, userData);
-    return response.data;
+    return response.data as User;
   }
 
   /**
@@ -109,7 +109,7 @@ export class UserService {
    */
   async updateUserRole(id: string, role: User['role']): Promise<User> {
     const response = await apiClient.patch(`${this.baseUrl}/${id}/role`, { role });
-    return response.data;
+    return response.data as User;
   }
 
   /**
@@ -117,7 +117,7 @@ export class UserService {
    */
   async updateUserStatus(id: string, isActive: boolean): Promise<User> {
     const response = await apiClient.patch(`${this.baseUrl}/${id}/status`, { isActive });
-    return response.data;
+    return response.data as User;
   }
 
   /**
@@ -125,7 +125,7 @@ export class UserService {
    */
   async deleteUser(id: string): Promise<User> {
     const response = await apiClient.delete(`${this.baseUrl}/${id}`);
-    return response.data;
+    return response.data as User;
   }
 
   /**
@@ -133,7 +133,7 @@ export class UserService {
    */
   async bulkOperation(operation: BulkUserOperation): Promise<BulkOperationResult> {
     const response = await apiClient.post(`${this.baseUrl}/bulk`, operation);
-    return response.data;
+    return response.data as BulkOperationResult;
   }
 
   /**
@@ -141,7 +141,7 @@ export class UserService {
    */
   async getUsersByRole(role: User['role']): Promise<User[]> {
     const response = await apiClient.get(`${this.baseUrl}/role/${role}`);
-    return response.data;
+    return response.data as User[];
   }
 
   /**
@@ -153,7 +153,7 @@ export class UserService {
     searchParams.append('limit', limit.toString());
 
     const response = await apiClient.get(`${this.baseUrl}/search?${searchParams.toString()}`);
-    return response.data;
+    return response.data as User[];
   }
 }
 

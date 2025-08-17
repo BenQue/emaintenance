@@ -1,0 +1,87 @@
+# Dependencies
+node_modules
+*/node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Development files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build artifacts
+dist
+build
+.next
+coverage
+*.tsbuildinfo
+
+# Logs
+*.log
+logs
+apps/*/logs
+apps/*/*.log
+
+# Testing
+*/__tests__/*
+*.test.ts
+*.test.tsx
+*.test.js
+*.spec.ts
+*.spec.tsx
+*.spec.js
+
+# Documentation
+README.md
+docs
+CLAUDE.md
+PHOTO_STORAGE_ANALYSIS.md
+SECURITY-ADVISORY.md
+
+# IDE and OS files
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Flutter specific
+apps/mobile/build
+apps/mobile/.dart_tool
+apps/mobile/.packages
+apps/mobile/.pub-cache
+apps/mobile/.pub
+apps/mobile/ios/Pods
+apps/mobile/ios/Runner.xcworkspace
+apps/mobile/android/.gradle
+apps/mobile/android/app/build
+
+# Development containers
+.devcontainer
+
+# Temporary files
+tmp
+temp
+*.tmp
+uploads
+work-orders
+
+# Development scripts
+*.js
+create-test-*
+debug-*
+check-*
+get-*
+test-*
+clear-*
+find-*
+
+# Agents and teams config
+agents
+teams
+expansion-packs

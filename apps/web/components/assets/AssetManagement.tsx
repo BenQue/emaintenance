@@ -1,18 +1,29 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Plus, Search, MapPin, Activity, Settings, Eye, Edit, Trash2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { Badge } from '../ui/badge';
+import { Label } from '../ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { QRCode } from '../ui/QRCode';
+import { QRCodeModal } from '../ui/QRCodeModal';
+import { useAuthStore } from '../../lib/stores/auth-store';
 import { Asset, PaginatedAssets, AssetStats, assetService } from '../../lib/services/asset-service';
 
 export function AssetManagement() {
+  const router = useRouter();
+  const { user } = useAuthStore();
   const [assets, setAssets] = useState<PaginatedAssets | null>(null);
   const [stats, setStats] = useState<AssetStats | null>(null);
   const [locations, setLocations] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // 检查是否是管理员
+  const isAdmin = user?.role === 'ADMIN';
 
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
@@ -20,6 +31,10 @@ export function AssetManagement() {
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  // QR Code modal state
+  const [qrModalOpen, setQrModalOpen] = useState(false);
+  const [selectedAssetForQR, setSelectedAssetForQR] = useState<Asset | null>(null);
 
   useEffect(() => {
     loadInitialData();
@@ -84,6 +99,47 @@ export function AssetManagement() {
     return new Date(date).toLocaleDateString('zh-CN');
   };
 
+  const handleCreateAsset = () => {
+    router.push('/dashboard/assets/create');
+  };
+
+  const handleImportAssets = () => {
+    router.push('/dashboard/assets/import');
+  };
+
+  const handleViewAsset = (assetId: string) => {
+    router.push(`/dashboard/assets/${assetId}`);
+  };
+
+  const handleEditAsset = (assetId: string) => {
+    router.push(`/dashboard/assets/${assetId}/edit`);
+  };
+
+  const handleDeleteAsset = async (assetId: string, assetName: string) => {
+    if (!confirm(`确定要删除设备 "${assetName}" 吗？此操作不可撤销。`)) {
+      return;
+    }
+
+    try {
+      await assetService.deleteAsset(assetId);
+      await loadAssets(); // Reload the assets list
+      await loadInitialData(); // Reload stats
+    } catch (error) {
+      console.error('Failed to delete asset:', error);
+      alert('删除设备失败，请重试');
+    }
+  };
+
+  const handleQRCodeClick = (asset: Asset) => {
+    setSelectedAssetForQR(asset);
+    setQrModalOpen(true);
+  };
+
+  const handleCloseQRModal = () => {
+    setQrModalOpen(false);
+    setSelectedAssetForQR(null);
+  };
+
   if (isLoading && !assets) {
     return (
       <div className="container mx-auto px-4 py-6">
@@ -103,22 +159,39 @@ export function AssetManagement() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">设备管理</h1>
-          <p className="text-gray-600 mt-2">
-            管理系统设备资产，包括所有者分配和状态控制
-          </p>
+    <div className="flex flex-1 flex-col">
+      {/* Page Header */}
+      <div className="flex flex-col gap-4 p-4 md:gap-8 md:p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-2">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">设备管理</h1>
+              <p className="text-muted-foreground">
+                管理系统设备资产，包括所有者分配和状态控制
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="flex items-center gap-2" 
+                onClick={handleImportAssets}
+              >
+                📁 批量导入
+              </Button>
+            )}
+            <Button size="sm" className="flex items-center gap-2" onClick={handleCreateAsset}>
+              <Plus className="h-4 w-4" />
+              添加设备
+            </Button>
+          </div>
         </div>
-        <Button className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          添加设备
-        </Button>
-      </div>
 
-      {/* Stats Cards */}
+        {/* Page Content */}
+        <div className="space-y-6">
+          {/* Stats Cards */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="p-4">
@@ -185,28 +258,36 @@ export function AssetManagement() {
             />
           </div>
           
-          <select
-            value={selectedLocation}
-            onChange={(e) => handleLocationChange(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          <Select
+            value={selectedLocation || 'ALL'}
+            onValueChange={(value: string) => handleLocationChange(value === 'ALL' ? '' : value)}
           >
-            <option value="">所有位置</option>
-            {(locations || []).map((location) => (
-              <option key={location} value={location}>
-                {location}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="w-auto">
+              <SelectValue placeholder="所有位置" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">所有位置</SelectItem>
+              {(locations || []).map((location) => (
+                <SelectItem key={location} value={location}>
+                  {location}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-          <select
-            value={selectedStatus}
-            onChange={(e) => handleStatusChange(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          <Select
+            value={selectedStatus || 'ALL'}
+            onValueChange={(value: string) => handleStatusChange(value === 'ALL' ? '' : value)}
           >
-            <option value="">所有状态</option>
-            <option value="active">活跃</option>
-            <option value="inactive">停用</option>
-          </select>
+            <SelectTrigger className="w-auto">
+              <SelectValue placeholder="所有状态" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">所有状态</SelectItem>
+              <SelectItem value="active">活跃</SelectItem>
+              <SelectItem value="inactive">停用</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </Card>
 
@@ -228,25 +309,38 @@ export function AssetManagement() {
               显示第 {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, assets.total)} 条，共 {assets.total} 条设备
             </p>
             <div className="flex items-center gap-2">
-              <label htmlFor="pageSize">每页显示:</label>
-              <select
-                id="pageSize"
-                value={pageSize}
-                onChange={(e) => setPageSize(parseInt(e.target.value))}
-                className="border border-gray-300 rounded px-2 py-1"
+              <Label htmlFor="pageSize">每页显示:</Label>
+              <Select
+                value={pageSize.toString()}
+                onValueChange={(value: string) => setPageSize(parseInt(value))}
               >
-                <option value={10}>10</option>
-                <option value={20}>20</option>
-                <option value={50}>50</option>
-              </select>
+                <SelectTrigger className="w-auto min-w-[80px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
           {/* Assets Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {(assets.assets || []).map((asset) => (
-              <Card key={asset.id} className="p-4 hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-start mb-3">
+              <Card key={asset.id} className="p-4 hover:shadow-md transition-shadow relative">
+                {/* QR Code in top right corner */}
+                <div className="absolute top-3 right-3">
+                  <QRCode 
+                    value={asset.assetCode} 
+                    size={60} 
+                    onClick={() => handleQRCodeClick(asset)}
+                    className="cursor-pointer hover:opacity-80 transition-opacity"
+                  />
+                </div>
+
+                <div className="flex justify-between items-start mb-3 pr-16">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       <h3 className="font-semibold text-lg">{asset.name}</h3>
@@ -293,15 +387,30 @@ export function AssetManagement() {
                 </div>
 
                 <div className="flex gap-2 mt-4 pt-3 border-t">
-                  <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="flex items-center gap-1"
+                    onClick={() => handleViewAsset(asset.id)}
+                  >
                     <Eye className="h-3 w-3" />
                     查看
                   </Button>
-                  <Button variant="ghost" size="sm" className="flex items-center gap-1">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="flex items-center gap-1"
+                    onClick={() => handleEditAsset(asset.id)}
+                  >
                     <Edit className="h-3 w-3" />
                     编辑
                   </Button>
-                  <Button variant="ghost" size="sm" className="flex items-center gap-1 text-red-600 hover:text-red-700">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="flex items-center gap-1 text-red-600 hover:text-red-700"
+                    onClick={() => handleDeleteAsset(asset.id, asset.name)}
+                  >
                     <Trash2 className="h-3 w-3" />
                     删除
                   </Button>
@@ -382,6 +491,18 @@ export function AssetManagement() {
           </Button>
         </Card>
       )}
+
+          {/* QR Code Modal */}
+          {selectedAssetForQR && (
+            <QRCodeModal
+              isOpen={qrModalOpen}
+              onClose={handleCloseQRModal}
+              assetCode={selectedAssetForQR.assetCode}
+              assetName={selectedAssetForQR.name}
+            />
+          )}
+        </div>
+      </div>
     </div>
   );
 }

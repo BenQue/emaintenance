@@ -1,0 +1,26 @@
+# Simplified Dockerfile for API services
+FROM node:20-alpine AS base
+
+# Install dependencies
+RUN apk add --no-cache libc6-compat curl
+
+WORKDIR /app
+
+# Create app user
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 apiuser
+
+# Copy package files and install dependencies
+COPY package*.json ./
+RUN npm ci --only=production
+
+# Copy source code
+COPY packages/database packages/database
+COPY packages/shared packages/shared
+
+USER apiuser
+
+EXPOSE 3001
+
+# Default command (will be overridden in docker-compose)
+CMD ["npm", "run", "dev"]

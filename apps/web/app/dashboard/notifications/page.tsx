@@ -12,14 +12,22 @@ export default function NotificationsPage() {
   }, [loadStats]);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">通知中心</h1>
-        <p className="mt-2 text-gray-600">
-          查看工单分配、状态更新和系统通知
-        </p>
-      </div>
+    <div className="flex flex-1 flex-col">
+      {/* Page Header */}
+      <div className="flex flex-col gap-4 p-4 md:gap-8 md:p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-2">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">通知中心</h1>
+              <p className="text-muted-foreground">
+                查看工单分配、状态更新和系统通知
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Page Content */}
+        <div className="space-y-6">
 
       {/* Stats */}
       {stats && !statsLoading && (
@@ -94,9 +102,11 @@ export default function NotificationsPage() {
         </div>
       )}
 
-      {/* Notifications List */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <NotificationsList />
+          {/* Notifications List */}
+          <div className="bg-white shadow rounded-lg p-6">
+            <NotificationsList />
+          </div>
+        </div>
       </div>
     </div>
   );

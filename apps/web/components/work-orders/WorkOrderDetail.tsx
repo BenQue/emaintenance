@@ -78,7 +78,7 @@ export function WorkOrderDetail({ workOrderId }: WorkOrderDetailProps) {
     return () => {
       clearCurrentWorkOrder();
     };
-  }, [workOrderId, loadWorkOrderWithHistory, loadWorkOrderWithResolution, clearCurrentWorkOrder]);
+  }, [workOrderId]); // Only depend on workOrderId to prevent infinite loops
 
   const handleStatusUpdateSuccess = () => {
     // Reload the work order to get updated data
@@ -217,7 +217,10 @@ export function WorkOrderDetail({ workOrderId }: WorkOrderDetailProps) {
 
               {/* Report Photos - Show photos uploaded during work order creation */}
               <div>
-                <WorkOrderPhotos workOrderId={currentWorkOrder.id} />
+                <WorkOrderPhotos 
+                  workOrderId={currentWorkOrder.id} 
+                  attachments={currentWorkOrder.attachments || []}
+                />
               </div>
 
               {currentWorkOrder.location && (

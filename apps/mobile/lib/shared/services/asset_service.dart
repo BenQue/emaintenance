@@ -31,14 +31,10 @@ class AssetService {
   }
   
   Future<Asset> getAssetByCode(String assetCode) async {
-    print('AssetService: 正在查找设备代码: $assetCode');
     
     // 检查token状态
     final token = await _apiClient.getToken();
-    print('AssetService: 当前JWT token存在: ${token != null}');
     if (token != null) {
-      print('AssetService: Token长度: ${token.length}');
-      print('AssetService: Token前50字符: ${token.length > 50 ? token.substring(0, 50) + '...' : token}');
     }
     
     try {
@@ -46,8 +42,6 @@ class AssetService {
         '/api/assets/code/$assetCode',
       );
       
-      print('AssetService: API响应状态码: ${response.statusCode}');
-      print('AssetService: API响应数据: ${response.data}');
       
       if (response.data == null) {
         throw const ApiException(message: '设备信息响应数据为空');
@@ -60,17 +54,14 @@ class AssetService {
       if (responseData.containsKey('success') && responseData['success'] == true) {
         // 标准API响应格式：{"success": true, "data": {...}}
         assetData = responseData['data'] as Map<String, dynamic>;
-        print('AssetService: 从标准响应格式中提取设备数据: $assetData');
       } else {
         // 直接响应格式
         assetData = responseData;
-        print('AssetService: 使用直接响应格式的设备数据: $assetData');
       }
       
       return Asset.fromJson(assetData);
       
     } catch (e) {
-      print('AssetService: 查找设备失败: $e');
       rethrow;
     }
   }
@@ -82,7 +73,6 @@ class AssetService {
     bool? isActive,
     int limit = 10,
   }) async {
-    print('AssetService: 搜索资产代码: $partialCode');
     
     final queryParameters = <String, dynamic>{
       'code': partialCode,
@@ -103,7 +93,6 @@ class AssetService {
         queryParameters: queryParameters,
       );
       
-      print('AssetService: 代码搜索响应: ${response.data}');
       
       if (response.data == null || response.data!['success'] != true) {
         return [];
@@ -115,13 +104,11 @@ class AssetService {
           .toList();
       
     } catch (e) {
-      print('AssetService: 搜索资产代码失败: $e');
       return [];
     }
   }
 
   Future<AssetValidationResult> validateAssetCode(String assetCode) async {
-    print('AssetService: 验证资产代码: $assetCode');
     
     try {
       final response = await _assetServiceClient.get<Map<String, dynamic>>(
@@ -129,7 +116,6 @@ class AssetService {
         queryParameters: {'code': assetCode},
       );
       
-      print('AssetService: 验证响应: ${response.data}');
       
       if (response.data == null) {
         return AssetValidationResult(exists: false);
@@ -145,7 +131,6 @@ class AssetService {
       return AssetValidationResult(exists: exists, asset: asset);
       
     } catch (e) {
-      print('AssetService: 验证资产代码失败: $e');
       return AssetValidationResult(exists: false);
     }
   }
@@ -156,7 +141,6 @@ class AssetService {
     bool? isActive,
     int limit = 10,
   }) async {
-    print('AssetService: 获取资产建议: $input');
     
     final queryParameters = <String, dynamic>{
       'input': input,
@@ -177,7 +161,6 @@ class AssetService {
         queryParameters: queryParameters,
       );
       
-      print('AssetService: 建议响应: ${response.data}');
       
       if (response.data == null || response.data!['success'] != true) {
         return [];
@@ -189,7 +172,6 @@ class AssetService {
           .toList();
       
     } catch (e) {
-      print('AssetService: 获取资产建议失败: $e');
       return [];
     }
   }

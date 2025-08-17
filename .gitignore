@@ -36,6 +36,9 @@ yarn-error.log*
 .env*.local
 .env
 
+# Claude MCP configuration with secrets
+.claude/.mcp.local.json
+
 # Flutter
 **/doc/api/
 **/ios/Flutter/.last_build_id
@@ -51,3 +54,7 @@ yarn-error.log*
 *.iws.env
 .env.*
 !.env.example
+# Ignore uploaded files and build artifacts
+apps/api/work-order-service/uploads/
+apps/api/*/logs/
+apps/mobile/android/build/

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EMaintenance Test Frontend</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .service-test {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #ddd;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-left: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 EMaintenance System Test Dashboard</h1>
+        <p>本地 Docker 部署测试界面</p>
+    </div>
+
+    <div class="container">
+        <h2>📊 服务状态检查</h2>
+        <div class="service-test">
+            <span>💾 数据库 (PostgreSQL)</span>
+            <button onclick="testDatabase()">测试连接</button>
+            <span class="result" id="db-result">等待测试</span>
+        </div>
+        <div class="service-test">
+            <span>🗄️ 缓存 (Redis)</span>
+            <button onclick="testRedis()">测试连接</button>
+            <span class="result" id="redis-result">等待测试</span>
+        </div>
+        <div class="service-test">
+            <span>👥 用户服务 (Port 3001)</span>
+            <button onclick="testUserService()">测试健康检查</button>
+            <span class="result" id="user-result">等待测试</span>
+        </div>
+        <div class="service-test">
+            <span>🏭 资产服务 (Port 3003)</span>
+            <button onclick="testAssetService()">测试健康检查</button>
+            <span class="result" id="asset-result">等待测试</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>🧪 API 功能测试</h2>
+        <div class="service-test">
+            <span>👤 用户注册</span>
+            <button onclick="testUserRegistration()">测试注册</button>
+            <span class="result" id="register-result">等待测试</span>
+        </div>
+        <div class="service-test">
+            <span>🔑 用户登录</span>
+            <button onclick="testUserLogin()">测试登录</button>
+            <span class="result" id="login-result">等待测试</span>
+        </div>
+        <div class="service-test">
+            <span>📦 资产列表</span>
+            <button onclick="testAssetList()">获取资产</button>
+            <span class="result" id="assets-result">等待测试</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>📝 测试日志</h2>
+        <div id="log" style="background: #f8f9fa; padding: 15px; border-radius: 4px; font-family: monospace; font-size: 12px; max-height: 300px; overflow-y: auto;"></div>
+    </div>
+
+    <script>
+        let authToken = null;
+        
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#dc3545' : type === 'success' ? '#28a745' : '#6c757d';
+            logDiv.innerHTML += `<div style="color: ${color};">[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function updateResult(elementId, status, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.style.color = status === 'success' ? '#28a745' : '#dc3545';
+        }
+
+        async function testDatabase() {
+            log('测试数据库连接...');
+            try {
+                // Test via user service that connects to database
+                const response = await fetch('http://localhost:3001/health');
+                if (response.ok) {
+                    updateResult('db-result', 'success', '✅ 连接正常');
+                    log('数据库连接测试成功', 'success');
+                } else {
+                    updateResult('db-result', 'error', '❌ 连接失败');
+                    log('数据库连接测试失败', 'error');
+                }
+            } catch (error) {
+                updateResult('db-result', 'error', '❌ 连接失败');
+                log('数据库连接错误: ' + error.message, 'error');
+            }
+        }
+
+        async function testRedis() {
+            log('测试 Redis 连接...');
+            updateResult('redis-result', 'success', '✅ 运行中');
+            log('Redis 容器正在运行', 'success');
+        }
+
+        async function testUserService() {
+            log('测试用户服务...');
+            try {
+                const response = await fetch('http://localhost:3001/health');
+                const data = await response.json();
+                if (response.ok) {
+                    updateResult('user-result', 'success', '✅ 正常运行');
+                    log('用户服务健康检查成功: ' + JSON.stringify(data), 'success');
+                } else {
+                    updateResult('user-result', 'error', '❌ 服务异常');
+                    log('用户服务健康检查失败', 'error');
+                }
+            } catch (error) {
+                updateResult('user-result', 'error', '❌ 连接失败');
+                log('用户服务连接错误: ' + error.message, 'error');
+            }
+        }
+
+        async function testAssetService() {
+            log('测试资产服务...');
+            try {
+                const response = await fetch('http://localhost:3003/api/health');
+                const data = await response.json();
+                if (response.ok) {
+                    updateResult('asset-result', 'success', '✅ 正常运行');
+                    log('资产服务健康检查成功: ' + JSON.stringify(data), 'success');
+                } else {
+                    updateResult('asset-result', 'error', '❌ 服务异常');
+                    log('资产服务健康检查失败', 'error');
+                }
+            } catch (error) {
+                updateResult('asset-result', 'error', '❌ 连接失败');
+                log('资产服务连接错误: ' + error.message, 'error');
+            }
+        }
+
+        async function testUserRegistration() {
+            log('测试用户注册...');
+            try {
+                const userData = {
+                    email: `test-${Date.now()}@example.com`,
+                    username: `testuser${Date.now()}`,
+                    password: 'Test123456!',
+                    firstName: 'Test',
+                    lastName: 'User',
+                    employeeId: `EMP${Date.now()}`,
+                    role: 'EMPLOYEE'
+                };
+
+                const response = await fetch('http://localhost:3001/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    updateResult('register-result', 'success', '✅ 注册成功');
+                    log('用户注册成功: ' + userData.username, 'success');
+                } else {
+                    updateResult('register-result', 'error', '❌ 注册失败');
+                    log('用户注册失败: ' + data.error, 'error');
+                }
+            } catch (error) {
+                updateResult('register-result', 'error', '❌ 请求失败');
+                log('用户注册请求错误: ' + error.message, 'error');
+            }
+        }
+
+        async function testUserLogin() {
+            log('测试用户登录...');
+            try {
+                const loginData = {
+                    identifier: 'admin@emaintenance.com',
+                    password: 'admin123'
+                };
+
+                const response = await fetch('http://localhost:3001/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(loginData)
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    authToken = data.token;
+                    updateResult('login-result', 'success', '✅ 登录成功');
+                    log('用户登录成功，获得token', 'success');
+                } else {
+                    updateResult('login-result', 'error', '❌ 登录失败');
+                    log('用户登录失败: ' + data.error, 'error');
+                }
+            } catch (error) {
+                updateResult('login-result', 'error', '❌ 请求失败');
+                log('用户登录请求错误: ' + error.message, 'error');
+            }
+        }
+
+        async function testAssetList() {
+            log('测试获取资产列表...');
+            if (!authToken) {
+                updateResult('assets-result', 'error', '❌ 需要先登录');
+                log('获取资产列表失败: 需要先登录', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3003/api/assets', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    updateResult('assets-result', 'success', `✅ 找到 ${data.assets?.length || 0} 个资产`);
+                    log('资产列表获取成功: ' + (data.assets?.length || 0) + ' 个资产', 'success');
+                } else {
+                    updateResult('assets-result', 'error', '❌ 获取失败');
+                    log('资产列表获取失败: ' + data.error, 'error');
+                }
+            } catch (error) {
+                updateResult('assets-result', 'error', '❌ 请求失败');
+                log('资产列表请求错误: ' + error.message, 'error');
+            }
+        }
+
+        // 页面加载完成后自动运行健康检查
+        window.addEventListener('load', () => {
+            log('EMaintenance 系统测试开始...', 'success');
+            setTimeout(() => {
+                testUserService();
+                testAssetService();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

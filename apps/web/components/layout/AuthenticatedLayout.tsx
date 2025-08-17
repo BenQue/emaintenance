@@ -3,7 +3,7 @@
 import { useEffect, ReactNode, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '../../lib/stores/auth-store';
-import { Navigation } from './Navigation';
+import { SidebarNavigationLayout } from '../blocks/sidebar-navigation';
 
 interface AuthenticatedLayoutProps {
   children: ReactNode;
@@ -70,9 +70,8 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navigation />
-      <main>{children}</main>
-    </div>
+    <SidebarNavigationLayout>
+      {children}
+    </SidebarNavigationLayout>
   );
 }

@@ -13,12 +13,13 @@ export function Navigation() {
     const baseLinks = [
       // 我的任务 - 技术员的主要入口，放在最前面
       { href: '/dashboard/my-tasks', label: '我的任务', roles: ['TECHNICIAN'], primary: true },
-      // 仪表板 - 仅限管理人员
-      { href: '/dashboard', label: '仪表板', roles: ['SUPERVISOR', 'ADMIN'] },
+      // 仪表面板 - 仅限管理人员
+      { href: '/dashboard', label: '仪表面板', roles: ['SUPERVISOR', 'ADMIN'] },
       { href: '/dashboard/work-orders', label: '工单管理', roles: ['EMPLOYEE', 'TECHNICIAN', 'SUPERVISOR', 'ADMIN'] },
       { href: '/dashboard/assets', label: '资产管理', roles: ['SUPERVISOR', 'ADMIN'] },
       { href: '/dashboard/assignment-rules', label: '分配规则', roles: ['SUPERVISOR', 'ADMIN'] },
       { href: '/dashboard/users', label: '用户管理', roles: ['SUPERVISOR', 'ADMIN'] },
+      { href: '/dashboard/settings', label: '系统设置', roles: ['SUPERVISOR', 'ADMIN'] },
       { href: '/dashboard/notifications', label: '通知中心', roles: ['EMPLOYEE', 'TECHNICIAN', 'SUPERVISOR', 'ADMIN'] },
     ];
 

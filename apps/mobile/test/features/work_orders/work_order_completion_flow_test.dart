@@ -4,11 +4,13 @@ import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:provider/provider.dart';
 
-import '../../../lib/features/work_orders/work_order_detail_screen.dart';
-import '../../../lib/features/work_orders/work_order_completion_screen.dart';
-import '../../../lib/shared/models/work_order.dart';
-import '../../../lib/shared/services/work_order_service.dart';
-import '../../../lib/shared/providers/auth_provider.dart';
+import 'package:emaintenance_mobile/features/work_orders/work_order_detail_screen.dart';
+import 'package:emaintenance_mobile/features/work_orders/work_order_completion_screen.dart';
+import 'package:emaintenance_mobile/shared/models/work_order.dart';
+import 'package:emaintenance_mobile/shared/models/user.dart';
+import 'package:emaintenance_mobile/shared/models/asset.dart';
+import 'package:emaintenance_mobile/shared/services/work_order_service.dart';
+import 'package:emaintenance_mobile/shared/providers/auth_provider.dart';
 
 import 'work_order_completion_flow_test.mocks.dart';
 
@@ -28,9 +30,13 @@ void main() {
   // Test data
   final testUser = User(
     id: 'user1',
+    email: 'john.doe@example.com',
+    username: 'john.doe',
     firstName: 'John',
     lastName: 'Doe',
-    email: 'john.doe@example.com',
+    role: UserRole.technician,
+    isActive: true,
+    createdAt: DateTime.now(),
   );
 
   final testAsset = Asset(
@@ -38,6 +44,9 @@ void main() {
     assetCode: 'A001',
     name: 'Test Equipment',
     location: 'Building A',
+    isActive: true,
+    createdAt: DateTime.now(),
+    updatedAt: DateTime.now(),
   );
 
   final testWorkOrder = WorkOrderWithRelations(
@@ -91,9 +100,13 @@ void main() {
       // Arrange
       final nonAssignedUser = User(
         id: 'user2',
+        email: 'jane.smith@example.com',
+        username: 'jane.smith',
         firstName: 'Jane',
         lastName: 'Smith',
-        email: 'jane.smith@example.com',
+        role: UserRole.technician,
+        isActive: true,
+        createdAt: DateTime.now(),
       );
       
       when(mockAuthProvider.user).thenReturn(nonAssignedUser);

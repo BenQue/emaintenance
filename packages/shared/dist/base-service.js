@@ -63,7 +63,7 @@ class BaseService {
         });
     }
     setupErrorHandling() {
-        this.app.use((err, req, res, next) => {
+        this.app.use((err, req, res, _next) => {
             console.error(`[${new Date().toISOString()}] Error in ${this.config.serviceName}:`, err.message);
             res.status(500).json({
                 error: 'Internal Server Error',

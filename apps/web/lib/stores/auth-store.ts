@@ -77,7 +77,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true }); // Set loading state immediately
     
     const token = authService.getToken();
-    if (token && !authService.isTokenExpired(token)) {
+    if (token && await authService.validateToken()) {
       try {
         // Fetch complete user profile from server instead of relying on JWT payload
         const user = await authService.fetchProfile();

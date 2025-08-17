@@ -10,7 +10,8 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
+    /* BizLink primary brand color - #1E88E5 converted to HSL */
+    --primary: 207 82% 51%;
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96%;
     --secondary-foreground: 222.2 84% 4.9%;
@@ -18,12 +19,41 @@
     --muted-foreground: 215.4 16.3% 46.9%;
     --accent: 210 40% 96%;
     --accent-foreground: 222.2 84% 4.9%;
-    --destructive: 0 84.2% 60.2%;
+    /* Functional error color - #C62828 converted to HSL */
+    --destructive: 0 71% 47%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    /* BizLink ring color using primary */
+    --ring: 207 82% 51%;
     --radius: 0.5rem;
+    
+    /* BizLink brand color variables */
+    --bizlink-primary: 207 82% 51%; /* #1E88E5 */
+    --bizlink-primary-light: 207 82% 61%; /* #42A5F5 */
+    --bizlink-primary-dark: 208 85% 38%; /* #1565C0 */
+    --functional-success: 145 44% 24%; /* #2E7D32 */
+    --functional-warning: 32 100% 48%; /* #F57C00 */
+    --functional-error: 0 71% 47%; /* #C62828 */
+    --functional-info: 187 100% 33%; /* #0097A7 */
+    
+    /* Chart color variables for BizLink brand */
+    --chart-1: 207 82% 51%; /* BizLink primary blue #1E88E5 */
+    --chart-2: 207 82% 61%; /* BizLink light blue #42A5F5 */
+    --chart-3: 208 85% 38%; /* BizLink dark blue #1565C0 */
+    --chart-4: 145 44% 24%; /* Success green #2E7D32 */
+    --chart-5: 32 100% 48%; /* Warning orange #F57C00 */
+    --chart-6: 187 100% 33%; /* Info cyan #0097A7 */
+    
+    /* Sidebar component variables */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 207 82% 51%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 207 82% 51%;
   }
 
   .dark {
@@ -33,7 +63,8 @@
     --card-foreground: 210 40% 98%;
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
+    /* BizLink primary color adjusted for dark mode */
+    --primary: 207 82% 61%;
     --primary-foreground: 222.2 84% 4.9%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -41,11 +72,39 @@
     --muted-foreground: 215 20.2% 65.1%;
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
+    /* Functional error color for dark mode */
+    --destructive: 0 71% 57%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 94.1%;
+    --border: 240 3.7% 25%;
+    --input: 240 3.7% 25%;
+    --ring: 207 82% 61%;
+    
+    /* BizLink brand colors for dark mode */
+    --bizlink-primary: 207 82% 61%; /* Lighter for dark background */
+    --bizlink-primary-light: 207 82% 71%;
+    --bizlink-primary-dark: 208 85% 48%;
+    --functional-success: 145 44% 34%; /* Adjusted for dark mode */
+    --functional-warning: 32 100% 58%;
+    --functional-error: 0 71% 57%;
+    --functional-info: 187 100% 43%;
+    
+    /* Chart color variables for dark mode */
+    --chart-1: 207 82% 61%; /* BizLink primary blue (lighter for dark) */
+    --chart-2: 207 82% 71%; /* BizLink light blue */
+    --chart-3: 208 85% 48%; /* BizLink dark blue */
+    --chart-4: 145 44% 34%; /* Success green (adjusted) */
+    --chart-5: 32 100% 58%; /* Warning orange (adjusted) */
+    --chart-6: 187 100% 43%; /* Info cyan (adjusted) */
+    
+    /* Sidebar component variables for dark mode */
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 207 82% 61%;
+    --sidebar-primary-foreground: 240 5.9% 10%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 207 82% 61%;
   }
 }
 
@@ -74,3 +133,47 @@ body {
 }
 
 /* Legacy styles removed - now using Tailwind CSS utility classes */
+
+
+@layer utilities {
+  /* BizLink brand utility classes */
+  .text-bizlink-primary {
+    color: hsl(var(--bizlink-primary));
+  }
+  
+  .bg-bizlink-primary {
+    background-color: hsl(var(--bizlink-primary));
+  }
+  
+  .text-functional-success {
+    color: hsl(var(--functional-success));
+  }
+  
+  .text-functional-warning {
+    color: hsl(var(--functional-warning));
+  }
+  
+  .text-functional-error {
+    color: hsl(var(--functional-error));
+  }
+  
+  .text-functional-info {
+    color: hsl(var(--functional-info));
+  }
+  
+  .bg-functional-success {
+    background-color: hsl(var(--functional-success));
+  }
+  
+  .bg-functional-warning {
+    background-color: hsl(var(--functional-warning));
+  }
+  
+  .bg-functional-error {
+    background-color: hsl(var(--functional-error));
+  }
+  
+  .bg-functional-info {
+    background-color: hsl(var(--functional-info));
+  }
+}

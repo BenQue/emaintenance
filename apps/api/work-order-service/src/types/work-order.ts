@@ -9,6 +9,9 @@ export interface CreateWorkOrderRequest {
   priority: Priority;
   assetId: string;
   attachments?: string[];
+  // New fields for integrated categories and reasons
+  categoryId?: string;
+  reasonId?: string;
 }
 
 export interface UpdateWorkOrderRequest {

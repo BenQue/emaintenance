@@ -114,6 +114,27 @@ export const bulkAssetOperationSchema = z.object({
   operation: z.enum(['activate', 'deactivate', 'delete']),
 });
 
+// Master Data validation schemas
+export const masterDataCreateSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters'),
+  description: z.string().max(500, 'Description must be less than 500 characters').optional(),
+  level: z.number().int().min(1).max(10).optional(), // For priority levels
+});
+
+export const masterDataUpdateSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(100, 'Name must be less than 100 characters').optional(),
+  description: z.string().max(500, 'Description must be less than 500 characters').optional(),
+  isActive: z.boolean().optional(),
+  level: z.number().int().min(1).max(10).optional(), // For priority levels
+});
+
+export const masterDataListQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).optional().default(1),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(20),
+  search: z.string().optional(),
+  isActive: z.coerce.boolean().optional(),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type CreateAssetInput = z.infer<typeof createAssetSchema>;
@@ -129,3 +150,6 @@ export type BulkUserOperationInput = z.infer<typeof bulkUserOperationSchema>;
 export type UpdateAssetOwnershipInput = z.infer<typeof updateAssetOwnershipSchema>;
 export type UpdateAssetStatusInput = z.infer<typeof updateAssetStatusSchema>;
 export type BulkAssetOperationInput = z.infer<typeof bulkAssetOperationSchema>;
+export type MasterDataCreateInput = z.infer<typeof masterDataCreateSchema>;
+export type MasterDataUpdateInput = z.infer<typeof masterDataUpdateSchema>;
+export type MasterDataListQueryInput = z.infer<typeof masterDataListQuerySchema>;

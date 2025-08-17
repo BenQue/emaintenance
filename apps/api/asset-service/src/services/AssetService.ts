@@ -406,7 +406,7 @@ export class AssetService {
         orderBy: { location: 'asc' }
       });
 
-      const uniqueLocations = locations.map(item => item.location);
+      const uniqueLocations = locations.map(item => item.location).filter((location): location is string => location !== null);
 
       logger.debug('Unique locations retrieved via service', {
         count: uniqueLocations.length
@@ -456,7 +456,9 @@ export class AssetService {
 
       const byLocation: Record<string, number> = {};
       locationStats.forEach(stat => {
-        byLocation[stat.location] = stat._count.location;
+        if (stat.location) {
+          byLocation[stat.location] = stat._count.location;
+        }
       });
 
       const byManufacturer: Record<string, number> = {};

@@ -5,6 +5,9 @@ import { Search, Filter, X } from 'lucide-react';
 import { WorkOrderStatus, Priority, WorkOrderStatusLabels, PriorityLabels } from '../../lib/types/work-order';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Label } from '../ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { DatePicker } from '../ui/date-picker';
 
 interface WorkOrderFiltersProps {
   onFilterChange: (filters: {
@@ -88,56 +91,64 @@ export function WorkOrderFilters({ onFilterChange, onClearFilters }: WorkOrderFi
           </div>
 
           {/* Status Filter */}
-          <div>
-            <select
-              value={filters.status}
-              onChange={(e) => handleFilterChange('status', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          <div className="space-y-2">
+            <Label>状态</Label>
+            <Select
+              value={filters.status || 'ALL'}
+              onValueChange={(value: string) => handleFilterChange('status', value === 'ALL' ? '' : value)}
             >
-              <option value="">所有状态</option>
-              {Object.entries(WorkOrderStatusLabels).map(([status, label]) => (
-                <option key={status} value={status}>
-                  {label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder="所有状态" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">所有状态</SelectItem>
+                {Object.entries(WorkOrderStatusLabels).map(([status, label]) => (
+                  <SelectItem key={status} value={status}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Priority Filter */}
-          <div>
-            <select
-              value={filters.priority}
-              onChange={(e) => handleFilterChange('priority', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          <div className="space-y-2">
+            <Label>优先级</Label>
+            <Select
+              value={filters.priority || 'ALL'}
+              onValueChange={(value: string) => handleFilterChange('priority', value === 'ALL' ? '' : value)}
             >
-              <option value="">所有优先级</option>
-              {Object.entries(PriorityLabels).map(([priority, label]) => (
-                <option key={priority} value={priority}>
-                  {label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger>
+                <SelectValue placeholder="所有优先级" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ALL">所有优先级</SelectItem>
+                {Object.entries(PriorityLabels).map(([priority, label]) => (
+                  <SelectItem key={priority} value={priority}>
+                    {label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Start Date */}
-          <div>
-            <input
-              type="date"
-              value={filters.startDate}
-              onChange={(e) => handleFilterChange('startDate', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="开始日期"
+          <div className="space-y-2">
+            <Label>开始日期</Label>
+            <DatePicker
+              value={filters.startDate ? new Date(filters.startDate) : undefined}
+              onChange={(date) => handleFilterChange('startDate', date ? date.toISOString().split('T')[0] : '')}
+              placeholder="选择开始日期"
             />
           </div>
 
           {/* End Date */}
-          <div>
-            <input
-              type="date"
-              value={filters.endDate}
-              onChange={(e) => handleFilterChange('endDate', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="结束日期"
+          <div className="space-y-2">
+            <Label>结束日期</Label>
+            <DatePicker
+              value={filters.endDate ? new Date(filters.endDate) : undefined}
+              onChange={(date) => handleFilterChange('endDate', date ? date.toISOString().split('T')[0] : '')}
+              placeholder="选择结束日期"
             />
           </div>
         </div>

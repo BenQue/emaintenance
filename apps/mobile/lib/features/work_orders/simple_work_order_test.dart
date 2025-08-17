@@ -51,13 +51,10 @@ class _SimpleWorkOrderTestState extends State<SimpleWorkOrderTest> {
   @override
   void initState() {
     super.initState();
-    print('SimpleWorkOrderTest: initState called');
-    print('SimpleWorkOrderTest: Asset data: ${widget.asset?.name}');
   }
 
   @override
   void dispose() {
-    print('SimpleWorkOrderTest: dispose called');
     _titleController.dispose();
     _descriptionController.dispose();
     super.dispose();

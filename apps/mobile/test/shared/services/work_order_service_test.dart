@@ -1,8 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:emaintenance_mobile/shared/services/work_order_service.dart';
 import 'package:emaintenance_mobile/shared/models/work_order.dart';
-import 'package:emaintenance_mobile/shared/models/user.dart';
-import 'package:emaintenance_mobile/shared/models/asset.dart';
 import 'package:dio/dio.dart';
 
 // Mock ApiClient for testing offline behavior
@@ -264,13 +262,12 @@ class MockApiClient {
 }
 
 // Enhanced WorkOrderService with offline support
-class TestableWorkOrderService extends WorkOrderService {
+class TestableWorkOrderService {
   final MockApiClient _mockApiClient;
   
   TestableWorkOrderService(this._mockApiClient);
   
-  // Override to use mock client
-  @override
+  // Use mock client
   Future<PaginatedWorkOrders> getAssignedWorkOrders({
     int page = 1,
     int limit = 20,
@@ -306,7 +303,6 @@ class TestableWorkOrderService extends WorkOrderService {
     }
   }
 
-  @override
   Future<WorkOrderWithRelations> getWorkOrderWithHistory(String workOrderId) async {
     try {
       final response = await _mockApiClient.get<Map<String, dynamic>>(
@@ -337,7 +333,6 @@ class TestableWorkOrderService extends WorkOrderService {
     }
   }
 
-  @override
   Future<WorkOrderWithRelations> updateWorkOrderStatus(
     String workOrderId,
     UpdateWorkOrderStatusRequest request,
@@ -363,39 +358,9 @@ class TestableWorkOrderService extends WorkOrderService {
     }
   }
 
-  // Implement other required methods with basic implementations
-  @override
-  Future<WorkOrder> createWorkOrder(WorkOrderRequest request) async {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<WorkOrder> getWorkOrder(String workOrderId) async {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<PaginatedWorkOrders> getUserWorkOrders({
-    String type = 'assigned',
-    int page = 1,
-    int limit = 20,
-  }) async {
-    throw UnimplementedError();
-  }
-
-  @override
+  // Additional methods for testing
   Future<List<WorkOrderStatusHistory>> getWorkOrderStatusHistory(String workOrderId) async {
     return [];
-  }
-
-  @override
-  Future<WorkOrder> updateWorkOrder(String workOrderId, Map<String, dynamic> updates) async {
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<String> uploadAttachment(String workOrderId, String filePath) async {
-    throw UnimplementedError();
   }
 }
 

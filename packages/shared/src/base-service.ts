@@ -12,7 +12,7 @@ export interface ServiceConfig {
 export abstract class BaseService {
   protected app: Application;
   protected config: ServiceConfig;
-  private server?: any;
+  private server?: import('http').Server;
 
   constructor(config: ServiceConfig) {
     this.app = express();
@@ -75,7 +75,7 @@ export abstract class BaseService {
   }
 
   private setupErrorHandling(): void {
-    this.app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+    this.app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
       console.error(`[${new Date().toISOString()}] Error in ${this.config.serviceName}:`, err.message);
       
       res.status(500).json({

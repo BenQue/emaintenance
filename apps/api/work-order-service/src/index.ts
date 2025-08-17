@@ -17,7 +17,7 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 // General rate limiter for most operations (viewing, listing)
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: isDevelopment ? 10000 : 1000, // High limit for viewing operations
+  max: isDevelopment ? 50000 : 1000, // Very high limit for development viewing operations
   message: {
     error: 'Too many requests from this IP, please try again later.',
     retryAfter: Math.ceil(15 * 60 * 1000 / 1000),
@@ -41,8 +41,10 @@ const strictLimiter = rateLimit({
 // Middleware
 app.use(helmet());
 app.use(cors());
-// Apply general rate limiter to all routes by default
-app.use(generalLimiter);
+// Apply general rate limiter to all routes by default (production only)
+if (process.env.NODE_ENV === 'production') {
+  app.use(generalLimiter);
+}
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 

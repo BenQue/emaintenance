@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../../../lib/features/work_orders/work_order_completion_screen.dart';
 import '../../../lib/shared/models/work_order.dart';
 import '../../../lib/shared/models/user.dart';
+import '../../../lib/shared/models/asset.dart';
 import '../../../lib/shared/services/work_order_service.dart';
 import '../../../lib/shared/services/offline_storage_service.dart';
 import '../../../lib/shared/providers/auth_provider.dart';
@@ -46,6 +47,9 @@ void main() {
     assetCode: 'A001',
     name: 'Test Equipment',
     location: 'Building A',
+    isActive: true,
+    createdAt: DateTime.now(),
+    updatedAt: DateTime.now(),
   );
 
   final testWorkOrder = WorkOrderWithRelations(

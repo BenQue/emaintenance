@@ -98,18 +98,40 @@ class AuthService {
     this.removeToken();
   }
 
-  isTokenExpired(token: string): boolean {
+  async validateToken(): Promise<boolean> {
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.exp * 1000 < Date.now();
-    } catch {
-      return true;
+      const token = this.getToken();
+      if (!token) return false;
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/auth/validate`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        this.removeToken(); // Clear invalid token
+        return false;
+      }
+
+      const data = await response.json();
+      return data.success && data.data?.valid === true;
+    } catch (error) {
+      this.removeToken(); // Clear token on error
+      return false;
     }
   }
 
   isAuthenticated(): boolean {
     const token = this.getToken();
-    return token !== null && !this.isTokenExpired(token);
+    return token !== null;
+  }
+
+  // For immediate UI checks - use validateToken() for definitive validation
+  async isAuthenticatedAsync(): Promise<boolean> {
+    return await this.validateToken();
   }
 
   async fetchProfile(): Promise<LoginResponse['user']> {

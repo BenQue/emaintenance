@@ -28,7 +28,6 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
 
   Future<void> _initializeScanner() async {
     try {
-      print('QRScanner: Starting initialization...');
       
       setState(() {
         _hasPermission = false;
@@ -37,11 +36,9 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       
       // 首先检查权限状态
       final status = await Permission.camera.status;
-      print('QRScanner: Current permission status: $status');
       
       if (status.isGranted) {
         // 权限已授予，直接初始化 MobileScanner
-        print('QRScanner: Permission already granted, initializing MobileScanner directly...');
         _controller = MobileScannerController();
         setState(() {
           _hasPermission = true;
@@ -51,9 +48,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       }
       
       // 权限未授予，使用直接相机访问来触发权限对话框
-      print('QRScanner: Permission not granted, trying direct camera access...');
       final cameras = await availableCameras();
-      print('QRScanner: Found ${cameras.length} cameras');
       
       if (cameras.isEmpty) {
         setState(() {
@@ -64,7 +59,6 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       }
       
       // 快速测试相机访问权限
-      print('QRScanner: Quick camera access test...');
       final testController = CameraController(
         cameras.first,
         ResolutionPreset.low, // 使用低分辨率加快初始化
@@ -72,7 +66,6 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       
       try {
         await testController.initialize();
-        print('QRScanner: Camera access successful');
         await testController.dispose();
         
         // 权限成功后直接初始化 MobileScanner
@@ -83,7 +76,6 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
         });
         
       } catch (cameraError) {
-        print('QRScanner: Camera access failed: $cameraError');
         await testController.dispose();
         
         setState(() {
@@ -93,7 +85,6 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
       }
       
     } catch (e) {
-      print('QRScanner: Error initializing scanner: $e');
       setState(() {
         _hasPermission = false;
         _errorMessage = '初始化扫描器失败: ${e.toString()}';
@@ -106,7 +97,6 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     try {
       _controller?.dispose();
     } catch (e) {
-      print('Error disposing scanner controller: $e');
     }
     super.dispose();
   }
@@ -136,7 +126,6 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
             Navigator.of(context).pop(asset);
           }
         } catch (e) {
-          print('QRScanner: 扫码错误详情: $e');
           if (mounted) {
             String errorMessage = '无法找到设备: $assetCode';
             if (e is ApiException) {
@@ -198,7 +187,6 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
         await _controller?.start();
       }
     } catch (e) {
-      print('Manual input error: $e');
       // 发生错误，重启扫描器
       await _controller?.start();
       
@@ -432,9 +420,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                     });
 
                     try {
-                      print('重新请求: 直接获取相机列表...');
                       final cameras = await availableCameras();
-                      print('重新请求: 找到 ${cameras.length} 个相机');
                       
                       if (cameras.isEmpty) {
                         setState(() {
@@ -450,14 +436,12 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
                       );
 
                       await testController.initialize();
-                      print('重新请求: 相机控制器初始化成功！');
                       await testController.dispose();
 
                       // 成功后重新初始化扫描器
                       await _initializeScanner();
                       
                     } catch (e) {
-                      print('重新请求: 相机访问错误: $e');
                       setState(() {
                         _errorMessage = '相机权限被拒绝。如果刚才弹出了权限对话框，请点击"允许"。';
                       });

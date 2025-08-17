@@ -13,7 +13,8 @@ import {
   ChevronRight,
   AlertCircle
 } from 'lucide-react';
-import { AssetMaintenanceHistory, MaintenanceHistoryItem, FaultCodeLabels } from '../../lib/types/work-order';
+import { AssetMaintenanceHistory, FaultCodeLabels } from '../../lib/types/work-order';
+import type { MaintenanceHistoryItem } from '../../lib/types/work-order';
 import { workOrderService } from '../../lib/services/work-order-service';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Badge } from '../ui/badge';

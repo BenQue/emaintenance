@@ -57,7 +57,14 @@ export function WorkOrderManagement() {
       setIsExporting(true);
       setError(null);
       
-      await workOrderService.exportWorkOrdersCSV(filters);
+      // Filter out 'ALL' values before sending to backend
+      const exportFilters = Object.fromEntries(
+        Object.entries(filters).filter(([_, value]) => 
+          value !== undefined && value !== '' && value !== 'ALL'
+        )
+      );
+      
+      await workOrderService.exportWorkOrdersCSV(exportFilters);
     } catch (error) {
       console.error('Export failed:', error);
       setError('导出失败，请重试');
@@ -88,39 +95,46 @@ export function WorkOrderManagement() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6 space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">工单管理</h1>
-          <p className="text-gray-600 mt-2">
-            查看、筛选和管理所有工单
-          </p>
+    <div className="flex flex-1 flex-col">
+      {/* Page Header */}
+      <div className="flex flex-col gap-4 p-4 md:gap-8 md:p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-2">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">工单管理</h1>
+              <p className="text-muted-foreground">
+                查看、筛选和管理所有工单
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={handleCreateClick}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-4 py-2 rounded-md font-medium flex items-center gap-2 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              创建工单
+            </button>
+          </div>
         </div>
-        <div>
-          <button 
-            onClick={handleCreateClick}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-medium flex items-center gap-2 transition-colors"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            创建工单
-          </button>
+
+        {/* Page Content */}
+        <div className="space-y-6">
+          {/* Filters */}
+          <WorkOrderFilters 
+            onFiltersChange={handleFiltersChange}
+            onExport={handleExport}
+          />
+
+          {/* Work Orders List */}
+          <AdvancedWorkOrderList
+            filters={filters}
+            onWorkOrderClick={handleWorkOrderClick}
+          />
         </div>
       </div>
-
-      {/* Filters */}
-      <WorkOrderFilters 
-        onFiltersChange={handleFiltersChange}
-        onExport={handleExport}
-      />
-
-      {/* Work Orders List */}
-      <AdvancedWorkOrderList
-        filters={filters}
-        onWorkOrderClick={handleWorkOrderClick}
-      />
 
       {/* Export Loading Overlay */}
       {isExporting && (
