@@ -5,7 +5,6 @@ class MinimalTestScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('MinimalTestScreen: build() called');
     
     return Scaffold(
       appBar: AppBar(

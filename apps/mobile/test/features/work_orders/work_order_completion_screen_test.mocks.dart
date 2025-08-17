@@ -215,6 +215,56 @@ class MockWorkOrderService extends _i1.Mock implements _i3.WorkOrderService {
           as _i4.Future<String>);
 
   @override
+  _i4.Future<Map<String, dynamic>> uploadWorkOrderPhotos(
+    String? workOrderId,
+    List<String>? photoPaths,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#uploadWorkOrderPhotos, [
+              workOrderId,
+              photoPaths,
+            ]),
+            returnValue: _i4.Future<Map<String, dynamic>>.value(
+              <String, dynamic>{},
+            ),
+          )
+          as _i4.Future<Map<String, dynamic>>);
+
+  @override
+  _i4.Future<List<Map<String, dynamic>>> getWorkOrderPhotos(
+    String? workOrderId,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#getWorkOrderPhotos, [workOrderId]),
+            returnValue: _i4.Future<List<Map<String, dynamic>>>.value(
+              <Map<String, dynamic>>[],
+            ),
+          )
+          as _i4.Future<List<Map<String, dynamic>>>);
+
+  @override
+  String getPhotoUrl(String? workOrderId, String? photoId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getPhotoUrl, [workOrderId, photoId]),
+            returnValue: _i5.dummyValue<String>(
+              this,
+              Invocation.method(#getPhotoUrl, [workOrderId, photoId]),
+            ),
+          )
+          as String);
+
+  @override
+  String getThumbnailUrl(String? workOrderId, String? photoId) =>
+      (super.noSuchMethod(
+            Invocation.method(#getThumbnailUrl, [workOrderId, photoId]),
+            returnValue: _i5.dummyValue<String>(
+              this,
+              Invocation.method(#getThumbnailUrl, [workOrderId, photoId]),
+            ),
+          )
+          as String);
+
+  @override
   _i4.Future<_i2.WorkOrderWithResolution> completeWorkOrder(
     String? workOrderId,
     _i2.CreateResolutionRequest? request,
@@ -453,9 +503,15 @@ class MockAuthProvider extends _i1.Mock implements _i7.AuthProvider {
           as _i4.Future<void>);
 
   @override
-  _i4.Future<bool> login({required String? email, required String? password}) =>
+  _i4.Future<bool> login({
+    required String? identifier,
+    required String? password,
+  }) =>
       (super.noSuchMethod(
-            Invocation.method(#login, [], {#email: email, #password: password}),
+            Invocation.method(#login, [], {
+              #identifier: identifier,
+              #password: password,
+            }),
             returnValue: _i4.Future<bool>.value(false),
           )
           as _i4.Future<bool>);

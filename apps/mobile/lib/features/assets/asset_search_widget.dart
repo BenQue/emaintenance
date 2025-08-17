@@ -245,7 +245,6 @@ class _AssetSearchWidgetState extends State<AssetSearchWidget> {
       }
       
     } catch (e) {
-      print('AssetSearchWidget: 搜索失败: $e');
       setState(() {
         suggestions.clear();
         showSuggestions = true;

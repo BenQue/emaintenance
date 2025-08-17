@@ -26,13 +26,11 @@ class _PhotoCaptureScreenState extends State<PhotoCaptureScreen> {
   }
 
   Future<void> _initializeCamera() async {
-    print('PhotoCapture: 开始初始化相机...');
     
     try {
       // 使用和QR扫描器相同的权限处理方式：直接调用availableCameras
       // 这会自动触发权限请求对话框（如果需要的话）
       _cameras = await availableCameras();
-      print('PhotoCapture: 找到 ${_cameras!.length} 个相机');
       
       if (_cameras!.isEmpty) {
         setState(() {
@@ -48,20 +46,16 @@ class _PhotoCaptureScreenState extends State<PhotoCaptureScreen> {
         ResolutionPreset.high,
       );
       
-      print('PhotoCapture: 正在初始化相机控制器...');
       await _cameraController!.initialize();
-      print('PhotoCapture: 相机控制器初始化成功');
       
       if (mounted) {
         setState(() {
           _hasPermission = true;
           _isCameraInitialized = true;
         });
-        print('PhotoCapture: 相机初始化完成，可以使用');
       }
       
     } catch (e) {
-      print('PhotoCapture: 相机初始化失败: $e');
       setState(() {
         _hasPermission = false;
         _errorMessage = '相机初始化失败: $e';
@@ -316,11 +310,9 @@ class _PhotoCaptureScreenState extends State<PhotoCaptureScreen> {
   }
 
   Future<void> _testCameraPermission() async {
-    print('PhotoCapture: 测试相机权限...');
     try {
       // 使用和QR扫描器完全相同的权限测试方式
       final cameras = await availableCameras();
-      print('PhotoCapture: 权限测试成功，找到 ${cameras.length} 个相机');
       
       if (cameras.isNotEmpty) {
         // 创建一个临时的相机控制器来测试
@@ -328,7 +320,6 @@ class _PhotoCaptureScreenState extends State<PhotoCaptureScreen> {
         await testController.initialize();
         await testController.dispose();
         
-        print('PhotoCapture: 权限测试完成，重新初始化相机...');
         
         // 权限获取成功，重新初始化相机
         setState(() {
@@ -339,7 +330,6 @@ class _PhotoCaptureScreenState extends State<PhotoCaptureScreen> {
         _initializeCamera();
       }
     } catch (e) {
-      print('PhotoCapture: 权限测试失败: $e');
       setState(() {
         _errorMessage = '相机权限测试失败: $e';
       });

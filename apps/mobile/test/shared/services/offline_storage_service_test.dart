@@ -4,10 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:path_provider/path_provider.dart';
 
-import '../../../lib/shared/services/offline_storage_service.dart';
-import '../../../lib/shared/models/work_order.dart';
+import 'package:emaintenance_mobile/shared/services/offline_storage_service.dart';
+import 'package:emaintenance_mobile/shared/models/work_order.dart';
 
 // Mock shared_preferences since it's a Flutter plugin
 class MockSharedPreferences extends Mock implements SharedPreferences {}
