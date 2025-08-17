@@ -41,8 +41,10 @@ const strictLimiter = rateLimit({
 // Middleware
 app.use(helmet());
 app.use(cors());
-// Apply general rate limiter to all routes by default
-app.use(generalLimiter);
+// Apply general rate limiter to all routes by default (production only)
+if (process.env.NODE_ENV === 'production') {
+  app.use(generalLimiter);
+}
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
