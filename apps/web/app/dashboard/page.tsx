@@ -3,16 +3,35 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '../../lib/stores/auth-store';
-import { KPIChartAreaInteractive } from "@/components/kpi/kpi-chart-area-interactive";
 import { KPIDataTable } from "@/components/kpi/kpi-data-table";
 import { KPISectionCards } from "@/components/kpi/kpi-section-cards";
+import { DashboardSettings } from "@/components/kpi/DashboardSettings";
+import { WorkOrderMetrics } from "@/components/kpi/WorkOrderMetrics";
+import { TimeMetrics } from "@/components/kpi/TimeMetrics";
+import { AssetMetrics } from "@/components/kpi/AssetMetrics";
+import { useDashboardSettingsStore } from "@/lib/stores/dashboard-settings-store";
+import { useKPIDataStore } from "@/lib/stores/kpi-data-store";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
-import { RefreshCwIcon, SettingsIcon } from "lucide-react";
+import { RefreshCwIcon, SettingsIcon, DownloadIcon } from "lucide-react";
 
 export default function DashboardPage() {
   const router = useRouter();
   const { user, isLoading } = useAuthStore();
+  const { settings } = useDashboardSettingsStore();
+  const {
+    workOrderKPI,
+    timeKPI,
+    assetKPI,
+    workOrderLoading,
+    timeLoading,
+    assetLoading,
+    workOrderError,
+    timeError,
+    assetError,
+    loadAllKPI,
+    refreshKPI,
+  } = useKPIDataStore();
   const [refreshKey, setRefreshKey] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -31,20 +50,36 @@ export default function DashboardPage() {
     }
   }, [user, isLoading, router]);
 
+  // Load KPI data on component mount
+  useEffect(() => {
+    loadAllKPI();
+  }, [loadAllKPI]);
+
+  // Auto-refresh data every 30 seconds when detailed charts are visible
+  useEffect(() => {
+    const hasDetailedChartsVisible = settings.showWorkOrderMetrics || settings.showTimeMetrics || settings.showAssetMetrics;
+    
+    if (!hasDetailedChartsVisible) return;
+
+    const interval = setInterval(() => {
+      refreshKPI();
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [settings.showWorkOrderMetrics, settings.showTimeMetrics, settings.showAssetMetrics, refreshKPI]);
+
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     // Trigger refresh by updating key which will cause child components to remount
     setRefreshKey(prev => prev + 1);
+    // Also refresh KPI data
+    await refreshKPI();
     // Add a small delay to show the loading state
     setTimeout(() => {
       setIsRefreshing(false);
     }, 1000);
-  }, []);
+  }, [refreshKPI]);
 
-  const handleSettings = useCallback(() => {
-    // Navigate to dashboard settings or open settings modal
-    console.log('Dashboard settings clicked');
-  }, []);
 
   if (isLoading) {
     return (
@@ -80,23 +115,56 @@ export default function DashboardPage() {
               <RefreshCwIcon className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               刷新数据
             </Button>
-            <Button variant="outline" size="sm" onClick={handleSettings}>
-              <SettingsIcon className="mr-2 h-4 w-4" />
-              仪表板设置
+            <Button variant="outline" size="sm">
+              <DownloadIcon className="mr-2 h-4 w-4" />
+              导出报告
             </Button>
+            <DashboardSettings />
           </div>
         </div>
+      </div>
 
-        {/* Dashboard Content */}
-        <div className="@container/main flex flex-1 flex-col gap-2">
-          <div className="flex flex-col gap-4 md:gap-6">
-            <KPISectionCards key={`cards-${refreshKey}`} />
-            <div className="px-0">
-              <KPIChartAreaInteractive key={`chart-${refreshKey}`} />
-            </div>
-            <KPIDataTable key={`table-${refreshKey}`} />
-          </div>
-        </div>
+      {/* Dashboard Content */}
+      <div className="flex flex-1 flex-col gap-4 px-4 pb-4 md:gap-6 md:px-6 md:pb-6">
+        {/* Modern Dashboard Components */}
+        {settings.showModernKPICards && <KPISectionCards key={`cards-${refreshKey}`} />}
+        {settings.showDataTable && <KPIDataTable key={`table-${refreshKey}`} />}
+
+        {/* Detailed Chart Modules from Story 3.1 */}
+        {settings.showWorkOrderMetrics && (
+          <WorkOrderMetrics
+            statistics={workOrderKPI?.statistics || {
+              total: 0,
+              byStatus: {},
+              byPriority: {},
+              averageResolutionTime: null
+            }}
+            trends={workOrderKPI?.trends}
+            loading={workOrderLoading}
+            error={workOrderError || undefined}
+          />
+        )}
+        
+        {settings.showTimeMetrics && (
+          <TimeMetrics
+            mttrData={timeKPI?.mttrData}
+            resolutionTimeData={timeKPI?.resolutionTimeData}
+            averageResponseTime={timeKPI?.averageResponseTime}
+            loading={timeLoading}
+            error={timeError || undefined}
+          />
+        )}
+        
+        {settings.showAssetMetrics && (
+          <AssetMetrics
+            downtimeRanking={assetKPI?.downtimeRanking}
+            faultFrequencyRanking={assetKPI?.faultFrequencyRanking}
+            maintenanceCostAnalysis={assetKPI?.maintenanceCostAnalysis}
+            healthOverview={assetKPI?.healthOverview}
+            loading={assetLoading}
+            error={assetError || undefined}
+          />
+        )}
       </div>
     </div>
   );

@@ -1,6 +1,5 @@
 "use client"
 
-import { useState, useEffect } from 'react'
 import { 
   TrendingUpIcon, 
   TrendingDownIcon, 
@@ -18,8 +17,7 @@ import {
 } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
-import { workOrderService } from '@/lib/services/work-order-service'
-import { assetService } from '@/lib/services/asset-service'
+import { useKPIDataStore } from '@/lib/stores/kpi-data-store'
 
 interface KPICard {
   title: string
@@ -89,116 +87,68 @@ function KPIMetricCard({ card }: { card: KPICard }) {
 }
 
 export function KPISectionCards() {
-  const [kpiData, setKpiData] = useState<KPICard[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { 
+    workOrderKPI, 
+    timeKPI, 
+    assetKPI, 
+    workOrderLoading, 
+    timeLoading, 
+    assetLoading 
+  } = useKPIDataStore()
 
-  useEffect(() => {
-    const fetchKPIData = async () => {
-      try {
-        setLoading(true)
-        setError(null)
+  const loading = workOrderLoading || timeLoading || assetLoading
 
-        const filters = { timeRange: 'month' as const }
-        
-        // Fetch data from services
-        const [
-          workOrderStats,
-          mttrData,
-          assetHealthOverview
-        ] = await Promise.all([
-          workOrderService.getStatistics(filters),
-          workOrderService.getMTTRStatistics({ ...filters, granularity: 'week' as const }),
-          assetService.getHealthOverview(filters),
-        ])
-
-        const kpiCards: KPICard[] = [
-          {
-            title: '总工单数',
-            value: workOrderStats?.total || 0,
-            change: workOrderStats?.previousTotal ? {
-              value: Math.round(((workOrderStats.total - workOrderStats.previousTotal) / workOrderStats.previousTotal) * 100),
-              trend: (workOrderStats.total >= workOrderStats.previousTotal) ? 'up' : 'down',
-              period: '较上月'
-            } : undefined,
-            icon: ClipboardListIcon,
-            description: '本月累计工单'
-          },
-          {
-            title: '待处理工单',
-            value: workOrderStats?.pending || 0,
-            change: workOrderStats?.previousPending ? {
-              value: Math.round(((workOrderStats.pending - workOrderStats.previousPending) / workOrderStats.previousPending) * 100),
-              trend: (workOrderStats.pending <= workOrderStats.previousPending) ? 'up' : 'down', // Lower pending is better
-              period: '较上月'
-            } : undefined,
-            icon: AlertTriangleIcon,
-            description: '需要处理的工单'
-          },
-          {
-            title: '平均响应时间',
-            value: mttrData?.average ? `${mttrData.average}小时` : '计算中',
-            change: mttrData?.previousAverage ? {
-              value: Math.round(((mttrData.average - mttrData.previousAverage) / mttrData.previousAverage) * 100),
-              trend: (mttrData.average <= mttrData.previousAverage) ? 'up' : 'down', // Lower response time is better
-              period: '较上月'
-            } : undefined,
-            icon: ClockIcon,
-            description: '工单平均响应时间'
-          },
-          {
-            title: '设备完好率',
-            value: assetHealthOverview?.healthScore ? `${assetHealthOverview.healthScore}%` : '评估中',
-            change: assetHealthOverview?.previousHealthScore ? {
-              value: Math.round(assetHealthOverview.healthScore - assetHealthOverview.previousHealthScore),
-              trend: (assetHealthOverview.healthScore >= assetHealthOverview.previousHealthScore) ? 'up' : 'down',
-              period: '较上月'
-            } : undefined,
-            icon: ServerIcon,
-            description: '设备正常运行比率'
-          }
-        ]
-
-        setKpiData(kpiCards)
-      } catch (err) {
-        console.error('Error fetching KPI data:', err)
-        setError(err instanceof Error ? err.message : 'Unknown error occurred')
-        
-        // Set default data on error
-        const defaultCards: KPICard[] = [
-          {
-            title: '总工单数',
-            value: '加载失败',
-            icon: ClipboardListIcon,
-            description: '本月累计工单'
-          },
-          {
-            title: '待处理工单',
-            value: '加载失败',
-            icon: AlertTriangleIcon,
-            description: '需要处理的工单'
-          },
-          {
-            title: '平均响应时间',
-            value: '加载失败',
-            icon: ClockIcon,
-            description: '工单平均响应时间'
-          },
-          {
-            title: '设备完好率',
-            value: '加载失败',
-            icon: ServerIcon,
-            description: '设备正常运行比率'
-          }
-        ]
-        setKpiData(defaultCards)
-      } finally {
-        setLoading(false)
-      }
+  // Helper function to format time values
+  const formatTime = (hours: number): string => {
+    if (hours < 1) {
+      return `${Math.round(hours * 60)} 分钟`;
+    } else if (hours < 24) {
+      return `${Math.round(hours * 10) / 10} 小时`;
+    } else {
+      const days = Math.floor(hours / 24);
+      const remainingHours = Math.round((hours % 24) * 10) / 10;
+      return `${days} 天 ${remainingHours} 小时`;
     }
+  };
 
-    fetchKPIData()
-  }, [])
+  // Calculate pending work orders from status breakdown
+  const pendingWorkOrders = workOrderKPI?.statistics ? 
+    (workOrderKPI.statistics.byStatus['PENDING'] || 0) + 
+    (workOrderKPI.statistics.byStatus['IN_PROGRESS'] || 0) + 
+    (workOrderKPI.statistics.byStatus['WAITING_PARTS'] || 0) + 
+    (workOrderKPI.statistics.byStatus['WAITING_EXTERNAL'] || 0) : 0
+
+  const kpiCards: KPICard[] = [
+    {
+      title: '总工单数',
+      value: workOrderKPI?.statistics?.total || 0,
+      icon: ClipboardListIcon,
+      description: '累计工单总数',
+      isLoading: workOrderLoading
+    },
+    {
+      title: '待处理工单',
+      value: pendingWorkOrders,
+      icon: AlertTriangleIcon,
+      description: '需要处理的工单',
+      isLoading: workOrderLoading
+    },
+    {
+      title: '平均修复时间 (MTTR)',
+      value: timeKPI?.mttrData?.averageMTTR ? formatTime(timeKPI.mttrData.averageMTTR) : '计算中',
+      icon: ClockIcon,
+      description: '故障修复平均时间',
+      isLoading: timeLoading
+    },
+    {
+      title: '设备完好率',
+      value: assetKPI?.healthOverview?.averageHealthScore ? 
+        `${Math.round(assetKPI.healthOverview.averageHealthScore)}%` : '评估中',
+      icon: ServerIcon,
+      description: '设备健康度评分',
+      isLoading: assetLoading
+    }
+  ]
 
   const loadingCards: KPICard[] = [
     { title: '', value: '', icon: ClipboardListIcon, isLoading: true },
@@ -208,18 +158,16 @@ export function KPISectionCards() {
   ]
 
   return (
-    <div className="px-4 lg:px-6">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {loading ? (
-          loadingCards.map((card, index) => (
-            <KPIMetricCard key={index} card={card} />
-          ))
-        ) : (
-          kpiData.map((card, index) => (
-            <KPIMetricCard key={index} card={card} />
-          ))
-        )}
-      </div>
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {loading ? (
+        loadingCards.map((card, index) => (
+          <KPIMetricCard key={index} card={card} />
+        ))
+      ) : (
+        kpiCards.map((card, index) => (
+          <KPIMetricCard key={index} card={card} />
+        ))
+      )}
     </div>
   )
 }
