@@ -13,7 +13,8 @@ import {
   UserIcon,
   MenuIcon,
   SunIcon,
-  MoonIcon
+  MoonIcon,
+  CogIcon
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
@@ -99,6 +100,12 @@ const navigationData: NavItem[] = [
     label: '用户管理',
     roles: ['SUPERVISOR', 'ADMIN'],
     icon: UsersIcon,
+  },
+  {
+    href: '/dashboard/settings',
+    label: '系统设置',
+    roles: ['SUPERVISOR', 'ADMIN'],
+    icon: CogIcon,
   },
   {
     href: '/dashboard/notifications',

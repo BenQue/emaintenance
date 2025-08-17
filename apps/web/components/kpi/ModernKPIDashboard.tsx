@@ -6,7 +6,7 @@ import {
   TrendingDownIcon, 
   ClipboardListIcon, 
   ClockIcon, 
-  ToolIcon, 
+  WrenchIcon, 
   AlertTriangleIcon,
   RefreshCwIcon,
   CalendarIcon,
@@ -52,6 +52,20 @@ import {
   CartesianGrid, 
   ResponsiveContainer 
 } from 'recharts'
+
+// Type assertions for Recharts v3 compatibility
+const LineChartComponent = LineChart as any;
+const LineComponent = Line as any;
+const AreaChartComponent = AreaChart as any;
+const AreaComponent = Area as any;
+const BarChartComponent = BarChart as any;
+const BarComponent = Bar as any;
+const PieChartComponent = PieChart as any;
+const PieComponent = Pie as any;
+const CellComponent = Cell as any;
+const XAxisComponent = XAxis as any;
+const YAxisComponent = YAxis as any;
+const CartesianGridComponent = CartesianGrid as any;
 
 interface KPIMetric {
   label: string
@@ -206,10 +220,10 @@ function WorkOrderTrendChart() {
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
-          <AreaChart data={mockWorkOrderTrends}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
+          <AreaChartComponent data={mockWorkOrderTrends}>
+            <CartesianGridComponent strokeDasharray="3 3" />
+            <XAxisComponent dataKey="name" />
+            <YAxisComponent />
             <ChartTooltip content={<ChartTooltipContent />} />
             <ChartLegend content={<ChartLegendContent />} />
             <Area 
@@ -220,7 +234,7 @@ function WorkOrderTrendChart() {
               fill="var(--color-创建)"
               fillOpacity={0.6}
             />
-            <Area 
+            <AreaComponent 
               type="monotone" 
               dataKey="完成" 
               stackId="2"
@@ -228,7 +242,7 @@ function WorkOrderTrendChart() {
               fill="var(--color-完成)"
               fillOpacity={0.6}
             />
-          </AreaChart>
+          </AreaChartComponent>
         </ChartContainer>
       </CardContent>
     </Card>
@@ -371,7 +385,7 @@ export function ModernKPIDashboard({ className }: ModernKPIDashboardProps) {
               创建工单
             </Button>
             <Button className="w-full justify-start" variant="outline">
-              <ToolIcon className="mr-2 h-4 w-4" />
+              <WrenchIcon className="mr-2 h-4 w-4" />
               预防性维护
             </Button>
             <Button className="w-full justify-start" variant="outline">

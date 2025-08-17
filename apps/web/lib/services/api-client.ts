@@ -52,7 +52,7 @@ export class ApiClient {
     // Add auth token if available and authenticated
     const token = authService.getToken();
     if (token && authService.isAuthenticated()) {
-      defaultHeaders['Authorization'] = `Bearer ${token}`;
+      (defaultHeaders as any)['Authorization'] = `Bearer ${token}`;
     }
 
     let lastError: Error;

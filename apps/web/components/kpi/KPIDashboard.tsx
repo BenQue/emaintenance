@@ -233,7 +233,7 @@ export function KPIDashboard({ autoRefresh = true, refreshInterval = 30 }: KPIDa
           statistics={data.workOrderStats}
           trends={data.workOrderTrends}
           loading={loading}
-          error={error}
+          error={error || undefined}
         />
 
         {/* Time Metrics */}
@@ -241,7 +241,7 @@ export function KPIDashboard({ autoRefresh = true, refreshInterval = 30 }: KPIDa
           mttrData={data.mttrData}
           resolutionTimeData={data.workOrderTrends?.averageResolutionTime}
           loading={loading}
-          error={error}
+          error={error || undefined}
         />
 
         {/* Asset Metrics */}
@@ -251,7 +251,7 @@ export function KPIDashboard({ autoRefresh = true, refreshInterval = 30 }: KPIDa
           maintenanceCostAnalysis={data.assetMaintenanceCostAnalysis}
           healthOverview={data.assetHealthOverview}
           loading={loading}
-          error={error}
+          error={error || undefined}
         />
       </div>
     </div>

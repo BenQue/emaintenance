@@ -3,6 +3,13 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { PieChartProps } from './types';
 
+// Type assertions for Recharts v3 compatibility
+const PieChartComponent = PieChart as any;
+const PieComponent = Pie as any;
+const CellComponent = Cell as any;
+const LegendComponent = Legend as any;
+const TooltipComponent = Tooltip as any;
+
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
 
 export function CustomPieChart({ 
@@ -50,8 +57,8 @@ export function CustomPieChart({
         <h3 className="text-lg font-semibold mb-4 text-center">{title}</h3>
       )}
       <ResponsiveContainer width={width} height={height}>
-        <PieChart>
-          <Pie
+        <PieChartComponent>
+          <PieComponent
             data={data}
             cx="50%"
             cy="50%"
@@ -62,15 +69,15 @@ export function CustomPieChart({
             dataKey="value"
           >
             {data.map((entry, index) => (
-              <Cell 
+              <CellComponent 
                 key={`cell-${index}`} 
                 fill={entry.color || COLORS[index % COLORS.length]} 
               />
             ))}
-          </Pie>
-          <Tooltip />
-          {showLegend && <Legend />}
-        </PieChart>
+          </PieComponent>
+          <TooltipComponent />
+          {showLegend && <LegendComponent />}
+        </PieChartComponent>
       </ResponsiveContainer>
     </div>
   );

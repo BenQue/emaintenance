@@ -38,7 +38,7 @@ export class ImportService {
     const response = await apiClient.get(`${this.baseUrl}/templates/users`, {
       responseType: 'blob'
     });
-    return response.data;
+    return response.data as Blob;
   }
 
   /**
@@ -48,7 +48,7 @@ export class ImportService {
     const response = await apiClient.get(`${this.baseUrl}/templates/assets`, {
       responseType: 'blob'
     });
-    return response.data;
+    return response.data as Blob;
   }
 
   /**
@@ -64,7 +64,7 @@ export class ImportService {
       },
     });
 
-    return response.data.data;
+    return (response.data as any).data;
   }
 
   /**
@@ -80,7 +80,7 @@ export class ImportService {
       },
     });
 
-    return response.data.data;
+    return (response.data as any).data;
   }
 
   /**
@@ -96,7 +96,7 @@ export class ImportService {
       },
     });
 
-    return response.data.data;
+    return (response.data as any).data;
   }
 
   /**
@@ -112,7 +112,7 @@ export class ImportService {
       },
     });
 
-    return response.data.data;
+    return (response.data as any).data;
   }
 
   /**

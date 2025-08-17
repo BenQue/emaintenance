@@ -16,6 +16,9 @@ export class WorkOrderRepository {
         assetId: data.assetId!,  // assetId is guaranteed to be set by service layer
         createdById: data.createdById,
         attachments: data.attachments || [],
+        // Include new ID fields for database relationships
+        categoryId: data.categoryId,
+        reasonId: data.reasonId,
       },
       include: {
         asset: {

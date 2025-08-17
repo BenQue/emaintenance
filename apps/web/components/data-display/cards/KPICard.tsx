@@ -103,7 +103,7 @@ export function KPICard({
   const calculateChange = () => {
     if (previousValue && typeof value === 'number' && typeof previousValue === 'number') {
       const change = ((value - previousValue) / previousValue) * 100
-      return change.toFixed(1)
+      return change
     }
     return null
   }
@@ -138,7 +138,7 @@ export function KPICard({
             {(trendValue !== undefined || change) && (
               <Badge variant={getTrendBadgeVariant()} className="text-xs">
                 {trendValue !== undefined ? `${trendValue > 0 ? '+' : ''}${trendValue}%` : 
-                 change ? `${change > 0 ? '+' : ''}${change}%` : ''}
+                 change ? `${change > 0 ? '+' : ''}${change.toFixed(1)}%` : ''}
               </Badge>
             )}
             {previousValue && (

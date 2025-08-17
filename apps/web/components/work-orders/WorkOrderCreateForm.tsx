@@ -9,6 +9,7 @@ import { assetService, Asset } from '../../lib/services/asset-service';
 import { FormWrapper } from '../forms/unified/FormWrapper';
 import { UnifiedFormField } from '../forms/unified/FormField';
 import { workOrderValidationRules } from '../forms/unified/FormValidation';
+import { CascadingCategoryReasonSelector } from '../forms/CascadingCategoryReasonSelector';
 import { Alert } from '../ui/alert';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -29,12 +30,18 @@ interface WorkOrderCreateFormProps {
 interface FormData {
   assetId: string;
   title: string;
-  category: string;
-  reason: string;
+  categoryId: string;
+  reasonId: string;
   location: string;
   priority: Priority;
   description: string;
   photos: FileList | null;
+}
+
+// To store the names for submission
+interface FormDataWithNames extends FormData {
+  categoryName?: string;
+  reasonName?: string;
 }
 
 export function WorkOrderCreateForm({
@@ -48,8 +55,8 @@ export function WorkOrderCreateForm({
     defaultValues: {
       assetId: '',
       title: '',
-      category: '',
-      reason: '',
+      categoryId: '',
+      reasonId: '',
       location: '',
       priority: Priority.MEDIUM,
       description: '',
@@ -58,10 +65,12 @@ export function WorkOrderCreateForm({
     mode: 'onChange', // Enable real-time validation
   });
 
+  // Store category and reason names for submission
+  const [categoryName, setCategoryName] = useState<string>('');
+  const [reasonName, setReasonName] = useState<string>('');
+
   // Form options loaded from API
   const [assets, setAssets] = useState<Asset[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [reasons, setReasons] = useState<string[]>([]);
   const [commonLocations, setCommonLocations] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -86,8 +95,6 @@ export function WorkOrderCreateForm({
       ]);
       
       setAssets(assetsResponse.assets);
-      setCategories(formOptions.categories);
-      setReasons(formOptions.reasons);
       setCommonLocations(formOptions.commonLocations);
       setIsLoading(false);
     } catch (error) {
@@ -102,8 +109,6 @@ export function WorkOrderCreateForm({
       
       // For other errors, still set empty arrays
       setAssets([]);
-      setCategories(DEFAULT_CATEGORIES);
-      setReasons(DEFAULT_REASONS);
       setCommonLocations(DEFAULT_LOCATIONS);
       setIsLoading(false);
     }
@@ -120,19 +125,24 @@ export function WorkOrderCreateForm({
       console.log('[DEBUG] Submitting work order data:', {
         assetId: data.assetId,
         title: data.title.trim(),
-        category: data.category,
-        reason: data.reason,
+        category: categoryName,
+        reason: reasonName,
+        categoryId: data.categoryId,
+        reasonId: data.reasonId,
       });
       
       await createWorkOrder({
         assetId: data.assetId,
         title: data.title.trim(),
-        category: data.category,
-        reason: data.reason,
+        category: categoryName, // Use the name for backwards compatibility
+        reason: reasonName, // Use the name for backwards compatibility
         location: data.location.trim() || undefined,
         priority: data.priority,
         description: data.description.trim() || undefined,
         photos,
+        // Include IDs for new database relationships
+        categoryId: data.categoryId,
+        reasonId: data.reasonId,
       });
       
       console.log('[DEBUG] Work order created successfully, calling onSuccess()');
@@ -209,30 +219,18 @@ export function WorkOrderCreateForm({
           description="请简要描述需要维修的问题"
         />
 
-        {/* Category Field */}
-        <UnifiedFormField
+        {/* Category and Reason Selection */}
+        <CascadingCategoryReasonSelector
           control={form.control}
-          name="category"
-          label="报修类别"
-          type="select"
-          placeholder="请选择报修类别"
-          options={categories.map(category => ({
-            value: category,
-            label: category
-          }))}
-        />
-
-        {/* Reason Field */}
-        <UnifiedFormField
-          control={form.control}
-          name="reason"
-          label="报修原因"
-          type="select"
-          placeholder="请选择报修原因"
-          options={reasons.map(reason => ({
-            value: reason,
-            label: reason
-          }))}
+          categoryName="categoryId"
+          reasonName="reasonId"
+          onCategoryChange={(categoryId, categoryName) => {
+            setCategoryName(categoryName);
+          }}
+          onReasonChange={(reasonId, reasonName) => {
+            setReasonName(reasonName);
+          }}
+          disabled={creating}
         />
 
         {/* Location Field */}

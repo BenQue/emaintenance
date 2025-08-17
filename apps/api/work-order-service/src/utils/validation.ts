@@ -24,6 +24,15 @@ export const CreateWorkOrderSchema = z.object({
     .min(1, '请选择报修原因')
     .max(100, '原因描述过长'),
   
+  // New fields for integrated categories and reasons
+  categoryId: z.string()
+    .min(1, '分类ID不能为空')
+    .optional(),
+  
+  reasonId: z.string()
+    .min(1, '原因ID不能为空')
+    .optional(),
+  
   location: z.string()
     .max(200, '位置描述过长')
     .optional(),
@@ -58,6 +67,15 @@ export const CreateWorkOrderMultipartSchema = z.object({
   reason: z.string()
     .min(1, '请选择报修原因')
     .max(100, '原因描述过长'),
+  
+  // New fields for integrated categories and reasons
+  categoryId: z.string()
+    .min(1, '分类ID不能为空')
+    .optional(),
+  
+  reasonId: z.string()
+    .min(1, '原因ID不能为空')
+    .optional(),
   
   location: z.string()
     .max(200, '位置描述过长')

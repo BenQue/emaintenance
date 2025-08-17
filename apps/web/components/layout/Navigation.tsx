@@ -19,6 +19,7 @@ export function Navigation() {
       { href: '/dashboard/assets', label: '资产管理', roles: ['SUPERVISOR', 'ADMIN'] },
       { href: '/dashboard/assignment-rules', label: '分配规则', roles: ['SUPERVISOR', 'ADMIN'] },
       { href: '/dashboard/users', label: '用户管理', roles: ['SUPERVISOR', 'ADMIN'] },
+      { href: '/dashboard/settings', label: '系统设置', roles: ['SUPERVISOR', 'ADMIN'] },
       { href: '/dashboard/notifications', label: '通知中心', roles: ['EMPLOYEE', 'TECHNICIAN', 'SUPERVISOR', 'ADMIN'] },
     ];
 

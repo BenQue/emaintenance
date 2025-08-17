@@ -18,8 +18,8 @@ const variantStyles = {
 
 const variantBadgeStyles = {
   default: 'secondary',
-  success: 'success',
-  warning: 'warning', 
+  success: 'secondary',  // Using secondary for success
+  warning: 'secondary',  // Using secondary for warning 
   error: 'destructive',
   info: 'secondary',
 } as const

@@ -222,7 +222,7 @@ export function DataTable<T extends Record<string, any>>({
             ) : (
               paginatedData.map((row, index) => (
                 <TableRow
-                  key={index}
+                  key={row.id || `row-${index}`}
                   className={cn(
                     "cursor-pointer hover:bg-muted/50",
                     isRowSelected(row) && "bg-muted"
@@ -230,7 +230,7 @@ export function DataTable<T extends Record<string, any>>({
                   onClick={() => onRowClick?.(row)}
                 >
                   {selection && (
-                    <TableCell>
+                    <TableCell key={`${row.id || index}-selection`}>
                       <Checkbox
                         checked={isRowSelected(row)}
                         onCheckedChange={(checked: boolean) => handleSelectRow(row, checked)}
@@ -240,11 +240,11 @@ export function DataTable<T extends Record<string, any>>({
                     </TableCell>
                   )}
                   {columns.map((column) => (
-                    <TableCell key={column.id}>
+                    <TableCell key={`${row.id || index}-${column.id}`}>
                       {column.cell(row)}
                     </TableCell>
                   ))}
-                  <TableCell>
+                  <TableCell key={`${row.id || index}-actions`}>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0">

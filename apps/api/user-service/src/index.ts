@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import authRoutes from './routes/auth';
 import assetRoutes from './routes/assets';
 import userRoutes from './routes/users';
+import settingsRoutes from './routes/settings';
 // import importRoutes from './routes/import';
 import { generalRateLimit } from './middleware/rateLimiter';
 
@@ -53,6 +54,7 @@ app.get('/health', (req: Request, res: Response) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/assets', assetRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/settings', settingsRoutes);
 // app.use('/api/import', importRoutes);
 
 // 404 handler

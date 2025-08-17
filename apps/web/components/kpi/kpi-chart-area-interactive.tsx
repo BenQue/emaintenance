@@ -4,6 +4,13 @@ import { useState } from "react"
 import { CalendarIcon, TrendingUpIcon } from "lucide-react"
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
+// Type assertions for Recharts v3 compatibility
+const AreaChartComponent = AreaChart as any;
+const AreaComponent = Area as any;
+const CartesianGridComponent = CartesianGrid as any;
+const XAxisComponent = XAxis as any;
+const YAxisComponent = YAxis as any;
+
 import {
   Card,
   CardContent,
@@ -84,7 +91,7 @@ export function KPIChartAreaInteractive() {
           config={chartConfig}
           className="aspect-auto h-[250px] w-full"
         >
-          <AreaChart data={filteredData}>
+          <AreaChartComponent data={filteredData}>
             <defs>
               <linearGradient id="fill工单创建" x1="0" y1="0" x2="0" y2="1">
                 <stop
@@ -111,15 +118,15 @@ export function KPIChartAreaInteractive() {
                 />
               </linearGradient>
             </defs>
-            <CartesianGrid vertical={false} />
-            <XAxis
+            <CartesianGridComponent vertical={false} />
+            <XAxisComponent
               dataKey="month"
               tickLine={false}
               axisLine={false}
               tickMargin={8}
               minTickGap={32}
             />
-            <YAxis
+            <YAxisComponent
               tickLine={false}
               axisLine={false}
               tickMargin={8}
@@ -133,21 +140,21 @@ export function KPIChartAreaInteractive() {
                 />
               }
             />
-            <Area
+            <AreaComponent
               dataKey="工单完成"
               type="natural"
               fill="url(#fill工单完成)"
               stroke="var(--color-工单完成)"
               stackId="a"
             />
-            <Area
+            <AreaComponent
               dataKey="工单创建"
               type="natural"
               fill="url(#fill工单创建)"
               stroke="var(--color-工单创建)"
               stackId="a"
             />
-          </AreaChart>
+          </AreaChartComponent>
         </ChartContainer>
         <div className="flex items-center gap-2 pt-4 text-sm">
           <TrendingUpIcon className="h-4 w-4 text-green-500" />

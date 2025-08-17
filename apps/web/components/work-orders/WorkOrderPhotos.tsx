@@ -273,7 +273,7 @@ export function WorkOrderPhotos({ workOrderId, attachments = [] }: WorkOrderPhot
         <CardContent>
           <div className="text-center py-8">
             <p className="text-red-600 mb-4">{error}</p>
-            <Button onClick={loadPhotos} variant="outline">
+            <Button onClick={loadManagedPhotos} variant="outline">
               重新加载
             </Button>
           </div>

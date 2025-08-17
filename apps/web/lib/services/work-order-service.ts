@@ -22,6 +22,9 @@ interface CreateWorkOrderData {
   priority: Priority;
   description?: string;
   photos?: File[];
+  // New fields for integrated categories and reasons
+  categoryId?: string;
+  reasonId?: string;
 }
 
 class WorkOrderService {
@@ -377,16 +380,26 @@ class WorkOrderService {
     commonLocations: string[];
   }> {
     try {
-      // This would typically call a dedicated endpoint for form options
-      // For now, we'll use the filter options and add some default data
-      const filterOptions = await this.getFilterOptions();
+      // Import SettingsService dynamically to avoid circular dependencies
+      const { SettingsService } = await import('./settings-service');
+      
+      // Fetch dynamic master data from settings service
+      const [categoriesResponse, reasonsResponse, locationsResponse] = await Promise.all([
+        SettingsService.getCategories({ isActive: true, limit: 100 }).catch(() => ({ items: [] })),
+        SettingsService.getReasons({ isActive: true, limit: 100 }).catch(() => ({ items: [] })),
+        SettingsService.getLocations({ isActive: true, limit: 100 }).catch(() => ({ items: [] })),
+      ]);
       
       return {
-        categories: filterOptions.categories.length > 0 
-          ? filterOptions.categories 
+        categories: categoriesResponse.items.length > 0 
+          ? categoriesResponse.items.map(cat => cat.name)
           : ['设备故障', '预防性维护', '常规检查', '清洁维护'],
-        reasons: ['机械故障', '电气故障', '软件问题', '磨损老化', '操作错误', '外部因素'],
-        commonLocations: ['生产车间A', '生产车间B', '仓库区域', '办公区域', '设备机房'],
+        reasons: reasonsResponse.items.length > 0
+          ? reasonsResponse.items.map(reason => reason.name)
+          : ['机械故障', '电气故障', '软件问题', '磨损老化', '操作错误', '外部因素'],
+        commonLocations: locationsResponse.items.length > 0
+          ? locationsResponse.items.map(loc => loc.name)
+          : ['生产车间A', '生产车间B', '仓库区域', '办公区域', '设备机房'],
       };
     } catch (error) {
       // If API fails, return default options
