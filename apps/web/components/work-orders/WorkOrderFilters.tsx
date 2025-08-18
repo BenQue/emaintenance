@@ -126,7 +126,7 @@ export function WorkOrderFilters({ onFiltersChange, onExport }: WorkOrderFilters
           <input
             type="text"
             value={searchValue}
-            onChange={(e) => handleSearchChange(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearchChange(e.target.value)}
             placeholder="搜索工单标题、描述、设备..."
             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />

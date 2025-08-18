@@ -74,7 +74,7 @@ cd apps/web && npm run dev
 # Mobile application (Flutter)
 cd apps/mobile && flutter run
 
-# Microservices
+# Microservices (use environment variables for database credentials)
 cd apps/api/user-service && npm run dev      # Port 3001
 cd apps/api/work-order-service && npm run dev # Port 3002  
 cd apps/api/asset-service && npm run dev      # Port 3003

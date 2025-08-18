@@ -3,38 +3,53 @@ node_modules/
 .pnp
 .pnp.js
 
-# Production
+# Production builds
 /build
 /dist
 dist/
 .next/
 out/
+
+# Logs - all log files should be ignored
 *.log
 logs/
+apps/api/*/logs/
+apps/api/*/*.log
+*-service*.log
+user-service*.log
+work-order-service*.log
+asset-service*.log
 
 # Testing
 coverage/
 .nyc_output/
+apps/*/coverage/
+apps/*/*/coverage/
 
 # Turbo
 .turbo/
 tsconfig.tsbuildinfo
+
+# Environment files - CRITICAL: Never commit these
+.env
+.env.*
+!.env.example
+!.env.production.example
 
 # Misc
 .DS_Store
 *.pem
 .vscode/
 .idea/
+.swp
+.swo
+*~
 
-# Debug
+# Debug files
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
-
-# Local env files
-.env*.local
-.env
 
 # Claude MCP configuration with secrets
 .claude/.mcp.local.json
@@ -51,10 +66,37 @@ yarn-error.log*
 /build/
 *.iml
 *.ipr
-*.iws.env
-.env.*
-!.env.example
-# Ignore uploaded files and build artifacts
-apps/api/work-order-service/uploads/
-apps/api/*/logs/
+*.iws
+
+# Mobile build artifacts
 apps/mobile/android/build/
+apps/mobile/ios/build/
+apps/mobile/build/
+
+# File uploads (contains sensitive user data)
+apps/api/work-order-service/uploads/
+apps/api/*/uploads/
+uploads/
+
+# Database dumps and backups
+*.sql
+*.dump
+backups/
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+
+# IDE and editor files
+.vscode/settings.json
+.idea/workspace.xml
+*.sublime-*
+
+# OS generated files
+Thumbs.db
+Desktop.ini
+
+# Docker volumes and data
+docker-data/
+.docker/

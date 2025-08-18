@@ -136,7 +136,7 @@ export const UserForm: React.FC<UserFormProps> = ({
               <input
                 type="text"
                 value={formData.firstName}
-                onChange={(e) => handleInputChange('firstName', e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('firstName', e.target.value)}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.firstName ? 'border-red-500' : 'border-gray-300'
                 }`}
@@ -155,7 +155,7 @@ export const UserForm: React.FC<UserFormProps> = ({
               <input
                 type="text"
                 value={formData.lastName}
-                onChange={(e) => handleInputChange('lastName', e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('lastName', e.target.value)}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.lastName ? 'border-red-500' : 'border-gray-300'
                 }`}
@@ -176,7 +176,7 @@ export const UserForm: React.FC<UserFormProps> = ({
             <input
               type="email"
               value={formData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('email', e.target.value)}
               className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                 errors.email ? 'border-red-500' : 'border-gray-300'
               }`}
@@ -197,7 +197,7 @@ export const UserForm: React.FC<UserFormProps> = ({
               <input
                 type="text"
                 value={formData.username}
-                onChange={(e) => handleInputChange('username', e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('username', e.target.value)}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.username ? 'border-red-500' : 'border-gray-300'
                 }`}
@@ -216,7 +216,7 @@ export const UserForm: React.FC<UserFormProps> = ({
               <input
                 type="text"
                 value={formData.employeeId}
-                onChange={(e) => handleInputChange('employeeId', e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('employeeId', e.target.value)}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.employeeId ? 'border-red-500' : 'border-gray-300'
                 }`}
@@ -239,7 +239,7 @@ export const UserForm: React.FC<UserFormProps> = ({
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={formData.password}
-                onChange={(e) => handleInputChange('password', e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('password', e.target.value)}
                 className={`w-full px-3 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                   errors.password ? 'border-red-500' : 'border-gray-300'
                 }`}
@@ -280,7 +280,7 @@ export const UserForm: React.FC<UserFormProps> = ({
                     name="role"
                     value={role.value}
                     checked={formData.role === role.value}
-                    onChange={(e) => handleInputChange('role', e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('role', e.target.value)}
                     className="sr-only"
                     disabled={isLoading}
                   />

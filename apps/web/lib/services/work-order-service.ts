@@ -114,7 +114,6 @@ class WorkOrderService {
     const url = `/api/work-orders?${queryParams.toString()}`;
     // Debug URL construction in development
     if (process.env.NODE_ENV === 'development') {
-      console.log('WorkOrderService - Final URL:', url);
     }
     
     return this.request<PaginatedWorkOrders>(url);
@@ -127,8 +126,6 @@ class WorkOrderService {
   async createWorkOrder(workOrderData: CreateWorkOrderData): Promise<WorkOrder> {
     // Debug work order creation in development
     if (process.env.NODE_ENV === 'development') {
-      console.log('[DEBUG] WorkOrderService.createWorkOrder: Starting with data:', workOrderData);
-      console.log('[DEBUG] WorkOrderService.createWorkOrder: Auth token exists:', !!localStorage.getItem('auth_token'));
     }
     const token = localStorage.getItem('auth_token');
     
@@ -187,12 +184,11 @@ class WorkOrderService {
   async getWorkOrderWithHistory(id: string): Promise<WorkOrderWithStatusHistory> {
     // Debug work order history retrieval in development
     if (process.env.NODE_ENV === 'development') {
-      console.log(`[DEBUG] WorkOrderService.getWorkOrderWithHistory: Requesting work order history for ID: ${id}`);
     }
     const result = await this.request<{workOrder: WorkOrderWithStatusHistory}>(`/api/work-orders/${id}/history`);
     const workOrder = result.workOrder;
     if (process.env.NODE_ENV === 'development') {
-      console.log(`[DEBUG] WorkOrderService.getWorkOrderWithHistory: Received response:`, {
+      // Log removed for production
         id: workOrder?.id,
         title: workOrder?.title,
         assetId: workOrder?.asset?.id,
@@ -471,7 +467,7 @@ class WorkOrderService {
       );
       return response.photos || [];
     } catch (error) {
-      console.error('Failed to fetch work order photos:', error);
+      // Error handling: Failed to fetch work order photos
       throw error;
     }
   }

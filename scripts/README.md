@@ -56,7 +56,7 @@ WORK_ORDER_SERVICE_PORT=3002
 ASSET_SERVICE_PORT=3003
 
 # 数据库连接
-DATABASE_URL="postgresql://postgres:Qzy@7091!@localhost:5433/emaintenance"
+DATABASE_URL="postgresql://postgres:${DB_PASSWORD}@localhost:5433/emaintenance"
 
 # 项目根目录
 PROJECT_ROOT="/Users/benque/Project/Emaintenance"
@@ -71,7 +71,7 @@ PROJECT_ROOT="/Users/benque/Project/Emaintenance"
 docker-compose -f docker-compose.simple.yml up -d database redis
 
 # 验证数据库连接
-PGPASSWORD="Qzy@7091!" psql -h localhost -U postgres -p 5433 -d emaintenance -c "SELECT version();"
+PGPASSWORD="${DB_PASSWORD}" psql -h localhost -U postgres -p 5433 -d emaintenance -c "SELECT version();"
 ```
 
 ## 📖 使用指南

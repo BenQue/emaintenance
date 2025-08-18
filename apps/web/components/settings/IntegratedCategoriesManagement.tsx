@@ -440,7 +440,7 @@ export const IntegratedCategoriesManagement: React.FC = () => {
               <Input
                 placeholder="搜索分类..."
                 value={categorySearch}
-                onChange={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   setCategorySearch(e.target.value);
                   // Debounce search in real implementation
                 }}
@@ -544,7 +544,7 @@ export const IntegratedCategoriesManagement: React.FC = () => {
                   <Input
                     placeholder="搜索原因..."
                     value={reasonSearch}
-                    onChange={(e) => {
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                       setReasonSearch(e.target.value);
                       // Debounce search in real implementation
                     }}
@@ -629,7 +629,7 @@ export const IntegratedCategoriesManagement: React.FC = () => {
               <Input
                 id="category-name"
                 value={categoryFormData.name}
-                onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
                 placeholder="输入分类名称"
               />
             </div>
@@ -638,7 +638,7 @@ export const IntegratedCategoriesManagement: React.FC = () => {
               <Input
                 id="category-description"
                 value={categoryFormData.description || ''}
-                onChange={(e) => setCategoryFormData({ ...categoryFormData, description: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCategoryFormData({ ...categoryFormData, description: e.target.value })}
                 placeholder="输入描述（可选）"
               />
             </div>
@@ -672,7 +672,7 @@ export const IntegratedCategoriesManagement: React.FC = () => {
               <Input
                 id="reason-name"
                 value={reasonFormData.name}
-                onChange={(e) => setReasonFormData({ ...reasonFormData, name: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setReasonFormData({ ...reasonFormData, name: e.target.value })}
                 placeholder="输入原因名称"
               />
             </div>
@@ -681,7 +681,7 @@ export const IntegratedCategoriesManagement: React.FC = () => {
               <Input
                 id="reason-description"
                 value={reasonFormData.description || ''}
-                onChange={(e) => setReasonFormData({ ...reasonFormData, description: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setReasonFormData({ ...reasonFormData, description: e.target.value })}
                 placeholder="输入描述（可选）"
               />
             </div>
@@ -713,7 +713,7 @@ export const IntegratedCategoriesManagement: React.FC = () => {
               <Input
                 id="edit-category-name"
                 value={categoryFormData.name}
-                onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
                 placeholder="输入分类名称"
               />
             </div>
@@ -722,7 +722,7 @@ export const IntegratedCategoriesManagement: React.FC = () => {
               <Input
                 id="edit-category-description"
                 value={categoryFormData.description || ''}
-                onChange={(e) => setCategoryFormData({ ...categoryFormData, description: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCategoryFormData({ ...categoryFormData, description: e.target.value })}
                 placeholder="输入描述（可选）"
               />
             </div>
@@ -754,7 +754,7 @@ export const IntegratedCategoriesManagement: React.FC = () => {
               <Input
                 id="edit-reason-name"
                 value={reasonFormData.name}
-                onChange={(e) => setReasonFormData({ ...reasonFormData, name: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setReasonFormData({ ...reasonFormData, name: e.target.value })}
                 placeholder="输入原因名称"
               />
             </div>
@@ -763,7 +763,7 @@ export const IntegratedCategoriesManagement: React.FC = () => {
               <Input
                 id="edit-reason-description"
                 value={reasonFormData.description || ''}
-                onChange={(e) => setReasonFormData({ ...reasonFormData, description: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setReasonFormData({ ...reasonFormData, description: e.target.value })}
                 placeholder="输入描述（可选）"
               />
             </div>

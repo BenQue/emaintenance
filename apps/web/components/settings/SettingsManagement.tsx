@@ -392,7 +392,7 @@ export const SettingsManagement: React.FC = () => {
                 <Input
                   placeholder={`搜索${currentTypeConfig?.label}...`}
                   value={searchQuery}
-                  onChange={(e) => updateSearchQuery(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSearchQuery(e.target.value)}
                   className="pl-10"
                 />
               </div>
@@ -443,7 +443,7 @@ export const SettingsManagement: React.FC = () => {
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="输入名称"
               />
             </div>
@@ -452,7 +452,7 @@ export const SettingsManagement: React.FC = () => {
               <Input
                 id="description"
                 value={formData.description || ''}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="输入描述（可选）"
               />
             </div>
@@ -465,7 +465,7 @@ export const SettingsManagement: React.FC = () => {
                   min="1"
                   max="10"
                   value={formData.level || 1}
-                  onChange={(e) => setFormData({ ...formData, level: parseInt(e.target.value) })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, level: parseInt(e.target.value) })}
                   placeholder="输入等级 (1-10)"
                 />
               </div>
@@ -499,7 +499,7 @@ export const SettingsManagement: React.FC = () => {
               <Input
                 id="edit-name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="输入名称"
               />
             </div>
@@ -508,7 +508,7 @@ export const SettingsManagement: React.FC = () => {
               <Input
                 id="edit-description"
                 value={formData.description || ''}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="输入描述（可选）"
               />
             </div>
@@ -521,7 +521,7 @@ export const SettingsManagement: React.FC = () => {
                   min="1"
                   max="10"
                   value={formData.level || 1}
-                  onChange={(e) => setFormData({ ...formData, level: parseInt(e.target.value) })}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, level: parseInt(e.target.value) })}
                   placeholder="输入等级 (1-10)"
                 />
               </div>

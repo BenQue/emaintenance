@@ -122,7 +122,7 @@ export default function AssignmentRuleForm({ rule, onSubmit, onCancel }: Assignm
           type="text"
           id="name"
           value={formData.name}
-          onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, name: e.target.value }))}
           className={`mt-1 block w-full rounded-md border ${
             errors.name ? 'border-red-300' : 'border-gray-300'
           } px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
@@ -142,7 +142,7 @@ export default function AssignmentRuleForm({ rule, onSubmit, onCancel }: Assignm
           min="0"
           max="100"
           value={formData.priority}
-          onChange={(e) => setFormData(prev => ({ ...prev, priority: parseInt(e.target.value) || 0 }))}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, priority: parseInt(e.target.value) || 0 }))}
           className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         />
         <p className="mt-1 text-sm text-gray-500">数值越大优先级越高（0-100）</p>
@@ -264,7 +264,7 @@ export default function AssignmentRuleForm({ rule, onSubmit, onCancel }: Assignm
           <input
             type="checkbox"
             checked={formData.isActive}
-            onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
             className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
           />
           <span className="ml-2 text-sm text-gray-700">启用此规则</span>

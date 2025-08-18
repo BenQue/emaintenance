@@ -171,7 +171,7 @@ export function UnifiedFormField<
             <Input
               type="file"
               accept={accept}
-              onChange={(e) => field.onChange(e.target.files)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => field.onChange(e.target.files)}
               disabled={disabled}
               className={getInputClassName()}
             />

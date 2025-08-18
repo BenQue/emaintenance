@@ -244,7 +244,7 @@ export function KPIDataTable() {
           </span>
         </TableCell>
         <TableCell className="text-muted-foreground">
-          {formatDate(workOrder.createdAt)}
+          {formatDate(workOrder.createdAt.toString())}
         </TableCell>
         <TableCell className="text-right">
           <DropdownMenu>

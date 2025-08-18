@@ -10,16 +10,17 @@ export interface DialogWrapperProps {
 }
 
 export interface ConfirmDialogProps {
-  trigger: ReactNode
+  trigger?: ReactNode
   title: string
   description: string
   confirmText?: string
   cancelText?: string
-  onConfirm: () => void
+  onConfirm: () => void | Promise<void>
   onCancel?: () => void
   variant?: 'default' | 'destructive'
   open?: boolean
   onOpenChange?: (open: boolean) => void
+  loading?: boolean
 }
 
 export interface FormDialogProps {

@@ -64,7 +64,7 @@ EMaintenance 采用微服务架构，包含以下核心组件：
 docker-compose -f docker-compose.simple.yml up -d database redis
 
 # 验证数据库连接
-PGPASSWORD="Qzy@7091!" psql -h localhost -U postgres -p 5433 -d emaintenance -c "SELECT version();"
+PGPASSWORD="${DB_PASSWORD}" psql -h localhost -U postgres -p 5433 -d emaintenance -c "SELECT version();"
 ```
 
 #### 2. 启动 API 服务（本地热重载）

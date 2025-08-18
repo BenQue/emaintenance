@@ -102,7 +102,7 @@ export const UserFilters: React.FC<UserFiltersProps> = ({
           <input
             type="text"
             value={filters.search || ''}
-            onChange={(e) => handleFilterChange('search', e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFilterChange('search', e.target.value)}
             placeholder="输入姓名、邮箱或用户ID搜索..."
             disabled={isLoading}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"

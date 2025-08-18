@@ -87,7 +87,7 @@ export function LoginFormBlock({ className, onLoginSuccess }: LoginFormBlockProp
                     type="email"
                     placeholder="请输入邮箱地址"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                     className="pl-10 h-12 border-gray-200 focus:border-bizlink-500 focus:ring-bizlink-500"
                     required
                     disabled={isLoading}
@@ -115,7 +115,7 @@ export function LoginFormBlock({ className, onLoginSuccess }: LoginFormBlockProp
                     type={showPassword ? "text" : "password"}
                     placeholder="请输入密码"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
                     className="pl-10 pr-10 h-12 border-gray-200 focus:border-bizlink-500 focus:ring-bizlink-500"
                     required
                     disabled={isLoading}

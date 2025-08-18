@@ -73,7 +73,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   checkAuth: async () => {
-    console.log('Auth store: checkAuth called');
+    // Auth check initiated
     set({ isLoading: true }); // Set loading state immediately
     
     const token = authService.getToken();
@@ -81,7 +81,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       try {
         // Fetch complete user profile from server instead of relying on JWT payload
         const user = await authService.fetchProfile();
-        console.log('Auth store: User profile fetched successfully', user);
+        // User profile fetched successfully
         set({ 
           user, 
           isAuthenticated: true, 
@@ -90,7 +90,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         });
       } catch (error) {
         // If profile fetch fails, treat as unauthenticated
-        console.log('Auth store: Profile fetch failed, clearing auth');
+        // Profile fetch failed, clearing auth
         authService.removeToken();
         set({
           user: null,
@@ -100,7 +100,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         });
       }
     } else {
-      console.log('Auth store: No valid token, clearing auth');
+      // No valid token, clearing auth
       authService.removeToken();
       set({
         user: null,

@@ -148,7 +148,7 @@ export function DataTable<T extends Record<string, any>>({
             ref={searchInputRef}
             placeholder={searchPlaceholder}
             defaultValue={searchQuery}
-            onChange={(e) => debouncedSearch(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => debouncedSearch(e.target.value)}
             className="max-w-sm"
             aria-label="搜索表格数据"
           />
