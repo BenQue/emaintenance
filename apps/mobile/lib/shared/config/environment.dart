@@ -2,8 +2,8 @@ class Environment {
   // 开发环境 - 本地开发服务器
   static const String _devBaseUrl = 'http://192.168.31.53'; // 你的Mac IP地址
   
-  // 生产环境 - 请替换为你的实际服务器地址
-  static const String _prodBaseUrl = 'https://api.bizlink.com'; // 替换为你的域名
+  // 生产环境 - 测试服务器地址
+  static const String _prodBaseUrl = 'http://10.163.144.13'; // 测试服务器
   
   // 自动检测环境：Release构建时自动使用生产环境
   static bool get isDevelopment {

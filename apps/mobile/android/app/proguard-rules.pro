@@ -6,6 +6,11 @@
 -keep class io.flutter.**  { *; }
 -keep class io.flutter.plugins.**  { *; }
 
+# Google Play Core (for deferred components - not used but referenced)
+-dontwarn com.google.android.play.core.splitcompat.SplitCompatApplication
+-dontwarn com.google.android.play.core.splitinstall.**
+-dontwarn com.google.android.play.core.tasks.**
+
 # Gson specific rules
 -keepattributes Signature
 -keepattributes *Annotation*

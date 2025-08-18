@@ -158,23 +158,6 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Company Logo
-          Container(
-            margin: const EdgeInsets.only(bottom: 30),
-            child: Image.asset(
-              'assets/images/Bizlink_Logo_RGB.png',
-              height: 80,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) {
-                // Fallback if logo fails to load
-                return const Icon(
-                  Icons.business,
-                  size: 80,
-                  color: Colors.blue,
-                );
-              },
-            ),
-          ),
           const Icon(
             Icons.build,
             size: 100,
