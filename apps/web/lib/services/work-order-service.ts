@@ -183,19 +183,8 @@ class WorkOrderService {
 
   async getWorkOrderWithHistory(id: string): Promise<WorkOrderWithStatusHistory> {
     // Debug work order history retrieval in development
-    if (process.env.NODE_ENV === 'development') {
-    }
     const result = await this.request<{workOrder: WorkOrderWithStatusHistory}>(`/api/work-orders/${id}/history`);
     const workOrder = result.workOrder;
-    if (process.env.NODE_ENV === 'development') {
-      // Log removed for production
-        id: workOrder?.id,
-        title: workOrder?.title,
-        assetId: workOrder?.asset?.id,
-        assetName: workOrder?.asset?.name,
-        statusHistoryCount: workOrder?.statusHistory?.length || 0,
-      });
-    }
     return workOrder;
   }
 
