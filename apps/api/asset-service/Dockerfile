@@ -22,6 +22,10 @@ COPY . .
 # Build database package first, then asset service (excluding test files)
 RUN cd packages/database && npm run build
 RUN ls -la packages/database/dist/
+RUN cd packages/database && npm run db:generate
+RUN ls -la packages/database/node_modules/.prisma/
+# Ensure database types are available for API build
+RUN cp -r packages/database/dist apps/api/asset-service/packages/database
 RUN cd apps/api/asset-service && npm run build:prod
 
 # Runtime stage
