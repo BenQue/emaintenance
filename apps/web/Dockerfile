@@ -52,6 +52,9 @@ FROM base AS runner
 # 配置国内镜像源
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 
+# 在切换非 root 之前安装 curl
+RUN apk add --no-cache curl
+
 WORKDIR /app
 
 ENV NODE_ENV production
@@ -75,7 +78,5 @@ EXPOSE 3000
 
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
-
-RUN apk add --no-cache curl
 
 CMD ["node", "apps/web/server.js"]
