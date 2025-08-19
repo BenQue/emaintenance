@@ -1,4 +1,5 @@
 import { PrismaClient } from '@emaintenance/database';
+import { WorkOrderStatus } from '@emaintenance/database';
 import { WorkOrderRepository } from '../repositories/WorkOrderRepository';
 import { AssignmentRuleService } from './AssignmentRuleService';
 import { NotificationService } from './NotificationService';
@@ -193,7 +194,7 @@ export class WorkOrderService {
 
     const updatedWorkOrder = await this.workOrderRepository.update(id, {
       assignedToId,
-      status: 'IN_PROGRESS', // Automatically set to in progress when assigned
+      status: WorkOrderStatus.IN_PROGRESS, // Automatically set to in progress when assigned
     });
 
     if (!updatedWorkOrder) {
@@ -915,7 +916,7 @@ export class WorkOrderService {
         return sum + resolutionTime;
       }, 0);
       const avgTime = totalTime / workOrders.length / (1000 * 60 * 60);
-      return { priority, mttr: avgTime };
+      return { priority: priority as Priority, mttr: avgTime };
     });
 
     // Calculate MTTR by category

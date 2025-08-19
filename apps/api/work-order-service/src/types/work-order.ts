@@ -70,7 +70,7 @@ export interface WorkOrderWithRelations {
 }
 
 export interface WorkOrderFilters {
-  status?: WorkOrderStatus;
+  status?: WorkOrderStatus | 'NOT_COMPLETED' | 'ACTIVE';
   priority?: Priority;
   assetId?: string;
   createdById?: string;

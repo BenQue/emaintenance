@@ -141,16 +141,16 @@ export const UpdateWorkOrderSchema = z.object({
 // Query parameters validation
 export const WorkOrderQuerySchema = z.object({
   page: z.string()
+    .default('1')
     .transform(val => parseInt(val, 10))
     .refine(val => val > 0, '页码必须大于0')
-    .optional()
-    .default('1'),
+    .optional(),
   
   limit: z.string()
+    .default('20')
     .transform(val => parseInt(val, 10))
     .refine(val => val > 0 && val <= 100, '每页条数必须在1-100之间')
-    .optional()
-    .default('20'),
+    .optional(),
   
   status: z.union([
     WorkOrderStatusSchema,

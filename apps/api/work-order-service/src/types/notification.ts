@@ -1,4 +1,4 @@
-import { NotificationType } from '@prisma/client';
+import { NotificationType } from '@emaintenance/database';
 
 export interface CreateNotificationRequest {
   userId: string;

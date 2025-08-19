@@ -285,6 +285,7 @@ export class WorkOrderRepository {
       [WorkOrderStatus.PENDING]: 0,
       [WorkOrderStatus.IN_PROGRESS]: 0,
       [WorkOrderStatus.WAITING_PARTS]: 0,
+      [WorkOrderStatus.WAITING_EXTERNAL]: 0,
       [WorkOrderStatus.COMPLETED]: 0,
       [WorkOrderStatus.CANCELLED]: 0,
     };
