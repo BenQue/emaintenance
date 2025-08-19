@@ -136,7 +136,7 @@ export class ImportService {
         throw new Error('CSV文件为空');
       }
 
-      const headers = Object.keys(rawData[0]);
+      const headers = Object.keys(rawData[0] as Record<string, any>);
       const sampleData = rawData.slice(0, 5); // 只显示前5行作为预览
       const validation = { valid: 0, invalid: 0, errors: [] as any[] };
 
@@ -182,7 +182,7 @@ export class ImportService {
         throw new Error('CSV文件为空');
       }
 
-      const headers = Object.keys(rawData[0]);
+      const headers = Object.keys(rawData[0] as Record<string, any>);
       const sampleData = rawData.slice(0, 5);
       const validation = { valid: 0, invalid: 0, errors: [] as any[] };
 

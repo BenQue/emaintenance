@@ -131,7 +131,7 @@ export class AuthController {
         data: {
           valid: true,
           user: {
-            id: req.user?.id,
+            id: req.user?.userId,
             email: req.user?.email,
             role: req.user?.role,
           }
