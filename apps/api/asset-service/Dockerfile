@@ -20,8 +20,8 @@ RUN npm ci
 COPY . .
 
 # Build database package first, then asset service
-RUN npm run -w packages/database build
-RUN npm run -w apps/api/asset-service build
+RUN cd packages/database && npm run build
+RUN cd apps/api/asset-service && npm run build
 
 # Runtime stage
 FROM base AS runtime

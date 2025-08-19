@@ -19,7 +19,7 @@ RUN npm ci
 COPY . .
 
 # Build database package
-RUN npm run -w packages/database build
+RUN cd packages/database && npm run build
 
 # Runtime stage
 FROM base AS runtime

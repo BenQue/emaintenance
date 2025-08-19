@@ -20,8 +20,8 @@ RUN npm ci
 COPY . .
 
 # Build database package first, then work-order service
-RUN npm run -w packages/database build
-RUN npm run -w apps/api/work-order-service build
+RUN cd packages/database && npm run build
+RUN cd apps/api/work-order-service && npm run build
 
 # Runtime stage
 FROM base AS runtime
