@@ -7,20 +7,19 @@ import { z } from 'zod';
 // Validation schemas
 const createAssignmentRuleSchema = z.object({
   name: z.string().min(1, 'Name is required'),
-  priority: z.number().int().min(0).max(100).optional(),
+  description: z.string().optional(),
+  categoryId: z.string().optional(),
+  locationId: z.string().optional(),
+  priority: z.string().min(1, 'Priority is required'),
+  assignedRole: z.string().min(1, 'Assigned role is required'),
   isActive: z.boolean().optional(),
-  assetTypes: z.array(z.string()).default([]),
-  categories: z.array(z.string()).default([]),
-  locations: z.array(z.string()).default([]),
-  priorities: z.array(z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT'])).default([]),
-  assignToId: z.string().min(1, 'Assigned technician is required'),
 });
 
 const updateAssignmentRuleSchema = createAssignmentRuleSchema.partial();
 
 const assignmentRuleFilterSchema = z.object({
   isActive: z.string().transform(val => val === 'true').optional(),
-  assignToId: z.string().optional(),
+  assignedRole: z.string().optional(),
   page: z.string().transform(val => parseInt(val) || 1).optional(),
   limit: z.string().transform(val => parseInt(val) || 10).optional(),
 });

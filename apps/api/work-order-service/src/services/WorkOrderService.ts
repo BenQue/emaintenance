@@ -1,5 +1,5 @@
 import { PrismaClient } from '@emaintenance/database';
-import { WorkOrderStatus } from '@emaintenance/database';
+import { WorkOrderStatus, Priority } from '@emaintenance/database';
 import { WorkOrderRepository } from '../repositories/WorkOrderRepository';
 import { AssignmentRuleService } from './AssignmentRuleService';
 import { NotificationService } from './NotificationService';

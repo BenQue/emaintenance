@@ -23,8 +23,8 @@ export class AssignmentRuleService {
     // Verify user has supervisor role
     await this.verifyUserPermissions(userId, 'create');
 
-    // Verify assignTo user exists and is a technician
-    await this.verifyTechnician(data.assignToId);
+    // Verify assigned role is valid
+    await this.verifyAssignedRole(data.assignedRole);
 
     return this.assignmentRuleRepository.create(data);
   }
@@ -54,9 +54,9 @@ export class AssignmentRuleService {
   ): Promise<AssignmentRuleResponse | null> {
     await this.verifyUserPermissions(userId, 'update');
 
-    // If assignToId is being updated, verify the new technician
-    if (data.assignToId) {
-      await this.verifyTechnician(data.assignToId);
+    // If assignedRole is being updated, verify the new role
+    if (data.assignedRole) {
+      await this.verifyAssignedRole(data.assignedRole);
     }
 
     return this.assignmentRuleRepository.update(id, data);
@@ -80,8 +80,8 @@ export class AssignmentRuleService {
         return {
           ruleId: rule.id,
           ruleName: rule.name,
-          priority: rule.priority,
-          assignToId: rule.assignToId,
+          priority: parseInt(rule.priority),
+          assignToId: rule.assignTo.id,
         };
       }
     }
@@ -98,32 +98,19 @@ export class AssignmentRuleService {
       priority: string;
     }
   ): boolean {
-    // Check asset type match (if rule has asset type filters)
-    if (rule.assetTypes.length > 0 && workOrderData.assetType) {
-      if (!rule.assetTypes.includes(workOrderData.assetType)) {
-        return false;
-      }
+    // Check category match (if rule has category filter)
+    if (rule.categoryId && rule.categoryId !== workOrderData.category) {
+      return false;
     }
 
-    // Check category match (if rule has category filters)
-    if (rule.categories.length > 0) {
-      if (!rule.categories.includes(workOrderData.category)) {
-        return false;
-      }
+    // Check location match (if rule has location filter)
+    if (rule.locationId && rule.locationId !== workOrderData.location) {
+      return false;
     }
 
-    // Check location match (if rule has location filters)
-    if (rule.locations.length > 0 && workOrderData.location) {
-      if (!rule.locations.includes(workOrderData.location)) {
-        return false;
-      }
-    }
-
-    // Check priority match (if rule has priority filters)
-    if (rule.priorities.length > 0) {
-      if (!rule.priorities.includes(workOrderData.priority)) {
-        return false;
-      }
+    // Check priority match
+    if (rule.priority !== workOrderData.priority) {
+      return false;
     }
 
     return true;
@@ -141,6 +128,16 @@ export class AssignmentRuleService {
 
     if (user.role !== UserRole.SUPERVISOR && user.role !== UserRole.ADMIN) {
       throw new Error(`Access denied: ${action} assignment rules requires supervisor or admin role`);
+    }
+  }
+
+  private async verifyAssignedRole(assignedRole: string): Promise<void> {
+    const userRole = await this.prisma.userRole.findUnique({
+      where: { name: assignedRole },
+    });
+
+    if (!userRole) {
+      throw new Error(`Assigned role "${assignedRole}" not found`);
     }
   }
 

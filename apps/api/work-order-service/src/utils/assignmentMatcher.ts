@@ -21,7 +21,7 @@ export class AssignmentMatcher {
       .filter(rule => rule.isActive)
       .sort((a, b) => {
         if (a.priority !== b.priority) {
-          return b.priority - a.priority; // Higher priority first
+          return parseInt(b.priority) - parseInt(a.priority); // Higher priority first
         }
         return a.createdAt.getTime() - b.createdAt.getTime(); // Older rules first for tie-breaking
       });
@@ -42,37 +42,19 @@ export class AssignmentMatcher {
     rule: AssignmentRuleResponse,
     workOrderData: WorkOrderMatchData
   ): boolean {
-    // Check asset type match (if rule has asset type filters)
-    if (rule.assetTypes.length > 0 && workOrderData.assetType) {
-      if (!rule.assetTypes.includes(workOrderData.assetType)) {
-        return false;
-      }
+    // Check category match (if rule has category filter)
+    if (rule.categoryId && rule.categoryId !== workOrderData.category) {
+      return false;
     }
 
-    // Check category match (if rule has category filters)
-    if (rule.categories.length > 0) {
-      if (!rule.categories.includes(workOrderData.category)) {
-        return false;
-      }
+    // Check location match (if rule has location filter)
+    if (rule.locationId && rule.locationId !== workOrderData.location) {
+      return false;
     }
 
-    // Check location match (if rule has location filters)
-    if (rule.locations.length > 0 && workOrderData.location) {
-      // Support partial location matching (case-insensitive)
-      const locationMatches = rule.locations.some(ruleLocation => 
-        workOrderData.location!.toLowerCase().includes(ruleLocation.toLowerCase()) ||
-        ruleLocation.toLowerCase().includes(workOrderData.location!.toLowerCase())
-      );
-      if (!locationMatches) {
-        return false;
-      }
-    }
-
-    // Check priority match (if rule has priority filters)
-    if (rule.priorities.length > 0) {
-      if (!rule.priorities.includes(workOrderData.priority)) {
-        return false;
-      }
+    // Check priority match
+    if (rule.priority !== workOrderData.priority) {
+      return false;
     }
 
     return true;
@@ -82,19 +64,17 @@ export class AssignmentMatcher {
    * Validate that assignment rule conditions are properly configured
    */
   static validateRuleConditions(rule: {
-    assetTypes: string[];
-    categories: string[];
-    locations: string[];
-    priorities: string[];
+    categoryId?: string;
+    locationId?: string;
+    priority: string;
   }): string[] {
     const errors: string[] = [];
 
     // At least one condition must be specified
     const hasConditions = 
-      rule.assetTypes.length > 0 ||
-      rule.categories.length > 0 ||
-      rule.locations.length > 0 ||
-      rule.priorities.length > 0;
+      rule.categoryId ||
+      rule.locationId ||
+      rule.priority;
 
     if (!hasConditions) {
       errors.push('At least one matching condition must be specified');
@@ -102,11 +82,9 @@ export class AssignmentMatcher {
 
     // Validate priority values if specified
     const validPriorities = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
-    rule.priorities.forEach(priority => {
-      if (!validPriorities.includes(priority)) {
-        errors.push(`Invalid priority value: ${priority}`);
-      }
-    });
+    if (!validPriorities.includes(rule.priority)) {
+      errors.push(`Invalid priority value: ${rule.priority}`);
+    }
 
     return errors;
   }

@@ -154,8 +154,8 @@ export class WorkOrderController {
 
     const result = await this.workOrderService.getWorkOrders(
       filters,
-      parseInt(queryParams.page),
-      parseInt(queryParams.limit)
+      parseInt(queryParams.page) || 1,
+      parseInt(queryParams.limit) || 20
     );
 
     res.json({
@@ -252,8 +252,8 @@ export class WorkOrderController {
     const result = await this.workOrderService.getUserWorkOrders(
       req.user.id,
       type as 'created' | 'assigned',
-      parseInt(queryParams.page),
-      parseInt(queryParams.limit)
+      parseInt(queryParams.page) || 1,
+      parseInt(queryParams.limit) || 20
     );
 
     res.json({
@@ -361,8 +361,8 @@ export class WorkOrderController {
 
     const result = await this.workOrderService.getAssignedWorkOrders(
       req.user.id,
-      parseInt(queryParams.page),
-      parseInt(queryParams.limit)
+      parseInt(queryParams.page) || 1,
+      parseInt(queryParams.limit) || 20
     );
 
     res.json({
@@ -658,8 +658,8 @@ export class WorkOrderController {
 
     const maintenanceHistory = await this.workOrderService.getAssetMaintenanceHistory(
       assetId,
-      parseInt(queryParams.page),
-      parseInt(queryParams.limit)
+      parseInt(queryParams.page) || 1,
+      parseInt(queryParams.limit) || 20
     );
 
     if (!maintenanceHistory) {
