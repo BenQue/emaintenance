@@ -1,20 +1,27 @@
 # Dockerfile for User Service API (monorepo-aware)
 FROM node:20-alpine AS base
 
-# Workspace dependencies
+# Build stage
 FROM base AS builder
-WORKDIR /repo/apps/api/user-service
+WORKDIR /repo
 RUN apk add --no-cache libc6-compat
 
-# Install deps with local database package vendored
-COPY apps/api/user-service/package*.json ./
-COPY packages/database /repo/packages/database
-RUN npm pkg set dependencies.@emaintenance/database="file:../../packages/database" \
-  && npm install --omit=dev
+# Copy workspace manifests to install all dependencies
+COPY package*.json ./
+COPY apps/api/user-service/package*.json apps/api/user-service/
+COPY packages/database/package*.json packages/database/
+COPY packages/eslint-config/package*.json packages/eslint-config/
+COPY packages/typescript-config/package*.json packages/typescript-config/
 
-# Copy source and build
-COPY apps/api/user-service .
-RUN npm run build
+# Install all dependencies (including workspace deps)
+RUN npm ci
+
+# Copy source code
+COPY . .
+
+# Build database package first, then user service
+RUN npm run -w packages/database build
+RUN npm run -w apps/api/user-service build
 
 # Runtime stage
 FROM base AS runtime
@@ -26,7 +33,8 @@ RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 apiuser
 
 # Copy artifacts
-COPY --from=builder --chown=apiuser:nodejs /repo/apps/api/user-service/node_modules ./node_modules
+COPY --from=builder --chown=apiuser:nodejs /repo/node_modules ./node_modules
+COPY --from=builder --chown=apiuser:nodejs /repo/packages/database ./packages/database
 COPY --from=builder --chown=apiuser:nodejs /repo/apps/api/user-service/dist ./dist
 COPY --from=builder --chown=apiuser:nodejs /repo/apps/api/user-service/package*.json ./
 
