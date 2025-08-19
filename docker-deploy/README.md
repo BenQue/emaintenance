@@ -13,7 +13,7 @@
 ```
 docker-deploy/
 ├── docker-compose.production.yml  # 生产环境Docker Compose配置
-├── .env.production                 # 生产环境变量配置
+├── .env.production                 # 生产环境变量配置（由模板复制生成）
 ├── deploy.sh                      # 自动化部署脚本
 ├── health-check.sh               # 系统健康检查脚本
 ├── backup.sh                     # 数据备份脚本
@@ -55,7 +55,7 @@ sudo chmod +x /usr/local/bin/docker-compose
 
 ```bash
 # 创建生产环境配置（IMPORTANT: 必须步骤）
-cp .env.production.template .env.production
+cp env.production.template .env.production
 
 # 编辑配置文件，设置安全的密码和密钥
 nano .env.production
@@ -82,7 +82,7 @@ ssh user@10.163.144.13
 cd /opt/emaintenance/docker-deploy
 
 # 4. 配置生产环境变量（在服务器上）
-cp .env.production.template .env.production
+cp env.production.template .env.production
 nano .env.production  # 设置安全凭据
 
 # 5. 运行自动化部署脚本
@@ -180,8 +180,7 @@ docker-compose -f docker-compose.production.yml up -d --build
 # 初次设置本地镜像仓库 (可选，部署脚本会自动配置)
 ./setup-local-registry.sh
 
-# 预拉取所有镜像 (加速后续部署)
-./pull-local-images.sh
+# （可选）预拉取基础镜像由 deploy.sh 自动完成
 ```
 
 ### 优势

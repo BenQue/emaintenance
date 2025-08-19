@@ -1,38 +1,36 @@
-# Dockerfile for Asset Service API
+# Dockerfile for Asset Service API (monorepo-aware)
 FROM node:20-alpine AS base
 
-# Install dependencies
+# Workspace deps
 FROM base AS deps
-WORKDIR /app
-
+WORKDIR /repo
 RUN apk add --no-cache libc6-compat
 COPY package*.json ./
-
-# Install dependencies
-RUN npm ci --only=production
-
-# Install dev dependencies for building
-FROM deps AS builder
-WORKDIR /app
-COPY . .
+COPY apps/api/asset-service/package*.json apps/api/asset-service/
+COPY packages/database/package*.json packages/database/
 RUN npm ci
-RUN npm run build
 
-# Production stage
+# Build stage
+FROM deps AS builder
+WORKDIR /repo
+COPY . .
+RUN npm run -w packages/database build
+RUN npm run -w apps/api/asset-service build
+
+# Runtime stage
 FROM base AS runtime
-WORKDIR /app
-
-# Install runtime dependencies
+WORKDIR /repo/apps/api/asset-service
 RUN apk add --no-cache libc6-compat curl
 
 # Create app user
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 apiuser
 
-# Copy built application
-COPY --from=builder --chown=apiuser:nodejs /app/dist ./dist
-COPY --from=builder --chown=apiuser:nodejs /app/package*.json ./
-COPY --from=deps --chown=apiuser:nodejs /app/node_modules ./node_modules
+# Copy artifacts
+COPY --from=builder --chown=apiuser:nodejs /repo/node_modules /repo/node_modules
+COPY --from=builder --chown=apiuser:nodejs /repo/packages/database /repo/packages/database
+COPY --from=builder --chown=apiuser:nodejs /repo/apps/api/asset-service/dist ./dist
+COPY --from=builder --chown=apiuser:nodejs /repo/apps/api/asset-service/package*.json ./
 
 USER apiuser
 

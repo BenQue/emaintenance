@@ -64,8 +64,8 @@ services:
   # User Service API - Production
   user-service:
     build:
-      context: ../apps/api/user-service
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: apps/api/user-service/Dockerfile
       args:
         NODE_ENV: production
     container_name: emaintenance-user-service
@@ -86,7 +86,7 @@ services:
       - emaintenance-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health", "||", "exit", "1"]
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -100,8 +100,8 @@ services:
   # Work Order Service API - Production
   work-order-service:
     build:
-      context: ../apps/api/work-order-service
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: apps/api/work-order-service/Dockerfile
       args:
         NODE_ENV: production
     container_name: emaintenance-work-order-service
@@ -123,9 +123,9 @@ services:
       - emaintenance-network
     restart: unless-stopped
     volumes:
-      - work_order_uploads:/app/uploads
+      - work_order_uploads:/repo/apps/api/work-order-service/uploads
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3002/health", "||", "exit", "1"]
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -139,8 +139,8 @@ services:
   # Asset Service API - Production
   asset-service:
     build:
-      context: ../apps/api/asset-service
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: apps/api/asset-service/Dockerfile
       args:
         NODE_ENV: production
     container_name: emaintenance-asset-service
@@ -161,7 +161,7 @@ services:
       - emaintenance-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3003/health", "||", "exit", "1"]
+      test: ["CMD", "curl", "-f", "http://localhost:3003/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -175,8 +175,8 @@ services:
   # Next.js Web Application - Production
   web:
     build:
-      context: ../apps/web
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: apps/web/Dockerfile
       args:
         NODE_ENV: production
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://10.163.144.13}
@@ -202,7 +202,7 @@ services:
       - emaintenance-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000", "||", "exit", "1"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -247,6 +247,25 @@ services:
         limits:
           memory: 128M
           cpus: '0.25'
+
+  # Prisma migrations runner (one-off)
+  migrations:
+    build:
+      context: ..
+      dockerfile: packages/database/Dockerfile
+      args:
+        NODE_ENV: production
+    container_name: emaintenance-migrations
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-Emaint2024!}@database:5432/emaintenance
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - emaintenance-network
+    restart: "no"
+    command: ["sh", "-lc", "npm run db:generate && npm run db:push && npm run db:seed"]
 
 volumes:
   postgres_data:
