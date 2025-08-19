@@ -129,13 +129,11 @@ export const SettingsManagement: React.FC = () => {
   const columns: ColumnDef<MasterDataItem>[] = [
     {
       id: 'name',
-      accessorKey: 'name',
       header: '名称',
       cell: (item: MasterDataItem) => <span className="font-medium">{item.name}</span>,
     },
     {
       id: 'description',
-      accessorKey: 'description',
       header: '描述',
       cell: (item: MasterDataItem) => {
         return item.description ? <span className="text-gray-600">{item.description}</span> : <span className="text-gray-400">无描述</span>;
@@ -143,13 +141,11 @@ export const SettingsManagement: React.FC = () => {
     },
     ...(currentType === 'priority-levels' ? [{
       id: 'level',
-      accessorKey: 'level',
       header: '等级',
-      cell: (item: MasterDataItem) => <Badge variant="outline">{(item as any).level}</Badge>,
+      cell: (item: MasterDataItem) => <Badge variant="outline">{(item as PriorityLevel).level}</Badge>,
     }] : []),
     {
       id: 'isActive',
-      accessorKey: 'isActive',
       header: '状态',
       cell: (item: MasterDataItem) => {
         return (
@@ -161,7 +157,6 @@ export const SettingsManagement: React.FC = () => {
     },
     {
       id: 'createdAt',
-      accessorKey: 'createdAt',
       header: '创建时间',
       cell: (item: MasterDataItem) => formatDate(item.createdAt),
     },
@@ -403,17 +398,7 @@ export const SettingsManagement: React.FC = () => {
               columns={columns}
               data={items}
               loading={isLoading}
-              pagination={{
-                page,
-                limit,
-                total,
-                onPageChange: (newPage) => {
-                  // Implement pagination logic here
-                },
-                onLimitChange: (newLimit) => {
-                  // Implement limit change logic here
-                },
-              }}
+              pagination={true}
             />
 
             {/* Error Display */}

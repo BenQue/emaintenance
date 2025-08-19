@@ -32,7 +32,7 @@ interface SettingsManagementState {
   limit: number;
   
   // Current master data type being viewed
-  currentType: 'integrated-categories' | 'locations' | 'fault-codes' | 'priority-levels';
+  currentType: 'integrated-categories' | 'locations' | 'fault-codes' | 'priority-levels' | 'categories' | 'reasons';
   
   // Filters and search
   filters: MasterDataListQuery;
@@ -88,7 +88,7 @@ interface SettingsManagementState {
   getPriorityLevelUsage: (id: string) => Promise<UsageInfo>;
 
   // Actions - UI state management
-  setCurrentType: (type: 'integrated-categories' | 'locations' | 'fault-codes' | 'priority-levels') => void;
+  setCurrentType: (type: 'integrated-categories' | 'locations' | 'fault-codes' | 'priority-levels' | 'categories' | 'reasons') => void;
   updateFilters: (filters: Partial<MasterDataListQuery>) => void;
   updateSearchQuery: (query: string) => void;
   clearError: () => void;
