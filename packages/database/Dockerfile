@@ -2,7 +2,11 @@
 FROM node:20-alpine AS base
 
 # Build stage
-FROM base AS builder
+FROM node:18-alpine AS builder
+
+# 配置国内镜像源
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+
 WORKDIR /repo
 RUN apk add --no-cache openssl
 

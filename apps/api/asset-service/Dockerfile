@@ -2,7 +2,11 @@
 FROM node:20-alpine AS base
 
 # Build stage
-FROM base AS builder
+FROM node:18-alpine AS builder
+
+# 配置国内镜像源
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+
 WORKDIR /repo
 RUN apk add --no-cache libc6-compat
 
@@ -34,8 +38,12 @@ RUN cp -r packages/database/dist/* apps/api/asset-service/packages/database/
 RUN cd apps/api/asset-service && npm run build:prod
 
 # Runtime stage
-FROM base AS runtime
-WORKDIR /repo/apps/api/asset-service
+FROM node:18-alpine AS runtime
+
+# 配置国内镜像源
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+
+WORKDIR /app
 RUN apk add --no-cache libc6-compat curl
 
 # Create app user

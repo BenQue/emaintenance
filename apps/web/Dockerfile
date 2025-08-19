@@ -21,6 +21,10 @@ RUN npm ci
 
 # Rebuild the source code only when needed
 FROM base AS builder
+
+# 配置国内镜像源
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+
 WORKDIR /repo
 COPY --from=deps /repo/node_modules ./node_modules
 COPY . .
@@ -44,6 +48,10 @@ RUN npm run -w apps/web build
 
 # Production image, copy all the files and run next
 FROM base AS runner
+
+# 配置国内镜像源
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+
 WORKDIR /app
 
 ENV NODE_ENV production
