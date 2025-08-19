@@ -2,20 +2,19 @@
 FROM node:20-alpine AS base
 
 # Workspace deps
-FROM base AS deps
-WORKDIR /repo
+FROM base AS builder
+WORKDIR /repo/apps/api/asset-service
 RUN apk add --no-cache libc6-compat
-COPY package*.json ./
-COPY apps/api/asset-service/package*.json apps/api/asset-service/
-COPY packages/database/package*.json packages/database/
-RUN npm ci
 
-# Build stage
-FROM deps AS builder
-WORKDIR /repo
-COPY . .
-RUN npm run -w packages/database build
-RUN npm run -w apps/api/asset-service build
+# Install deps with local database package vendored
+COPY apps/api/asset-service/package*.json ./
+COPY packages/database /repo/packages/database
+RUN npm pkg set dependencies.@emaintenance/database="file:../../packages/database" \
+  && npm install --omit=dev
+
+# Copy source and build
+COPY apps/api/asset-service .
+RUN npm run build
 
 # Runtime stage
 FROM base AS runtime
@@ -27,8 +26,7 @@ RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 apiuser
 
 # Copy artifacts
-COPY --from=builder --chown=apiuser:nodejs /repo/node_modules /repo/node_modules
-COPY --from=builder --chown=apiuser:nodejs /repo/packages/database /repo/packages/database
+COPY --from=builder --chown=apiuser:nodejs /repo/apps/api/asset-service/node_modules ./node_modules
 COPY --from=builder --chown=apiuser:nodejs /repo/apps/api/asset-service/dist ./dist
 COPY --from=builder --chown=apiuser:nodejs /repo/apps/api/asset-service/package*.json ./
 
