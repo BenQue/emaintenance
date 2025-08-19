@@ -109,16 +109,5 @@ module.exports = {
     },
   },
   plugins: [
-    require("tailwindcss-animate"),
-    function({ addUtilities }) {
-      addUtilities({
-        '.w-sidebar': {
-          width: 'var(--sidebar-width, 16rem)',
-        },
-        '.w-sidebar-icon': {
-          width: 'var(--sidebar-width-icon, 3rem)',
-        },
-      })
-    }
   ],
 }
