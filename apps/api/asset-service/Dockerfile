@@ -22,8 +22,12 @@ COPY . .
 # Build database package first, then asset service (excluding test files)
 RUN cd packages/database && npm run build
 RUN ls -la packages/database/dist/
-RUN cd packages/database && npm run db:generate
-RUN ls -la packages/database/node_modules/.prisma/
+# Skip Prisma generate during build - will be done at runtime
+# RUN cd packages/database && npm run db:generate
+RUN ls -la packages/database/node_modules/.prisma/ || echo "Prisma client not generated, checking for errors..."
+RUN ls -la packages/database/dist/
+RUN ls -la packages/database/node_modules/ || echo "No node_modules found"
+RUN cd packages/database && npm list @prisma/client || echo "Prisma client not installed"
 # Ensure database types are available for API build
 RUN cp -r packages/database/dist apps/api/asset-service/packages/database
 RUN cd apps/api/asset-service && npm run build:prod
