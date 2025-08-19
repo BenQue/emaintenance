@@ -1,4 +1,5 @@
-import { PrismaClient, AssignmentRule, User } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
+import { AssignmentRule, User } from '@emaintenance/database';
 import {
   CreateAssignmentRuleRequest,
   UpdateAssignmentRuleRequest,

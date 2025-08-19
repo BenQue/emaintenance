@@ -1,5 +1,6 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
+import { UserRole } from '@emaintenance/database';
 import { AssignmentRuleController } from '../controllers/AssignmentRuleController';
 import { authenticate, authorize } from '../middleware/auth';
 
@@ -12,27 +13,27 @@ router.use(authenticate);
 
 // Assignment rule CRUD routes - require supervisor or admin role
 router.post('/', 
-  authorize('SUPERVISOR', 'ADMIN'), 
+  authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
   (req, res) => assignmentRuleController.createRule(req, res)
 );
 
 router.get('/', 
-  authorize('SUPERVISOR', 'ADMIN'), 
+  authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
   (req, res) => assignmentRuleController.getRules(req, res)
 );
 
 router.get('/:id', 
-  authorize('SUPERVISOR', 'ADMIN'), 
+  authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
   (req, res) => assignmentRuleController.getRuleById(req, res)
 );
 
 router.put('/:id', 
-  authorize('SUPERVISOR', 'ADMIN'), 
+  authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
   (req, res) => assignmentRuleController.updateRule(req, res)
 );
 
 router.delete('/:id', 
-  authorize('SUPERVISOR', 'ADMIN'), 
+  authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
   (req, res) => assignmentRuleController.deleteRule(req, res)
 );
 

@@ -96,6 +96,39 @@ export enum UserRole {
   ADMIN = 'ADMIN'
 }
 
+export enum WorkOrderStatus {
+  PENDING = 'PENDING',
+  IN_PROGRESS = 'IN_PROGRESS',
+  WAITING_PARTS = 'WAITING_PARTS',
+  WAITING_EXTERNAL = 'WAITING_EXTERNAL',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED'
+}
+
+export enum Priority {
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH',
+  URGENT = 'URGENT'
+}
+
+export enum FaultCode {
+  MECHANICAL_FAILURE = 'MECHANICAL_FAILURE',
+  ELECTRICAL_FAILURE = 'ELECTRICAL_FAILURE',
+  SOFTWARE_ISSUE = 'SOFTWARE_ISSUE',
+  WEAR_AND_TEAR = 'WEAR_AND_TEAR',
+  USER_ERROR = 'USER_ERROR',
+  PREVENTIVE_MAINTENANCE = 'PREVENTIVE_MAINTENANCE',
+  EXTERNAL_FACTOR = 'EXTERNAL_FACTOR',
+  OTHER = 'OTHER'
+}
+
+export enum NotificationType {
+  WORK_ORDER_ASSIGNED = 'WORK_ORDER_ASSIGNED',
+  WORK_ORDER_UPDATED = 'WORK_ORDER_UPDATED',
+  SYSTEM_ALERT = 'SYSTEM_ALERT'
+}
+
 export interface MasterDataCreateInput {
   name: string;
   description?: string;
@@ -133,6 +166,40 @@ export interface WorkOrder {
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface AssignmentRule {
+  id: string;
+  name: string;
+  description?: string;
+  categoryId?: string;
+  locationId?: string;
+  priority: Priority;
+  assignedRole: UserRole;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Notification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  userId: string;
+  workOrderId?: string;
+  isRead: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface PhotoRecord {
+  id: string;
+  workOrderId: string;
+  photoUrl: string;
+  description?: string;
+  uploadedBy: string;
+  createdAt: Date;
 }
 
 export default prisma;

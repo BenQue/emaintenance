@@ -15,11 +15,11 @@ export class AppError extends Error {
 }
 
 export const handleValidationError = (error: ZodError) => {
-  if (!error.errors || !Array.isArray(error.errors)) {
+  if (!error.issues || !Array.isArray(error.issues)) {
     return new AppError('输入验证失败', 400);
   }
   
-  const errors = error.errors.map(err => ({
+  const errors = error.issues.map(err => ({
     field: err.path?.join?.('.') || 'unknown',
     message: err.message || 'Validation error',
   }));

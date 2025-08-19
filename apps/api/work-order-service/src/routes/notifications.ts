@@ -1,5 +1,6 @@
 import express from 'express';
 import { PrismaClient } from '@prisma/client';
+import { UserRole } from '@emaintenance/database';
 import { NotificationController } from '../controllers/NotificationController';
 import { authenticate, authorize } from '../middleware/auth';
 
@@ -19,7 +20,7 @@ router.put('/my/:id/read', (req, res) => notificationController.markAsRead(req, 
 
 // Supervisor notification routes - accessible to supervisors and admins
 router.get('/all', 
-  authorize('SUPERVISOR', 'ADMIN'), 
+  authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
   (req, res) => notificationController.getAllNotifications(req, res)
 );
 

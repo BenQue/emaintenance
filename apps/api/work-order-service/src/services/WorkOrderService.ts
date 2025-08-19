@@ -119,18 +119,6 @@ export class WorkOrderService {
     return await this.workOrderRepository.findById(id);
   }
 
-  async getWorkOrders(
-    filters: WorkOrderFilters = {},
-    page: number = 1,
-    limit: number = 20
-  ): Promise<PaginatedWorkOrders> {
-    // Validate pagination parameters
-    if (page < 1) page = 1;
-    if (limit < 1 || limit > 100) limit = 20;
-
-    return await this.workOrderRepository.findMany(filters, page, limit);
-  }
-
   async updateWorkOrder(
     id: string,
     data: UpdateWorkOrderRequest,
@@ -922,18 +910,18 @@ export class WorkOrderService {
     // Calculate MTTR by priority
     const priorityGroups = this.groupBy(completedWorkOrders, 'priority');
     const byPriority = Object.entries(priorityGroups).map(([priority, workOrders]) => {
-      const totalTime = workOrders.reduce((sum, wo) => {
+      const totalTime = workOrders.reduce((sum, wo: any) => {
         const resolutionTime = new Date(wo.completedAt!).getTime() - new Date(wo.reportedAt).getTime();
         return sum + resolutionTime;
       }, 0);
       const avgTime = totalTime / workOrders.length / (1000 * 60 * 60);
-      return { priority: priority as any, mttr: avgTime };
+      return { priority, mttr: avgTime };
     });
 
     // Calculate MTTR by category
     const categoryGroups = this.groupBy(completedWorkOrders, 'category');
     const byCategory = Object.entries(categoryGroups).map(([category, workOrders]) => {
-      const totalTime = workOrders.reduce((sum, wo) => {
+      const totalTime = workOrders.reduce((sum, wo: any) => {
         const resolutionTime = new Date(wo.completedAt!).getTime() - new Date(wo.reportedAt).getTime();
         return sum + resolutionTime;
       }, 0);

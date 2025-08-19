@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { PrismaClient } from '@emaintenance/database';
+import { PrismaClient, UserRole } from '@emaintenance/database';
 import { WorkOrderController } from '../controllers/WorkOrderController';
 import { authenticate, authorize, checkWorkOrderAccess } from '../middleware/auth';
 import { uploadSingle, uploadMultiple, uploadPhotos } from '../middleware/upload';
@@ -29,8 +29,8 @@ router.use(authenticate);
 router.post('/', strictLimiter, uploadMultiple, workOrderController.createWorkOrder);
 router.get('/my', workOrderController.getMyWorkOrders);
 router.get('/assigned', workOrderController.getAssignedWorkOrders);
-router.get('/statistics', authorize('SUPERVISOR', 'ADMIN'), workOrderController.getStatistics);
-router.get('/filter-options', authorize('SUPERVISOR', 'ADMIN'), workOrderController.getFilterOptions);
+router.get('/statistics', authorize(UserRole.SUPERVISOR, UserRole.ADMIN), workOrderController.getStatistics);
+router.get('/filter-options', authorize(UserRole.SUPERVISOR, UserRole.ADMIN), workOrderController.getFilterOptions);
 router.get('/', workOrderController.getWorkOrders);
 
 // Protected routes (require work order access check)
@@ -46,7 +46,7 @@ router.post('/:id/attachments', strictLimiter, checkWorkOrderAccess, uploadSingl
 router.delete('/:id/attachments', strictLimiter, checkWorkOrderAccess, workOrderController.removeAttachment);
 
 // Assignment routes (supervisors and admins only) - Apply strict rate limiting
-router.put('/:id/assign', strictLimiter, authorize('SUPERVISOR', 'ADMIN'), workOrderController.assignWorkOrder);
+router.put('/:id/assign', strictLimiter, authorize(UserRole.SUPERVISOR, UserRole.ADMIN), workOrderController.assignWorkOrder);
 
 // Work order completion routes - Apply strict rate limiting to completion
 router.post('/:id/complete', strictLimiter, checkWorkOrderAccess, workOrderController.completeWorkOrder);
@@ -63,10 +63,10 @@ router.get('/:id/work-order-photos/:photoId', workOrderController.getWorkOrderPh
 router.get('/:id/work-order-photos/:photoId/thumbnail', workOrderController.getWorkOrderPhotoThumbnail);
 
 // KPI routes (supervisors and admins only)
-router.get('/kpi/mttr', authorize('SUPERVISOR', 'ADMIN'), workOrderController.getMTTRStatistics);
-router.get('/kpi/trends', authorize('SUPERVISOR', 'ADMIN'), workOrderController.getWorkOrderTrends);
+router.get('/kpi/mttr', authorize(UserRole.SUPERVISOR, UserRole.ADMIN), workOrderController.getMTTRStatistics);
+router.get('/kpi/trends', authorize(UserRole.SUPERVISOR, UserRole.ADMIN), workOrderController.getWorkOrderTrends);
 
 // Advanced filtering routes (supervisors and admins only)
-router.get('/export', authorize('SUPERVISOR', 'ADMIN'), workOrderController.exportWorkOrdersCSV);
+router.get('/export', authorize(UserRole.SUPERVISOR, UserRole.ADMIN), workOrderController.exportWorkOrdersCSV);
 
 export default router;
