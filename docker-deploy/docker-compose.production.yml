@@ -1,0 +1,264 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database - Production Configuration
+  database:
+    image: 10.163.144.13:5000/postgres:16-alpine
+    container_name: emaintenance-db
+    environment:
+      POSTGRES_DB: emaintenance
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-Emaint2024!}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - emaintenance-network
+    restart: unless-stopped
+    # Database port only accessible within Docker network for security
+    # External access removed: ports: - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d emaintenance"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    command: [
+      "postgres",
+      "-c", "max_connections=200",
+      "-c", "shared_buffers=256MB",
+      "-c", "effective_cache_size=1GB",
+      "-c", "work_mem=16MB",
+      "-c", "maintenance_work_mem=128MB",
+      "-c", "checkpoint_completion_target=0.9",
+      "-c", "wal_buffers=16MB"
+    ]
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+
+  # Redis Cache - Production Configuration
+  redis:
+    image: 10.163.144.13:5000/redis:7-alpine
+    container_name: emaintenance-redis
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru --save 900 1 --save 300 10
+    volumes:
+      - redis_data:/data
+    networks:
+      - emaintenance-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # User Service API - Production
+  user-service:
+    build:
+      context: ../apps/api/user-service
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+    container_name: emaintenance-user-service
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-Emaint2024!}@database:5432/emaintenance
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      REDIS_URL: redis://redis:6379
+      LOG_LEVEL: info
+      CORS_ORIGIN: ${FRONTEND_URL:-http://localhost:3000}
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - emaintenance-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # Work Order Service API - Production
+  work-order-service:
+    build:
+      context: ../apps/api/work-order-service
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+    container_name: emaintenance-work-order-service
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-Emaint2024!}@database:5432/emaintenance
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      USER_SERVICE_URL: http://user-service:3001
+      ASSET_SERVICE_URL: http://asset-service:3003
+      LOG_LEVEL: info
+      CORS_ORIGIN: ${FRONTEND_URL:-http://localhost:3000}
+    depends_on:
+      database:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+    networks:
+      - emaintenance-network
+    restart: unless-stopped
+    volumes:
+      - work_order_uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3002/health", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # Asset Service API - Production
+  asset-service:
+    build:
+      context: ../apps/api/asset-service
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+    container_name: emaintenance-asset-service
+    environment:
+      NODE_ENV: production
+      PORT: 3003
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-Emaint2024!}@database:5432/emaintenance
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      USER_SERVICE_URL: http://user-service:3001
+      LOG_LEVEL: info
+      CORS_ORIGIN: ${FRONTEND_URL:-http://localhost:3000}
+    depends_on:
+      database:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+    networks:
+      - emaintenance-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3003/health", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # Next.js Web Application - Production
+  web:
+    build:
+      context: ../apps/web
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://10.163.144.13}
+        NEXT_PUBLIC_USER_SERVICE_URL: ${NEXT_PUBLIC_USER_SERVICE_URL:-http://10.163.144.13:3001}
+        NEXT_PUBLIC_WORK_ORDER_SERVICE_URL: ${NEXT_PUBLIC_WORK_ORDER_SERVICE_URL:-http://10.163.144.13:3002}
+        NEXT_PUBLIC_ASSET_SERVICE_URL: ${NEXT_PUBLIC_ASSET_SERVICE_URL:-http://10.163.144.13:3003}
+    container_name: emaintenance-web
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://10.163.144.13}
+      NEXT_PUBLIC_USER_SERVICE_URL: ${NEXT_PUBLIC_USER_SERVICE_URL:-http://10.163.144.13:3001}
+      NEXT_PUBLIC_WORK_ORDER_SERVICE_URL: ${NEXT_PUBLIC_WORK_ORDER_SERVICE_URL:-http://10.163.144.13:3002}
+      NEXT_PUBLIC_ASSET_SERVICE_URL: ${NEXT_PUBLIC_ASSET_SERVICE_URL:-http://10.163.144.13:3003}
+    depends_on:
+      user-service:
+        condition: service_healthy
+      work-order-service:
+        condition: service_healthy
+      asset-service:
+        condition: service_healthy
+    networks:
+      - emaintenance-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: 10.163.144.13:5000/nginx:alpine
+    container_name: emaintenance-nginx
+    ports:
+      - "80:80"
+      - "3001:3001"
+      - "3002:3002"
+      - "3003:3003"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/logs:/var/log/nginx
+    depends_on:
+      web:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+      work-order-service:
+        condition: service_healthy
+      asset-service:
+        condition: service_healthy
+    networks:
+      - emaintenance-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80", "||", "exit", "1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.25'
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  work_order_uploads:
+    driver: local
+
+networks:
+  emaintenance-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

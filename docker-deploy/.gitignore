@@ -1,0 +1,31 @@
+# E-Maintenance Docker Deploy - Security Exclusions
+
+# Environment files with sensitive data
+.env.production
+.env.local
+.env
+
+# Backup files that may contain sensitive data
+*.backup
+backup_*
+
+# Log files
+*.log
+logs/
+
+# SSL certificates and keys
+*.pem
+*.crt
+*.key
+*.p12
+*.pfx
+
+# Local development overrides
+docker-compose.override.yml
+docker-compose.local.yml
+
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
