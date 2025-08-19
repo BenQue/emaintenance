@@ -535,7 +535,15 @@ export class WorkOrderController {
     await this.validateWorkOrderAccess(id, req.user);
 
     // Save photos using PhotoStorageService
-    const photoRecords = [];
+    const photoRecords: Array<{
+      filename: string;
+      originalName: string;
+      filePath: string;
+      thumbnailPath?: string;
+      fileSize: number;
+      mimeType: string;
+      uploadedAt: Date;
+    }> = [];
     for (const file of req.files as Express.Multer.File[]) {
       const photoRecord = await this.photoStorageService.savePhoto(file, id);
       photoRecords.push(photoRecord);
