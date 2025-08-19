@@ -29,7 +29,8 @@ RUN ls -la packages/database/dist/
 RUN ls -la packages/database/node_modules/ || echo "No node_modules found"
 RUN cd packages/database && npm list @prisma/client || echo "Prisma client not installed"
 # Ensure database types are available for API build
-RUN cp -r packages/database/dist apps/api/asset-service/packages/database
+RUN mkdir -p apps/api/asset-service/packages/database
+RUN cp -r packages/database/dist/* apps/api/asset-service/packages/database/
 RUN cd apps/api/asset-service && npm run build:prod
 
 # Runtime stage
