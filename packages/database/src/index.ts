@@ -32,6 +32,7 @@ export interface User {
 
 export interface Asset {
   id: string;
+  assetCode: string;
   name: string;
   description?: string;
   location: string;
@@ -116,6 +117,22 @@ export interface JWTPayload {
   role: UserRole;
   iat?: number;
   exp?: number;
+}
+
+export interface WorkOrder {
+  id: string;
+  title: string;
+  description?: string;
+  status: string;
+  priority: string;
+  assignedTo?: string;
+  createdBy: string;
+  assetId?: string;
+  location: string;
+  categoryId?: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export default prisma;
