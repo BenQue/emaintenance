@@ -21,6 +21,7 @@ COPY . .
 
 # Build database package first, then user service (excluding test files)
 RUN cd packages/database && npm run build
+RUN ls -la packages/database/dist/
 RUN cd apps/api/user-service && npm run build:prod
 
 # Runtime stage
