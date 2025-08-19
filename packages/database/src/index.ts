@@ -20,6 +20,10 @@ export interface User {
   id: string;
   username: string;
   email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  employeeId?: string;
   role: UserRole;
   isActive: boolean;
   createdAt: Date;
@@ -30,6 +34,7 @@ export interface Asset {
   id: string;
   name: string;
   description?: string;
+  location: string;
   locationId: string;
   categoryId: string;
   isActive: boolean;
@@ -94,6 +99,7 @@ export interface MasterDataCreateInput {
   name: string;
   description?: string;
   isActive?: boolean;
+  categoryId?: string;
 }
 
 export interface MasterDataListResponse<T> {
@@ -101,6 +107,15 @@ export interface MasterDataListResponse<T> {
   total: number;
   page: number;
   limit: number;
+}
+
+export interface JWTPayload {
+  userId: string;
+  email: string;
+  username: string;
+  role: UserRole;
+  iat?: number;
+  exp?: number;
 }
 
 export default prisma;
