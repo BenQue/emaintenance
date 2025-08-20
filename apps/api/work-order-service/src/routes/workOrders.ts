@@ -30,97 +30,97 @@ export const createWorkOrderRoutes = (prisma: PrismaClient) => {
   // Work order CRUD routes
   router.post('/', 
     authorize(UserRole.EMPLOYEE, UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
-    (req, res) => workOrderController.createWorkOrder(req, res)
+    workOrderController.createWorkOrder
   );
 
   router.get('/', 
     authorize(UserRole.EMPLOYEE, UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
-    (req, res) => workOrderController.getWorkOrders(req, res)
+    workOrderController.getWorkOrders
   );
 
   router.get('/my', 
     authorize(UserRole.EMPLOYEE, UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
-    (req, res) => workOrderController.getMyWorkOrders(req, res)
+    workOrderController.getMyWorkOrders
   );
 
   router.get('/assigned', 
     authorize(UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
-    (req, res) => workOrderController.getAssignedWorkOrders(req, res)
+    workOrderController.getAssignedWorkOrders
   );
 
   router.get('/:id', 
     authorize(UserRole.EMPLOYEE, UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
     checkWorkOrderAccess(prisma),
-    (req, res) => workOrderController.getWorkOrderById(req, res)
+    workOrderController.getWorkOrder
   );
 
   router.put('/:id', 
     authorize(UserRole.EMPLOYEE, UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
     checkWorkOrderAccess(prisma),
-    (req, res) => workOrderController.updateWorkOrder(req, res)
+    workOrderController.updateWorkOrder
   );
 
   router.delete('/:id', 
     authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
-    (req, res) => workOrderController.deleteWorkOrder(req, res)
+    workOrderController.deleteWorkOrder
   );
 
   // Work order assignment routes
   router.post('/:id/assign', 
     authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
-    (req, res) => workOrderController.assignWorkOrder(req, res)
+    workOrderController.assignWorkOrder
   );
 
   router.post('/:id/status', 
     authorize(UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
     checkWorkOrderAccess(prisma),
-    (req, res) => workOrderController.updateWorkOrderStatus(req, res)
+    workOrderController.updateWorkOrderStatus
   );
 
   // Work order statistics and KPI routes
   router.get('/statistics/overview', 
     authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
-    (req, res) => workOrderController.getWorkOrderStatistics(req, res)
+    workOrderController.getStatistics
   );
 
   router.get('/filter-options', 
     authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
-    (req, res) => workOrderController.getFilterOptions(req, res)
+    workOrderController.getFilterOptions
   );
 
   router.get('/kpi/mttr', 
     authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
-    (req, res) => workOrderController.getMTTRKPI(req, res)
+    workOrderController.getMTTRStatistics
   );
 
   router.get('/kpi/completion-rate', 
     authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
-    (req, res) => workOrderController.getCompletionRateKPI(req, res)
+    workOrderController.getWorkOrderTrends
   );
 
   // Export routes
   router.get('/export/csv', 
     authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
-    (req, res) => workOrderController.exportWorkOrdersCSV(req, res)
+    workOrderController.exportWorkOrdersCSV
   );
 
   // Asset maintenance history
   router.get('/asset/:assetId/maintenance-history', 
     authorize(UserRole.EMPLOYEE, UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
-    (req, res) => workOrderController.getAssetMaintenanceHistory(req, res)
+    workOrderController.getAssetMaintenanceHistory
   );
 
   // Photo upload routes
   router.post('/:id/photos', 
     authorize(UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
     checkWorkOrderAccess(prisma),
-    (req, res) => workOrderController.uploadWorkOrderPhotos(req, res)
+    workOrderController.uploadWorkOrderPhotos
   );
 
   router.get('/:id/photos', 
     authorize(UserRole.EMPLOYEE, UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
     checkWorkOrderAccess(prisma),
-    (req, res) => workOrderController.getWorkOrderPhotos(req, res)
+    workOrderController.getWorkOrderPhotos
   );
 
   return router;

@@ -1,8 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { PrismaClient, UserRole } from '@emaintenance/database';
 import jwt from 'jsonwebtoken';
-import { asyncHandler } from '../utils/asyncHandler';
-import { AppError } from '../utils/AppError';
+import { asyncHandler, AppError } from '../utils/errorHandler';
 
 // Extend Express Request interface to include user
 declare global {

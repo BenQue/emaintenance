@@ -16,27 +16,27 @@ export const createAssignmentRuleRoutes = (prisma: PrismaClient) => {
   // Assignment rule CRUD routes - require supervisor or admin role
   router.post('/', 
     authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
-    (req, res) => assignmentRuleController.createRule(req, res)
+    assignmentRuleController.createRule
   );
 
   router.get('/', 
     authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
-    (req, res) => assignmentRuleController.getRules(req, res)
+    assignmentRuleController.getRules
   );
 
   router.get('/:id', 
     authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
-    (req, res) => assignmentRuleController.getRuleById(req, res)
+    assignmentRuleController.getRuleById
   );
 
   router.put('/:id', 
     authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
-    (req, res) => assignmentRuleController.updateRule(req, res)
+    assignmentRuleController.updateRule
   );
 
   router.delete('/:id', 
     authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
-    (req, res) => assignmentRuleController.deleteRule(req, res)
+    assignmentRuleController.deleteRule
   );
 
   return router;
