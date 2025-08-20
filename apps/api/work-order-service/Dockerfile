@@ -55,9 +55,9 @@ COPY --from=builder --chown=apiuser:nodejs /repo/packages/database ./packages/da
 COPY --from=builder --chown=apiuser:nodejs /repo/apps/api/work-order-service/dist ./dist
 COPY --from=builder --chown=apiuser:nodejs /repo/apps/api/work-order-service/package*.json ./
 
-# Create uploads directory with proper permissions
-RUN mkdir -p /repo/apps/api/work-order-service/uploads/work-orders && \
-    chown -R apiuser:nodejs /repo/apps/api/work-order-service/uploads
+# Create uploads directory with proper permissions (container path)
+RUN mkdir -p /app/uploads/work-orders && \
+    chown -R apiuser:nodejs /app/uploads
 
 # Ensure Prisma client is generated for runtime (before switching user)
 RUN npx prisma generate --schema=./packages/database/prisma/schema.prisma || (echo "Prisma generate failed" && ls -la ./packages/database/prisma && exit 1)

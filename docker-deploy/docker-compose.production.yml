@@ -123,7 +123,7 @@ services:
       - emaintenance-network
     restart: unless-stopped
     volumes:
-      - work_order_uploads:/repo/apps/api/work-order-service/uploads
+      - work_order_uploads:/app/uploads
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
       interval: 30s
