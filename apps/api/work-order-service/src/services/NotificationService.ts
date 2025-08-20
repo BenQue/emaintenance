@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@emaintenance/database';
 import { NotificationType, UserRole } from '@emaintenance/database';
 import { NotificationRepository } from '../repositories/NotificationRepository';
 import {

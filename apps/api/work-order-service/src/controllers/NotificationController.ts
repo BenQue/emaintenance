@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@emaintenance/database';
 import { NotificationType } from '@emaintenance/database';
 import { NotificationService } from '../services/NotificationService';
 import { z } from 'zod';

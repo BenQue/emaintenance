@@ -1,5 +1,5 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@emaintenance/database';
 import { UserRole } from '@emaintenance/database';
 import { AssignmentRuleController } from '../controllers/AssignmentRuleController';
 import { authenticate, authorize } from '../middleware/auth';

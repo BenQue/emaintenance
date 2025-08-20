@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@emaintenance/database';
 import { AssignmentRuleService } from '../services/AssignmentRuleService';
 import { CreateAssignmentRuleRequest, UpdateAssignmentRuleRequest } from '../types/assignment-rule';
 import { z } from 'zod';
