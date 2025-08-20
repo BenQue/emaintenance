@@ -1,8 +1,6 @@
 @import "tailwindcss";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Tailwind v4 uses a single import. Remove v3 directives to avoid double-processing. */
 
 @layer base {
   :root {
