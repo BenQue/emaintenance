@@ -44,7 +44,7 @@ FROM node:18-alpine AS runtime
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 
 WORKDIR /app
-RUN apk add --no-cache libc6-compat curl
+RUN apk add --no-cache libc6-compat curl openssl
 
 # Create app user
 RUN addgroup --system --gid 1001 nodejs && \
@@ -57,6 +57,9 @@ COPY --from=builder --chown=apiuser:nodejs /repo/apps/api/asset-service/dist ./d
 COPY --from=builder --chown=apiuser:nodejs /repo/apps/api/asset-service/package*.json ./
 
 USER apiuser
+
+# Ensure Prisma client is generated for runtime
+RUN npx prisma generate --schema=./packages/database/prisma/schema.prisma || (echo "Prisma generate failed" && ls -la ./packages/database/prisma && exit 1)
 
 EXPOSE 3003
 
