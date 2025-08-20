@@ -50,6 +50,9 @@ RUN apk add --no-cache libc6-compat curl openssl
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 apiuser
 
+# Prepare log directory with proper permissions
+RUN mkdir -p /app/logs && chown -R apiuser:nodejs /app/logs
+
 # Copy artifacts
 COPY --from=builder --chown=apiuser:nodejs /repo/node_modules ./node_modules
 COPY --from=builder --chown=apiuser:nodejs /repo/packages/database ./packages/database
