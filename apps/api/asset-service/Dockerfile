@@ -56,10 +56,10 @@ COPY --from=builder --chown=apiuser:nodejs /repo/packages/database ./packages/da
 COPY --from=builder --chown=apiuser:nodejs /repo/apps/api/asset-service/dist ./dist
 COPY --from=builder --chown=apiuser:nodejs /repo/apps/api/asset-service/package*.json ./
 
-USER apiuser
-
-# Ensure Prisma client is generated for runtime
+# Ensure Prisma client is generated for runtime (before switching user)
 RUN npx prisma generate --schema=./packages/database/prisma/schema.prisma || (echo "Prisma generate failed" && ls -la ./packages/database/prisma && exit 1)
+
+USER apiuser
 
 EXPOSE 3003
 

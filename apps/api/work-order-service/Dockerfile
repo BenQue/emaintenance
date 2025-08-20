@@ -59,7 +59,7 @@ COPY --from=builder --chown=apiuser:nodejs /repo/apps/api/work-order-service/pac
 RUN mkdir -p /repo/apps/api/work-order-service/uploads/work-orders && \
     chown -R apiuser:nodejs /repo/apps/api/work-order-service/uploads
 
-# Ensure Prisma client is generated for runtime
+# Ensure Prisma client is generated for runtime (before switching user)
 RUN npx prisma generate --schema=./packages/database/prisma/schema.prisma || (echo "Prisma generate failed" && ls -la ./packages/database/prisma && exit 1)
 
 USER apiuser
