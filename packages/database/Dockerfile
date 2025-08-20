@@ -32,7 +32,8 @@ RUN apk add --no-cache openssl
 
 # Copy artifacts
 COPY --from=builder --chown=root:root /repo/node_modules ./node_modules
-COPY --from=builder --chown=root:root /repo/packages/database ./packages/database
+# Copy the built database package contents into the current workdir so prisma schema is at ./prisma/schema.prisma
+COPY --from=builder --chown=root:root /repo/packages/database/ ./
 COPY --from=builder --chown=root:root /repo/packages/database/package*.json ./
 
 # Default command (overridden by compose)
