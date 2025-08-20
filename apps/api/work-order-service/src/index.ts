@@ -3,13 +3,17 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import path from 'path';
-import workOrderRoutes from './routes/workOrders';
-import assignmentRuleRoutes from './routes/assignmentRules';
-import notificationRoutes from './routes/notifications';
+import { PrismaClient } from '@emaintenance/database';
+import { createWorkOrderRoutes } from './routes/workOrders';
+import { createAssignmentRuleRoutes } from './routes/assignmentRules';
+import { createNotificationRoutes } from './routes/notifications';
 import { globalErrorHandler } from './utils/errorHandler';
 
 const app = express();
 const PORT = process.env.PORT || 3002;
+
+// Initialize Prisma client
+const prisma = new PrismaClient();
 
 // Rate limiting configuration
 const isDevelopment = process.env.NODE_ENV === 'development';
@@ -61,10 +65,10 @@ app.get('/health', (req, res) => {
   });
 });
 
-// API Routes
-app.use('/api/work-orders', workOrderRoutes);
-app.use('/api/assignment-rules', assignmentRuleRoutes);
-app.use('/api/notifications', notificationRoutes);
+// API Routes - Create routes with PrismaClient dependency injection
+app.use('/api/work-orders', createWorkOrderRoutes(prisma));
+app.use('/api/assignment-rules', createAssignmentRuleRoutes(prisma));
+app.use('/api/notifications', createNotificationRoutes(prisma));
 
 // 404 handler
 app.all('*', (req, res) => {
@@ -76,6 +80,31 @@ app.all('*', (req, res) => {
 
 // Global error handler
 app.use(globalErrorHandler);
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  console.log('Shutting down Work Order Service...');
+  try {
+    await prisma.$disconnect();
+    console.log('Database connection closed');
+    process.exit(0);
+  } catch (error) {
+    console.error('Error during shutdown:', error);
+    process.exit(1);
+  }
+});
+
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM received, shutting down gracefully...');
+  try {
+    await prisma.$disconnect();
+    console.log('Database connection closed');
+    process.exit(0);
+  } catch (error) {
+    console.error('Error during shutdown:', error);
+    process.exit(1);
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`Work order service running on port ${PORT}`);
