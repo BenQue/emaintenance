@@ -5,11 +5,13 @@ Secure production deployment configuration for the E-Maintenance System.
 ## 🚀 Quick Start
 
 1. **Generate secure environment configuration:**
+
    ```bash
    ./generate-passwords.sh
    ```
 
 2. **Deploy the system:**
+
    ```bash
    ./deploy-secure.sh
    ```
@@ -20,7 +22,7 @@ Secure production deployment configuration for the E-Maintenance System.
 
 ## 📁 Directory Structure
 
-```
+```text
 docker-deploy/
 ├── deploy-secure.sh              # Main deployment script
 ├── generate-passwords.sh         # Secure password generator  
@@ -29,7 +31,7 @@ docker-deploy/
 ├── database/
 │   ├── init/                    # Database initialization scripts
 │   └── seeds/                   # Sample data seed files
-├── dockerfiles/                 # Custom Docker build files
+├── docker-files/                # Custom Docker build files
 ├── nginx/                       # Nginx reverse proxy configuration
 ├── scripts/                     # Utility scripts (backup, monitoring)
 └── DEPLOYMENT_GUIDE.md          # Comprehensive deployment guide
@@ -71,7 +73,7 @@ docker-compose -f docker-compose.production.yml ps
 docker-compose -f docker-compose.production.yml logs -f [service-name]
 
 # Manual database backup
-docker exec emaintenance_db-backup_1 /backup-database.sh
+docker exec emaintenance-db-backup-1 /backup-database.sh
 
 # Stop all services
 docker-compose -f docker-compose.production.yml down
@@ -102,13 +104,14 @@ Key configuration options in `.env.production`:
 
 ### Data Volumes
 
-- `/opt/emaintenance/data/` - Application data
-- `/opt/emaintenance/logs/` - Application logs  
-- `/opt/emaintenance/backups/` - Database backups
+- `/opt/e-maintenance/data/` - Application data
+- `/opt/e-maintenance/logs/` - Application logs
+- `/opt/e-maintenance/backups/` - Database backups
 
 ## 🛠️ Troubleshooting
 
 ### Check Service Health
+
 ```bash
 # All services
 docker-compose -f docker-compose.production.yml ps
@@ -126,14 +129,15 @@ docker-compose -f docker-compose.production.yml logs web
 4. **Permissions**: User must have Docker access (`docker` group)
 
 ### Emergency Recovery
+
 ```bash
 # Complete restart
 docker-compose -f docker-compose.production.yml down
 docker-compose -f docker-compose.production.yml up -d
 
 # Database recovery from backup
-gunzip -c /opt/emaintenance/backups/postgres/emaintenance_latest.sql.gz | \
-    docker exec -i emaintenance_postgres_1 psql -U postgres -d postgres
+gunzip -c /opt/e-maintenance/backups/postgres/e-maintenance_latest.sql.gz | \
+    docker exec -i e-maintenance-postgres-1 psql -U postgres -d postgres
 ```
 
 ## 📖 Documentation
@@ -154,10 +158,10 @@ gunzip -c /opt/emaintenance/backups/postgres/emaintenance_latest.sql.gz | \
 
 For deployment issues:
 
-1. Check the deployment log: `/opt/emaintenance/logs/deploy-[timestamp].log`
+1. Check the deployment log: `/opt/e-maintenance/logs/deploy-[timestamp].log`
 2. Review service logs: `docker-compose -f docker-compose.production.yml logs`
 3. Verify environment configuration: `source .env.production && env | grep -E "(DB_|JWT_|REDIS_)"`
-4. Test database connectivity: `docker exec emaintenance_postgres_1 pg_isready -U postgres`
+4. Test database connectivity: `docker exec e-maintenance-postgres-1 pg_isready -U postgres`
 
 ---
 

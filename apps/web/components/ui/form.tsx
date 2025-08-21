@@ -155,12 +155,8 @@ function FormMessage({ className, ...props }: React.ComponentProps<"p">) {
   )
 }
 
-Form.displayName = "Form"
-FormItem.displayName = "FormItem"
-FormLabel.displayName = "FormLabel"
-FormControl.displayName = "FormControl"
-FormDescription.displayName = "FormDescription"
-FormMessage.displayName = "FormMessage"
+// TypeScript doesn't allow assigning displayName to function components in strict mode
+// These are handled by React DevTools automatically
 
 export {
   useFormField,
