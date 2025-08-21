@@ -7,7 +7,17 @@ import logger from './utils/logger';
 
 const app = express();
 const PORT = process.env.PORT || 3003;
-const prisma = new PrismaClient();
+
+// Initialize Prisma client with error handling
+let prisma: PrismaClient;
+
+try {
+  prisma = new PrismaClient();
+  logger.info('Prisma client initialized successfully');
+} catch (error) {
+  logger.error('Failed to initialize Prisma client:', error);
+  process.exit(1);
+}
 
 // Global middleware
 app.use(helmet({
@@ -106,11 +116,24 @@ process.on('SIGTERM', async () => {
   }
 });
 
-// Start server
-app.listen(PORT, () => {
-  logger.info('Asset service started successfully', {
-    port: PORT,
-    environment: process.env.NODE_ENV || 'development',
-    version: '1.0.0',
-  });
-});
+// Start server with error handling
+const startServer = async () => {
+  try {
+    // Test database connection before starting server
+    await prisma.$queryRaw`SELECT 1`;
+    logger.info('Database connection test successful');
+    
+    app.listen(PORT, () => {
+      logger.info('Asset service started successfully', {
+        port: PORT,
+        environment: process.env.NODE_ENV || 'development',
+        version: '1.0.0',
+      });
+    });
+  } catch (error) {
+    logger.error('Failed to start server - database connection failed:', error);
+    process.exit(1);
+  }
+};
+
+startServer();

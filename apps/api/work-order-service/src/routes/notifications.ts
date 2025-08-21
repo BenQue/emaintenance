@@ -1,26 +1,32 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@emaintenance/database';
+import { UserRole } from '@emaintenance/database';
 import { NotificationController } from '../controllers/NotificationController';
 import { authenticate, authorize } from '../middleware/auth';
 
 const router = express.Router();
-const prisma = new PrismaClient();
-const notificationController = new NotificationController(prisma);
 
-// All routes require authentication
-router.use(authenticate);
+// Create routes with PrismaClient dependency injection
+export const createNotificationRoutes = (prisma: PrismaClient) => {
+  const notificationController = new NotificationController(prisma);
+  
+  // All routes require authentication
+  router.use(authenticate(prisma));
 
-// User notification routes - accessible to all authenticated users
-router.get('/my', (req, res) => notificationController.getUserNotifications(req, res));
-router.get('/my/stats', (req, res) => notificationController.getUserStats(req, res));
-router.put('/my/mark-all-read', (req, res) => notificationController.markAllAsRead(req, res));
-router.get('/my/:id', (req, res) => notificationController.getNotificationById(req, res));
-router.put('/my/:id/read', (req, res) => notificationController.markAsRead(req, res));
+  // User notification routes - accessible to all authenticated users
+  router.get('/my', notificationController.getUserNotifications);
+  router.get('/my/stats', notificationController.getUserStats);
+  router.put('/my/mark-all-read', notificationController.markAllAsRead);
+  router.get('/my/:id', notificationController.getNotificationById);
+  router.put('/my/:id/read', notificationController.markAsRead);
 
-// Supervisor notification routes - accessible to supervisors and admins
-router.get('/all', 
-  authorize('SUPERVISOR', 'ADMIN'), 
-  (req, res) => notificationController.getAllNotifications(req, res)
-);
+  // Supervisor notification routes - accessible to supervisors and admins
+  router.get('/all', 
+    authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
+    notificationController.getAllNotifications
+  );
+
+  return router;
+};
 
 export default router;

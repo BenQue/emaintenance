@@ -1,4 +1,5 @@
 import { LoginForm } from '../../components/forms/LoginForm';
+import '../fix-styles.css';
 
 export default function LoginPage() {
   return (
@@ -15,7 +16,7 @@ export default function LoginPage() {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-card py-8 px-4 shadow-lg border border-border rounded-lg sm:px-10">
+        <div className="login-card bg-card py-8 px-4 shadow-lg border border-border rounded-lg sm:px-10">
           <LoginForm />
         </div>
       </div>

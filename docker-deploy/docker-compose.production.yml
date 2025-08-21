@@ -311,6 +311,25 @@ services:
       "
     profiles: ["backup"]
 
+  # Prisma migrations runner (one-off)
+  migrations:
+    build:
+      context: ..
+      dockerfile: packages/database/Dockerfile
+      args:
+        NODE_ENV: production
+    container_name: emaintenance-migrations
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-Emaint2024!}@database:5432/emaintenance
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - emaintenance-network
+    restart: "no"
+    command: ["sh", "-lc", "npm run db:generate && npm run db:push && npm run db:seed"]
+
 volumes:
   # Database volumes
   postgres_data:

@@ -1,26 +1,25 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
 import { PrismaClient, UserRole } from '@emaintenance/database';
-import { AppError, asyncHandler } from '../utils/errorHandler';
+import jwt from 'jsonwebtoken';
+import { asyncHandler, AppError } from '../utils/errorHandler';
 
-// Extend Express Request type to include user
+// Extend Express Request interface to include user
 declare global {
   namespace Express {
     interface Request {
       user?: {
         id: string;
         email: string;
-        role: UserRole;
         firstName: string;
         lastName: string;
+        role: UserRole;
+        isActive: boolean;
       };
     }
   }
 }
 
-const prisma = new PrismaClient();
-
-export const authenticate = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+export const authenticate = (prisma: PrismaClient) => asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   // Get token from header
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -96,7 +95,7 @@ export const authorize = (...roles: UserRole[]) => {
 };
 
 // Middleware to check if user can access work order
-export const checkWorkOrderAccess = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+export const checkWorkOrderAccess = (prisma: PrismaClient) => asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
   if (!req.user) {
     throw new AppError('用户未认证', 401);
   }

@@ -1,4 +1,5 @@
-import { PrismaClient, Notification, NotificationType } from '@prisma/client';
+import { PrismaClient } from '@emaintenance/database';
+import { Notification, NotificationType } from '@emaintenance/database';
 import {
   CreateNotificationRequest,
   NotificationFilter,
@@ -140,7 +141,7 @@ export class NotificationRepository {
     );
 
     // Initialize all notification types with 0 if not present
-    const allTypes: NotificationType[] = ['WORK_ORDER_ASSIGNED', 'WORK_ORDER_UPDATED', 'SYSTEM_ALERT'];
+    const allTypes: NotificationType[] = [NotificationType.WORK_ORDER_ASSIGNED, NotificationType.WORK_ORDER_UPDATED, NotificationType.SYSTEM_ALERT];
     allTypes.forEach(type => {
       if (!(type in typeStats)) {
         typeStats[type] = 0;

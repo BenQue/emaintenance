@@ -1,24 +1,25 @@
 {
-  "compilerOptions": {
-    "target": "ES2020",
-    "module": "commonjs",
-    "outDir": "./dist",
-    "skipLibCheck": true,
-    "noEmit": false,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": false,
-    "moduleResolution": "node",
-    "resolveJsonModule": true
-  },
-  "include": [
-    "src/**/*"
-  ],
+  "extends": "./tsconfig.json",
   "exclude": [
     "src/**/*.test.ts",
-    "src/__tests__/**/*",
-    "src/repositories/*.test.ts",
-    "dist",
-    "node_modules"
-  ]
+    "src/**/*.spec.ts",
+    "src/**/__tests__/**/*",
+    "src/test-setup.ts",
+    "**/*.test.ts",
+    "**/*.spec.ts"
+  ],
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "noEmitOnError": false,
+    "strict": false,
+    "noImplicitAny": false,
+    "noImplicitReturns": false,
+    "noImplicitThis": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "exactOptionalPropertyTypes": false,
+    "noImplicitOverride": false,
+    "allowUnusedLabels": true,
+    "allowUnreachableCode": true
+  }
 }

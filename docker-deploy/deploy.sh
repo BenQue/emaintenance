@@ -25,19 +25,36 @@ LOCAL_REGISTRY="10.163.144.13:5000"
 
 # Functions
 log() {
+    # Ensure log directory exists before writing
+    LOG_DIR="$(dirname "$LOG_FILE")"
+    if [[ ! -d "$LOG_DIR" ]]; then
+        sudo mkdir -p "$LOG_DIR"
+    fi
     echo -e "${GREEN}[$(date '+%Y-%m-%d %H:%M:%S')] $1${NC}" | tee -a "$LOG_FILE"
 }
 
 error() {
+    LOG_DIR="$(dirname "$LOG_FILE")"
+    if [[ ! -d "$LOG_DIR" ]]; then
+        sudo mkdir -p "$LOG_DIR"
+    fi
     echo -e "${RED}[$(date '+%Y-%m-%d %H:%M:%S')] ERROR: $1${NC}" | tee -a "$LOG_FILE"
     exit 1
 }
 
 warning() {
+    LOG_DIR="$(dirname "$LOG_FILE")"
+    if [[ ! -d "$LOG_DIR" ]]; then
+        sudo mkdir -p "$LOG_DIR"
+    fi
     echo -e "${YELLOW}[$(date '+%Y-%m-%d %H:%M:%S')] WARNING: $1${NC}" | tee -a "$LOG_FILE"
 }
 
 info() {
+    LOG_DIR="$(dirname "$LOG_FILE")"
+    if [[ ! -d "$LOG_DIR" ]]; then
+        sudo mkdir -p "$LOG_DIR"
+    fi
     echo -e "${BLUE}[$(date '+%Y-%m-%d %H:%M:%S')] INFO: $1${NC}" | tee -a "$LOG_FILE"
 }
 
@@ -234,27 +251,20 @@ stop_containers() {
 }
 
 # Start services
-start_services() {
-    log "Starting E-Maintenance services..."
-    
-    # Start infrastructure services first
+start_infra() {
+    log "Starting infrastructure services (database, redis)..."
     docker-compose -f "$COMPOSE_FILE" up -d database redis
-    
-    # Wait for database to be ready
     info "Waiting for database to be ready..."
     sleep 30
-    
-    # Start API services
+}
+
+start_apps() {
+    log "Starting application services (APIs, web, nginx)..."
     docker-compose -f "$COMPOSE_FILE" up -d user-service work-order-service asset-service
-    
-    # Wait for API services to be ready
     info "Waiting for API services to be ready..."
     sleep 30
-    
-    # Start web application and nginx
     docker-compose -f "$COMPOSE_FILE" up -d web nginx
-    
-    log "All services started successfully."
+    log "Application services started successfully."
 }
 
 # Run database migrations
@@ -265,9 +275,9 @@ run_migrations() {
     info "Waiting for user service to be fully ready..."
     sleep 15
     
-    # Run migrations through user service container
-    docker exec emaintenance-user-service npm run db:generate || error "Failed to generate Prisma client"
-    docker exec emaintenance-user-service npm run db:push || error "Failed to run database migrations"
+    # Run migrations via dedicated migrations service (one-off)
+    info "Running migrations container..."
+    docker-compose -f "$COMPOSE_FILE" run --rm migrations || error "Migrations container failed"
     
     log "Database migrations completed."
 }
@@ -276,7 +286,7 @@ run_migrations() {
 seed_database() {
     log "Seeding database with initial data..."
     
-    docker exec emaintenance-user-service npm run db:seed || warning "Database seeding failed"
+    # Seeding executed inside migrations container already; nothing to do here
     
     log "Database seeding completed."
 }
@@ -373,9 +383,10 @@ main() {
     stop_containers
     pull_images
     build_images
-    start_services
+    start_infra
     run_migrations
     seed_database
+    start_apps
     perform_health_checks
     show_status
     

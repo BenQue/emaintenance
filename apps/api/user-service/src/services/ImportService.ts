@@ -11,9 +11,10 @@ const UserCSVSchema = z.object({
   '邮箱地址': z.string().email('邮箱格式不正确'),
   '用户名': z.string().min(3, '用户名至少需要3个字符'),
   '工号': z.string().optional(),
-  '角色': z.enum(['EMPLOYEE', 'TECHNICIAN', 'SUPERVISOR', 'ADMIN'], {
-    errorMap: () => ({ message: '角色必须是 EMPLOYEE, TECHNICIAN, SUPERVISOR 或 ADMIN' })
-  }),
+  '角色': z.enum(['EMPLOYEE', 'TECHNICIAN', 'SUPERVISOR', 'ADMIN']).refine(
+    (val) => ['EMPLOYEE', 'TECHNICIAN', 'SUPERVISOR', 'ADMIN'].includes(val),
+    { message: '角色必须是 EMPLOYEE, TECHNICIAN, SUPERVISOR 或 ADMIN' }
+  ),
 });
 
 const AssetCSVSchema = z.object({
@@ -135,7 +136,7 @@ export class ImportService {
         throw new Error('CSV文件为空');
       }
 
-      const headers = Object.keys(rawData[0]);
+      const headers = Object.keys(rawData[0] as Record<string, any>);
       const sampleData = rawData.slice(0, 5); // 只显示前5行作为预览
       const validation = { valid: 0, invalid: 0, errors: [] as any[] };
 
@@ -147,7 +148,7 @@ export class ImportService {
         } catch (error) {
           validation.invalid++;
           if (error instanceof z.ZodError) {
-            error.errors.forEach(err => {
+            error.issues.forEach(err => {
               validation.errors.push({
                 row: index + 2, // +2 因为从1开始且第1行是标题
                 field: err.path.join('.'),
@@ -181,7 +182,7 @@ export class ImportService {
         throw new Error('CSV文件为空');
       }
 
-      const headers = Object.keys(rawData[0]);
+      const headers = Object.keys(rawData[0] as Record<string, any>);
       const sampleData = rawData.slice(0, 5);
       const validation = { valid: 0, invalid: 0, errors: [] as any[] };
 
@@ -192,7 +193,7 @@ export class ImportService {
         } catch (error) {
           validation.invalid++;
           if (error instanceof z.ZodError) {
-            error.errors.forEach(err => {
+            error.issues.forEach(err => {
               validation.errors.push({
                 row: index + 2,
                 field: err.path.join('.'),

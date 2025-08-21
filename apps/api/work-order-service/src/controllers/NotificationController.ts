@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
-import { PrismaClient, NotificationType } from '@prisma/client';
+import { PrismaClient } from '@emaintenance/database';
+import { NotificationType } from '@emaintenance/database';
 import { NotificationService } from '../services/NotificationService';
 import { z } from 'zod';
 
@@ -49,7 +50,7 @@ export class NotificationController {
       if (error instanceof z.ZodError) {
         res.status(400).json({
           error: 'Validation failed',
-          details: error.errors,
+          details: error.issues,
         });
         return;
       }
@@ -188,7 +189,7 @@ export class NotificationController {
       if (error instanceof z.ZodError) {
         res.status(400).json({
           error: 'Validation failed',
-          details: error.errors,
+          details: error.issues,
         });
         return;
       }

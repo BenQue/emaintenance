@@ -1,4 +1,5 @@
-import { PrismaClient, AssignmentRule, User } from '@prisma/client';
+import { PrismaClient } from '@emaintenance/database';
+import { AssignmentRule, User } from '@emaintenance/database';
 import {
   CreateAssignmentRuleRequest,
   UpdateAssignmentRuleRequest,
@@ -152,13 +153,12 @@ export class AssignmentRuleRepository {
     return {
       id: rule.id,
       name: rule.name,
+      description: rule.description,
+      categoryId: rule.categoryId,
+      locationId: rule.locationId,
       priority: rule.priority,
+      assignedRole: rule.assignedRole,
       isActive: rule.isActive,
-      assetTypes: rule.assetTypes,
-      categories: rule.categories,
-      locations: rule.locations,
-      priorities: rule.priorities,
-      assignToId: rule.assignToId,
       assignTo: rule.assignTo,
       createdAt: rule.createdAt,
       updatedAt: rule.updatedAt,

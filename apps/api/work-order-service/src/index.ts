@@ -3,13 +3,25 @@ import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import path from 'path';
-import workOrderRoutes from './routes/workOrders';
-import assignmentRuleRoutes from './routes/assignmentRules';
-import notificationRoutes from './routes/notifications';
+import { PrismaClient } from '@emaintenance/database';
+import { createWorkOrderRoutes } from './routes/workOrders';
+import { createAssignmentRuleRoutes } from './routes/assignmentRules';
+import { createNotificationRoutes } from './routes/notifications';
 import { globalErrorHandler } from './utils/errorHandler';
 
 const app = express();
 const PORT = process.env.PORT || 3002;
+
+// Initialize Prisma client with error handling
+let prisma: PrismaClient;
+
+try {
+  prisma = new PrismaClient();
+  console.log('Prisma client initialized successfully');
+} catch (error) {
+  console.error('Failed to initialize Prisma client:', error);
+  process.exit(1);
+}
 
 // Rate limiting configuration
 const isDevelopment = process.env.NODE_ENV === 'development';
@@ -51,20 +63,36 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Serve static files for uploads
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    service: 'work-order-service',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime()
-  });
+// Health check with database connectivity test
+app.get('/health', async (req, res) => {
+  try {
+    // Test database connection
+    await prisma.$queryRaw`SELECT 1`;
+    
+    res.json({ 
+      status: 'ok', 
+      service: 'work-order-service',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      database: 'connected'
+    });
+  } catch (error) {
+    console.error('Health check failed:', error);
+    res.status(503).json({
+      status: 'error',
+      service: 'work-order-service',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      database: 'disconnected',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
 });
 
-// API Routes
-app.use('/api/work-orders', workOrderRoutes);
-app.use('/api/assignment-rules', assignmentRuleRoutes);
-app.use('/api/notifications', notificationRoutes);
+// API Routes - Create routes with PrismaClient dependency injection
+app.use('/api/work-orders', createWorkOrderRoutes(prisma));
+app.use('/api/assignment-rules', createAssignmentRuleRoutes(prisma));
+app.use('/api/notifications', createNotificationRoutes(prisma));
 
 // 404 handler
 app.all('*', (req, res) => {
@@ -77,7 +105,46 @@ app.all('*', (req, res) => {
 // Global error handler
 app.use(globalErrorHandler);
 
-app.listen(PORT, () => {
-  console.log(`Work order service running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+// Graceful shutdown
+process.on('SIGINT', async () => {
+  console.log('Shutting down Work Order Service...');
+  try {
+    await prisma.$disconnect();
+    console.log('Database connection closed');
+    process.exit(0);
+  } catch (error) {
+    console.error('Error during shutdown:', error);
+    process.exit(1);
+  }
 });
+
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM received, shutting down gracefully...');
+  try {
+    await prisma.$disconnect();
+    console.log('Database connection closed');
+    process.exit(0);
+  } catch (error) {
+    console.error('Error during shutdown:', error);
+    process.exit(1);
+  }
+});
+
+// Start server with error handling
+const startServer = async () => {
+  try {
+    // Test database connection before starting server
+    await prisma.$queryRaw`SELECT 1`;
+    console.log('Database connection test successful');
+    
+    app.listen(PORT, () => {
+      console.log(`Work order service running on port ${PORT}`);
+      console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server - database connection failed:', error);
+    process.exit(1);
+  }
+};
+
+startServer();

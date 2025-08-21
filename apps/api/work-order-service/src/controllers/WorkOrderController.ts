@@ -154,8 +154,8 @@ export class WorkOrderController {
 
     const result = await this.workOrderService.getWorkOrders(
       filters,
-      parseInt(queryParams.page),
-      parseInt(queryParams.limit)
+      queryParams.page || 1,
+      queryParams.limit || 20
     );
 
     res.json({
@@ -252,8 +252,8 @@ export class WorkOrderController {
     const result = await this.workOrderService.getUserWorkOrders(
       req.user.id,
       type as 'created' | 'assigned',
-      parseInt(queryParams.page),
-      parseInt(queryParams.limit)
+      queryParams.page || 1,
+      queryParams.limit || 20
     );
 
     res.json({
@@ -361,8 +361,8 @@ export class WorkOrderController {
 
     const result = await this.workOrderService.getAssignedWorkOrders(
       req.user.id,
-      parseInt(queryParams.page),
-      parseInt(queryParams.limit)
+      queryParams.page || 1,
+      queryParams.limit || 20
     );
 
     res.json({
@@ -535,7 +535,15 @@ export class WorkOrderController {
     await this.validateWorkOrderAccess(id, req.user);
 
     // Save photos using PhotoStorageService
-    const photoRecords = [];
+    const photoRecords: Array<{
+      filename: string;
+      originalName: string;
+      filePath: string;
+      thumbnailPath?: string;
+      fileSize: number;
+      mimeType: string;
+      uploadedAt: Date;
+    }> = [];
     for (const file of req.files as Express.Multer.File[]) {
       const photoRecord = await this.photoStorageService.savePhoto(file, id);
       photoRecords.push(photoRecord);
@@ -658,8 +666,8 @@ export class WorkOrderController {
 
     const maintenanceHistory = await this.workOrderService.getAssetMaintenanceHistory(
       assetId,
-      parseInt(queryParams.page),
-      parseInt(queryParams.limit)
+      queryParams.page || 1,
+      queryParams.limit || 20
     );
 
     if (!maintenanceHistory) {

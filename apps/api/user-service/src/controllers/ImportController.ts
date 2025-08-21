@@ -24,7 +24,7 @@ export class ImportController {
 
   constructor() {
     const userRepository = new UserRepository();
-    const userService = new UserService(userRepository);
+    const userService = new UserService();
     this.importService = new ImportService(userRepository, userService);
   }
 

@@ -181,7 +181,7 @@
 4. **内存不足**: 调整容器资源限制
 
 ### 紧急联系信息
-- **技术支持**: 检查项目README.md
+- **技术支持**: 检查项目 README.md
 - **日志位置**: `/opt/emaintenance/logs/`
 - **备份位置**: `/opt/emaintenance/backups/`
 

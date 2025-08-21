@@ -179,7 +179,7 @@ export class SettingsService {
   }
 
   // Integrated Categories with Reasons methods
-  async getCategoriesWithReasons(query: MasterDataListQuery): Promise<MasterDataListResponse> {
+  async getCategoriesWithReasons(query: MasterDataListQuery): Promise<MasterDataListResponse<any>> {
     const { page = 1, limit = 10, search, isActive } = query;
     const offset = (page - 1) * limit;
 
@@ -217,7 +217,7 @@ export class SettingsService {
     };
   }
 
-  async getReasonsByCategory(categoryId: string, query: MasterDataListQuery): Promise<MasterDataListResponse> {
+  async getReasonsByCategory(categoryId: string, query: MasterDataListQuery): Promise<MasterDataListResponse<any>> {
     const { page = 1, limit = 10, search, isActive } = query;
     const offset = (page - 1) * limit;
 

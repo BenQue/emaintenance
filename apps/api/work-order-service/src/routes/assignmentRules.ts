@@ -1,39 +1,45 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@emaintenance/database';
+import { UserRole } from '@emaintenance/database';
 import { AssignmentRuleController } from '../controllers/AssignmentRuleController';
 import { authenticate, authorize } from '../middleware/auth';
 
 const router = express.Router();
-const prisma = new PrismaClient();
-const assignmentRuleController = new AssignmentRuleController(prisma);
 
-// All routes require authentication
-router.use(authenticate);
+// Create routes with PrismaClient dependency injection
+export const createAssignmentRuleRoutes = (prisma: PrismaClient) => {
+  const assignmentRuleController = new AssignmentRuleController(prisma);
+  
+  // All routes require authentication
+  router.use(authenticate(prisma));
 
-// Assignment rule CRUD routes - require supervisor or admin role
-router.post('/', 
-  authorize('SUPERVISOR', 'ADMIN'), 
-  (req, res) => assignmentRuleController.createRule(req, res)
-);
+  // Assignment rule CRUD routes - require supervisor or admin role
+  router.post('/', 
+    authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
+    assignmentRuleController.createRule
+  );
 
-router.get('/', 
-  authorize('SUPERVISOR', 'ADMIN'), 
-  (req, res) => assignmentRuleController.getRules(req, res)
-);
+  router.get('/', 
+    authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
+    assignmentRuleController.getRules
+  );
 
-router.get('/:id', 
-  authorize('SUPERVISOR', 'ADMIN'), 
-  (req, res) => assignmentRuleController.getRuleById(req, res)
-);
+  router.get('/:id', 
+    authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
+    assignmentRuleController.getRuleById
+  );
 
-router.put('/:id', 
-  authorize('SUPERVISOR', 'ADMIN'), 
-  (req, res) => assignmentRuleController.updateRule(req, res)
-);
+  router.put('/:id', 
+    authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
+    assignmentRuleController.updateRule
+  );
 
-router.delete('/:id', 
-  authorize('SUPERVISOR', 'ADMIN'), 
-  (req, res) => assignmentRuleController.deleteRule(req, res)
-);
+  router.delete('/:id', 
+    authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
+    assignmentRuleController.deleteRule
+  );
+
+  return router;
+};
 
 export default router;

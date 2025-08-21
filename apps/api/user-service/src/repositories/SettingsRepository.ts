@@ -287,7 +287,7 @@ export class SettingsRepository {
     return { items, total, page, limit };
   }
 
-  async createReason(data: MasterDataCreateInput): Promise<Reason> {
+  async createReason(data: MasterDataCreateInput & { categoryId?: string }): Promise<Reason> {
     return prisma.reason.create({
       data: {
         name: data.name,
