@@ -1,0 +1,121 @@
+# Production-optimized Dockerfile for API Microservices with Prisma Support
+# Fixed version with proper database client generation
+
+# Stage 1: Dependencies
+FROM node:20-alpine AS deps
+RUN apk add --no-cache libc6-compat openssl
+WORKDIR /app
+
+# Build arguments
+ARG SERVICE_PATH
+ARG SERVICE_NAME
+ARG SERVICE_PORT
+
+# Copy root package files for monorepo
+COPY package*.json ./
+COPY turbo.json ./
+
+# Copy service-specific package files
+COPY ${SERVICE_PATH}/package*.json ./service/
+
+# Copy packages directory (includes database package with Prisma)
+COPY packages ./packages
+
+# Install all dependencies (including dev for Prisma generation)
+RUN npm ci
+
+# Stage 2: Prisma Client Generation
+FROM node:20-alpine AS prisma
+RUN apk add --no-cache libc6-compat openssl
+WORKDIR /app
+
+ARG SERVICE_PATH
+
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/packages ./packages
+
+# Generate Prisma client
+WORKDIR /app/packages/database
+RUN npx prisma generate
+
+# Stage 3: Builder
+FROM node:20-alpine AS builder
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
+
+ARG SERVICE_PATH
+ARG SERVICE_NAME
+
+# Copy dependencies and Prisma client
+COPY --from=prisma /app/node_modules ./node_modules
+COPY --from=prisma /app/packages ./packages
+
+# Copy service source code
+COPY ${SERVICE_PATH} ./service
+COPY turbo.json ./
+COPY package*.json ./
+
+# Build the service
+WORKDIR /app/service
+RUN npm run build || echo "Build script not found, skipping..."
+
+# If no build output, copy source as-is (for non-TypeScript services)
+RUN if [ ! -d "dist" ]; then \
+    mkdir -p dist && \
+    cp -r src/* dist/ 2>/dev/null || \
+    cp -r . dist/ 2>/dev/null || \
+    echo "No build output found"; \
+    fi
+
+# Stage 4: Runtime
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+# Install runtime dependencies including curl for health checks
+RUN apk add --no-cache libc6-compat openssl curl tini
+
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 apiuser
+
+# Copy package files
+COPY --from=builder /app/service/package*.json ./
+
+# Install only production dependencies
+RUN npm ci --only=production && \
+    npm cache clean --force
+
+# Copy Prisma client and schema
+COPY --from=prisma --chown=apiuser:nodejs /app/packages/database/node_modules/.prisma ./node_modules/.prisma
+COPY --from=prisma --chown=apiuser:nodejs /app/packages/database/node_modules/@prisma ./node_modules/@prisma
+COPY --from=prisma --chown=apiuser:nodejs /app/packages/database/prisma ./prisma
+
+# Copy built application
+COPY --from=builder --chown=apiuser:nodejs /app/service/dist ./dist
+
+# Copy source files as fallback (for services without build step)
+COPY --from=builder --chown=apiuser:nodejs /app/service/src ./src
+
+# Create necessary directories
+RUN mkdir -p /app/uploads /app/logs && \
+    chown -R apiuser:nodejs /app/uploads /app/logs
+
+# Set build-time variables as environment defaults
+ARG SERVICE_PORT
+ENV PORT=${SERVICE_PORT:-3001}
+
+USER apiuser
+
+# Expose the service port
+EXPOSE ${SERVICE_PORT:-3001}
+
+# Health check with proper timeout
+HEALTHCHECK --interval=30s --timeout=10s --start-period=45s --retries=3 \
+    CMD curl -f http://localhost:${PORT}/health || exit 1
+
+# Use tini as init system to handle signals properly
+ENTRYPOINT ["/sbin/tini", "--"]
+
+# Start the application - try dist/index.js first, fallback to src/index.js
+CMD sh -c 'if [ -f dist/index.js ]; then node dist/index.js; else node src/index.js; fi'

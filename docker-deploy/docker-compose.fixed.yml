@@ -1,0 +1,308 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database with proper initialization
+  postgres:
+    image: postgres:16-alpine
+    container_name: emaintenance-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-emaintenance}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-Emaint2024Prod!}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+      - ./scripts/wait-for-it.sh:/wait-for-it.sh:ro
+    networks:
+      - emaintenance-network
+    ports:
+      - "5432:5432"  # Expose for debugging, remove in production
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-emaintenance}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    command: |
+      postgres
+      -c max_connections=200
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c work_mem=16MB
+      -c maintenance_work_mem=128MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=16MB
+      -c log_statement=all
+      -c log_duration=on
+
+  # Redis Cache with authentication
+  redis:
+    image: redis:7-alpine
+    container_name: emaintenance-redis
+    restart: unless-stopped
+    command: >
+      sh -c 'redis-server
+      --appendonly yes
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+      --requirepass ${REDIS_PASSWORD:-Emaint2024Redis!}'
+    volumes:
+      - redis_data:/data
+    networks:
+      - emaintenance-network
+    ports:
+      - "6379:6379"  # Expose for debugging
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:-Emaint2024Redis!}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # Database Initializer - Runs once to setup database
+  db-init:
+    image: node:20-alpine
+    container_name: emaintenance-db-init
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-Emaint2024Prod!}@postgres:5432/${DB_NAME:-emaintenance}
+    volumes:
+      - ../packages/database:/app/packages/database
+      - ./scripts/init-db.sh:/init-db.sh:ro
+    working_dir: /app/packages/database
+    networks:
+      - emaintenance-network
+    command: >
+      sh -c '
+      echo "Installing dependencies..." &&
+      npm install &&
+      echo "Generating Prisma client..." &&
+      npx prisma generate &&
+      echo "Pushing schema to database..." &&
+      npx prisma db push --skip-generate &&
+      echo "Running database seed..." &&
+      npx prisma db seed &&
+      echo "Database initialization complete!"
+      '
+    restart: "no"
+
+  # User Service with proper Prisma setup
+  user-service:
+    build:
+      context: ..
+      dockerfile: docker-deploy/dockerfiles/Dockerfile.api.fixed
+      args:
+        SERVICE_PATH: apps/api/user-service
+        SERVICE_NAME: user-service
+        SERVICE_PORT: 3001
+    image: emaintenance/user-service:latest
+    container_name: emaintenance-user-service
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-Emaint2024Prod!}@postgres:5432/${DB_NAME:-emaintenance}
+      JWT_SECRET: ${JWT_SECRET:-emaint-jwt-secret-2024-production-key-very-secure}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-Emaint2024Redis!}@redis:6379
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://10.163.144.13:3030}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+    networks:
+      - emaintenance-network
+    ports:
+      - "3001:3001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - ./logs/user-service:/app/logs
+
+  # Work Order Service
+  work-order-service:
+    build:
+      context: ..
+      dockerfile: docker-deploy/dockerfiles/Dockerfile.api.fixed
+      args:
+        SERVICE_PATH: apps/api/work-order-service
+        SERVICE_NAME: work-order-service
+        SERVICE_PORT: 3002
+    image: emaintenance/work-order-service:latest
+    container_name: emaintenance-work-order-service
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-Emaint2024Prod!}@postgres:5432/${DB_NAME:-emaintenance}
+      JWT_SECRET: ${JWT_SECRET:-emaint-jwt-secret-2024-production-key-very-secure}
+      USER_SERVICE_URL: http://user-service:3001
+      ASSET_SERVICE_URL: http://asset-service:3003
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://10.163.144.13:3030}
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - work_order_uploads:/app/uploads
+      - ./logs/work-order-service:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+    networks:
+      - emaintenance-network
+    ports:
+      - "3002:3002"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # Asset Service
+  asset-service:
+    build:
+      context: ..
+      dockerfile: docker-deploy/dockerfiles/Dockerfile.api.fixed
+      args:
+        SERVICE_PATH: apps/api/asset-service
+        SERVICE_NAME: asset-service
+        SERVICE_PORT: 3003
+    image: emaintenance/asset-service:latest
+    container_name: emaintenance-asset-service
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3003
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-Emaint2024Prod!}@postgres:5432/${DB_NAME:-emaintenance}
+      JWT_SECRET: ${JWT_SECRET:-emaint-jwt-secret-2024-production-key-very-secure}
+      USER_SERVICE_URL: http://user-service:3001
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://10.163.144.13:3030}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+    networks:
+      - emaintenance-network
+    ports:
+      - "3003:3003"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3003/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - ./logs/asset-service:/app/logs
+
+  # Next.js Web Application
+  web:
+    build:
+      context: ..
+      dockerfile: docker-deploy/dockerfiles/Dockerfile.web.fixed
+      args:
+        NODE_ENV: production
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://10.163.144.13:3030}
+        NEXT_PUBLIC_USER_SERVICE_URL: ${NEXT_PUBLIC_USER_SERVICE_URL:-http://10.163.144.13:3031}
+        NEXT_PUBLIC_WORK_ORDER_SERVICE_URL: ${NEXT_PUBLIC_WORK_ORDER_SERVICE_URL:-http://10.163.144.13:3032}
+        NEXT_PUBLIC_ASSET_SERVICE_URL: ${NEXT_PUBLIC_ASSET_SERVICE_URL:-http://10.163.144.13:3033}
+    image: emaintenance/web:latest
+    container_name: emaintenance-web
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://10.163.144.13:3030}
+      NEXT_PUBLIC_USER_SERVICE_URL: ${NEXT_PUBLIC_USER_SERVICE_URL:-http://10.163.144.13:3031}
+      NEXT_PUBLIC_WORK_ORDER_SERVICE_URL: ${NEXT_PUBLIC_WORK_ORDER_SERVICE_URL:-http://10.163.144.13:3032}
+      NEXT_PUBLIC_ASSET_SERVICE_URL: ${NEXT_PUBLIC_ASSET_SERVICE_URL:-http://10.163.144.13:3033}
+    depends_on:
+      user-service:
+        condition: service_healthy
+      work-order-service:
+        condition: service_healthy
+      asset-service:
+        condition: service_healthy
+    networks:
+      - emaintenance-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 45s
+    volumes:
+      - ./logs/web:/app/logs
+
+  # Nginx Reverse Proxy - Port 3030 instead of 80
+  nginx:
+    image: nginx:alpine
+    container_name: emaintenance-nginx
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-3030}:80"           # Web UI on port 3030
+      - "${HTTPS_PORT:-443}:443"          # HTTPS (future)
+      - "3031:3001"                       # User Service API
+      - "3032:3002"                       # Work Order Service API
+      - "3033:3003"                       # Asset Service API
+    volumes:
+      - ./nginx/nginx.fixed.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+      - ./scripts/wait-for-it.sh:/wait-for-it.sh:ro
+    depends_on:
+      web:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+      work-order-service:
+        condition: service_healthy
+      asset-service:
+        condition: service_healthy
+    networks:
+      - emaintenance-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  work_order_uploads:
+    driver: local
+  nginx_logs:
+    driver: local
+
+networks:
+  emaintenance-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16

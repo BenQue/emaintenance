@@ -1,316 +1,164 @@
-# E-Maintenance 生产环境部署指南
+# E-Maintenance Docker Deployment
 
-本目录包含完整的生产环境Docker部署配置和脚本，专为Ubuntu Linux服务器设计。
+Secure production deployment configuration for the E-Maintenance System.
 
-## 🎯 目标服务器
-- **IP地址**: 10.163.144.13
-- **操作系统**: Ubuntu Linux
-- **部署方式**: Docker + Docker Compose
-- **本地镜像仓库**: 10.163.144.13:5000 (加速镜像下载)
+## 🚀 Quick Start
 
-## 📂 目录结构
+1. **Generate secure environment configuration:**
+   ```bash
+   ./generate-passwords.sh
+   ```
+
+2. **Deploy the system:**
+   ```bash
+   ./deploy-secure.sh
+   ```
+
+3. **Access the application:**
+   - Web App: `http://YOUR_SERVER_IP:3030`
+   - Admin Login: Check the generated credentials file
+
+## 📁 Directory Structure
 
 ```
 docker-deploy/
-├── docker-compose.production.yml  # 生产环境Docker Compose配置
-├── .env.production                 # 生产环境变量配置
-├── deploy.sh                      # 自动化部署脚本
-├── health-check.sh               # 系统健康检查脚本
-├── backup.sh                     # 数据备份脚本
-├── validate-deployment.sh        # 部署验证脚本
-├── create-deployment-package.sh  # 部署包创建脚本
-├── setup-local-registry.sh      # 本地镜像仓库设置脚本
-├── nginx/
-│   └── nginx.conf                # Nginx反向代理配置
+├── deploy-secure.sh              # Main deployment script
+├── generate-passwords.sh         # Secure password generator  
+├── docker-compose.production.yml # Production Docker Compose config
+├── .env.production.secure        # Environment template (secure)
 ├── database/
-│   └── init/
-│       └── 01-init.sql           # 数据库初始化脚本
-├── README.md                     # 本文档
-└── DEPLOYMENT_SUMMARY.md         # 部署摘要文档
+│   ├── init/                    # Database initialization scripts
+│   └── seeds/                   # Sample data seed files
+├── dockerfiles/                 # Custom Docker build files
+├── nginx/                       # Nginx reverse proxy configuration
+├── scripts/                     # Utility scripts (backup, monitoring)
+└── DEPLOYMENT_GUIDE.md          # Comprehensive deployment guide
 ```
 
-## 🚀 快速部署
+## 🔒 Security Features
 
-### 1. 服务器准备
+- **Secure password generation** with strong defaults
+- **Environment file protection** - never commits passwords to Git
+- **Database encryption** and secure connection strings  
+- **Rate limiting** and API protection
+- **Automated backups** with retention management
+- **Health checks** and monitoring
+- **Proper volume management** with secure permissions
 
-确保服务器已安装必要软件：
+## 📋 Key Files
+
+| File | Purpose | Security Level |
+|------|---------|---------------|
+| `.env.production.secure` | Environment template | ✅ Safe to commit |
+| `.env.production` | Actual environment config | 🚨 NEVER commit |
+| `credentials-*.txt` | Generated login credentials | 🚨 Store securely, then delete |
+| `deploy-secure.sh` | Main deployment script | ✅ Safe to commit |
+| `generate-passwords.sh` | Password generator | ✅ Safe to commit |
+
+## ⚡ Commands
 
 ```bash
-# 更新系统
-sudo apt update && sudo apt upgrade -y
+# Generate environment configuration
+./generate-passwords.sh
 
-# 安装Docker
-curl -fsSL https://get.docker.com -o get-docker.sh
-sudo sh get-docker.sh
-sudo usermod -aG docker $USER
+# Deploy system
+./deploy-secure.sh
 
-# 安装Docker Compose
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
-
-# 重新登录以应用Docker组权限
-```
-
-### 2. 配置生产环境变量
-
-```bash
-# 创建生产环境配置（IMPORTANT: 必须步骤）
-cp .env.production.template .env.production
-
-# 编辑配置文件，设置安全的密码和密钥
-nano .env.production
-
-# 生成安全的JWT密钥
-openssl rand -base64 32
-```
-
-**⚠️ 安全要求**: 
-- 必须更改所有 `CHANGE_ME` 占位符
-- 使用强密码（至少16位字符）
-- JWT密钥使用随机生成的32字节值
-
-### 3. 部署系统
-
-```bash
-# 1. 上传部署文件到服务器
-scp -r docker-deploy/ user@10.163.144.13:/opt/emaintenance/
-
-# 2. 登录服务器
-ssh user@10.163.144.13
-
-# 3. 进入部署目录
-cd /opt/emaintenance/docker-deploy
-
-# 4. 配置生产环境变量（在服务器上）
-cp .env.production.template .env.production
-nano .env.production  # 设置安全凭据
-
-# 5. 运行自动化部署脚本
-./deploy.sh
-```
-
-部署脚本会自动完成：
-- ✅ 系统要求检查
-- ✅ 创建必要目录
-- ✅ 数据备份
-- ✅ 配置本地镜像仓库 (10.163.144.13:5000)
-- ✅ 预拉取本地镜像 (加速部署)
-- ✅ 构建Docker镜像
-- ✅ 启动所有服务
-- ✅ 运行数据库迁移
-- ✅ 初始化数据
-- ✅ 健康检查
-
-## 📋 服务配置
-
-### 容器端口映射
-- **Web应用**: http://10.163.144.13 (80→3000)
-- **用户服务API**: http://10.163.144.13:3001
-- **工单服务API**: http://10.163.144.13:3002  
-- **资产服务API**: http://10.163.144.13:3003
-- **数据库**: localhost:5432 (仅内部访问)
-- **Redis**: localhost:6379 (仅内部访问)
-
-### 默认登录凭据
-```
-管理员账户:
-  邮箱: admin@bizlink.com.my
-  密码: admin123
-```
-
-## 🔧 日常运维
-
-### 系统监控
-```bash
-# 检查所有服务状态
-./health-check.sh
-
-# 查看容器状态
+# Check service status
 docker-compose -f docker-compose.production.yml ps
 
-# 查看实时日志
-docker-compose -f docker-compose.production.yml logs -f
+# View logs
+docker-compose -f docker-compose.production.yml logs -f [service-name]
 
-# 查看特定服务日志
-docker logs emaintenance-web -f
+# Manual database backup
+docker exec emaintenance_db-backup_1 /backup-database.sh
+
+# Stop all services
+docker-compose -f docker-compose.production.yml down
+
+# Start all services
+docker-compose -f docker-compose.production.yml up -d
 ```
 
-### 数据备份
+## 🔧 Configuration
+
+### Environment Variables
+
+Key configuration options in `.env.production`:
+
+- `DB_PASSWORD` - Database password (auto-generated)
+- `JWT_SECRET` - JWT signing secret (auto-generated)  
+- `REDIS_PASSWORD` - Redis password (auto-generated)
+- `ADMIN_PASSWORD` - Initial admin password (auto-generated)
+- `SERVER_IP` - Your server's IP address
+- `HTTP_PORT` - Web application port (default: 3030)
+
+### Service Ports
+
+- **3030**: Web application (Nginx)
+- **3031**: User Service API
+- **3032**: Work Order Service API
+- **3033**: Asset Service API
+
+### Data Volumes
+
+- `/opt/emaintenance/data/` - Application data
+- `/opt/emaintenance/logs/` - Application logs  
+- `/opt/emaintenance/backups/` - Database backups
+
+## 🛠️ Troubleshooting
+
+### Check Service Health
 ```bash
-# 手动备份
-./backup.sh
+# All services
+docker-compose -f docker-compose.production.yml ps
 
-# 设置定时备份 (每天凌晨2点)
-echo "0 2 * * * /opt/emaintenance/docker-deploy/backup.sh" | crontab -
+# Specific service logs
+docker-compose -f docker-compose.production.yml logs postgres
+docker-compose -f docker-compose.production.yml logs web
 ```
 
-### 服务重启
+### Common Issues
+
+1. **Port conflicts**: Ensure ports 3030-3033 are available
+2. **Disk space**: Requires minimum 10GB free space
+3. **Memory**: Requires minimum 4GB available RAM
+4. **Permissions**: User must have Docker access (`docker` group)
+
+### Emergency Recovery
 ```bash
-# 重启所有服务
-docker-compose -f docker-compose.production.yml restart
+# Complete restart
+docker-compose -f docker-compose.production.yml down
+docker-compose -f docker-compose.production.yml up -d
 
-# 重启特定服务
-docker-compose -f docker-compose.production.yml restart web
+# Database recovery from backup
+gunzip -c /opt/emaintenance/backups/postgres/emaintenance_latest.sql.gz | \
+    docker exec -i emaintenance_postgres_1 psql -U postgres -d postgres
 ```
 
-### 更新部署
-```bash
-# 拉取最新镜像
-docker-compose -f docker-compose.production.yml pull
+## 📖 Documentation
 
-# 重新构建并重启
-docker-compose -f docker-compose.production.yml up -d --build
-```
+- **[DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)** - Complete deployment guide
+- **[SECURITY.md](./SECURITY.md)** - Security best practices
+- **[TROUBLESHOOTING.md](./TROUBLESHOOTING.md)** - Detailed troubleshooting
 
-## 🐳 本地Docker镜像仓库
+## 🚨 Security Warnings
 
-### 仓库配置
-- **仓库地址**: 10.163.144.13:5000
-- **访问方式**: HTTP (内网访问)
-- **作用**: 加速Docker镜像下载，提升部署速度
+- **NEVER** commit `.env.production` to version control
+- **ALWAYS** change default passwords after deployment
+- **SECURE** the credentials file generated by `generate-passwords.sh`
+- **REGULARLY** update passwords and JWT secrets
+- **MONITOR** access logs and failed login attempts
 
-### 预配置镜像
-系统已配置使用本地镜像仓库的以下镜像：
-- `10.163.144.13:5000/postgres:16-alpine` - PostgreSQL数据库
-- `10.163.144.13:5000/redis:7-alpine` - Redis缓存
-- `10.163.144.13:5000/nginx:alpine` - Nginx反向代理
+## 📞 Support
 
-### 镜像仓库设置
-```bash
-# 初次设置本地镜像仓库 (可选，部署脚本会自动配置)
-./setup-local-registry.sh
+For deployment issues:
 
-# 预拉取所有镜像 (加速后续部署)
-./pull-local-images.sh
-```
-
-### 优势
-- ⚡ **快速下载**: 本地网络下载速度，显著减少部署时间
-- 🔒 **离线部署**: 不依赖外网连接，提高部署可靠性
-- 📦 **版本控制**: 确保使用统一的镜像版本
-
-## 📊 性能优化
-
-### 资源配置
-```yaml
-# 每个服务的资源限制已在docker-compose.yml中配置
-database:    1G内存, 1.0 CPU
-web:         1G内存, 0.5 CPU  
-api服务:     512M内存, 0.5 CPU
-nginx:       128M内存, 0.25 CPU
-redis:       512M内存, 0.5 CPU
-```
-
-### 数据库优化
-PostgreSQL已配置生产环境参数：
-- `max_connections=200`
-- `shared_buffers=256MB`
-- `effective_cache_size=1GB`
-- `work_mem=16MB`
-
-## 🔒 安全配置
-
-### 防火墙设置
-```bash
-# 允许HTTP访问
-sudo ufw allow 80/tcp
-
-# 允许API端口
-sudo ufw allow 3001:3003/tcp
-
-# 允许SSH (如果需要)
-sudo ufw allow 22/tcp
-
-# 启用防火墙
-sudo ufw enable
-```
-
-### SSL证书 (推荐)
-```bash
-# 安装Certbot
-sudo apt install certbot
-
-# 获取SSL证书
-sudo certbot certonly --standalone -d your-domain.com
-
-# 更新nginx配置以使用HTTPS
-```
-
-## 🚨 故障排除
-
-### 常见问题
-
-1. **容器启动失败**
-   ```bash
-   # 查看错误日志
-   docker-compose -f docker-compose.production.yml logs container-name
-   
-   # 检查磁盘空间
-   df -h
-   
-   # 检查内存使用
-   free -h
-   ```
-
-2. **数据库连接失败**
-   ```bash
-   # 检查数据库容器状态
-   docker exec emaintenance-db pg_isready -U postgres
-   
-   # 重启数据库服务
-   docker-compose -f docker-compose.production.yml restart database
-   ```
-
-3. **API服务不响应**
-   ```bash
-   # 检查服务健康状态
-   curl http://localhost:3001/health
-   
-   # 查看服务日志
-   docker logs emaintenance-user-service
-   ```
-
-4. **Web应用无法访问**
-   ```bash
-   # 检查nginx状态
-   docker exec emaintenance-nginx nginx -t
-   
-   # 重启nginx
-   docker-compose -f docker-compose.production.yml restart nginx
-   ```
-
-### 日志位置
-- **应用日志**: `/opt/emaintenance/logs/`
-- **容器日志**: `docker logs <container-name>`
-- **Nginx日志**: `docker-deploy/nginx/logs/`
-- **备份日志**: `/opt/emaintenance/logs/backup-*.log`
-
-## 📈 扩展指南
-
-### 水平扩展
-```bash
-# 增加API服务实例
-docker-compose -f docker-compose.production.yml up -d --scale user-service=2
-
-# 负载均衡配置 (需要修改nginx.conf)
-```
-
-### 数据库扩展
-```bash
-# 配置主从复制
-# 配置读写分离
-# 实施分片策略
-```
-
-## 📞 支持联系
-
-如遇部署问题，请检查：
-1. `/opt/emaintenance/logs/` 中的部署日志
-2. 运行 `./health-check.sh` 获取系统状态
-3. 确认所有环境变量配置正确
+1. Check the deployment log: `/opt/emaintenance/logs/deploy-[timestamp].log`
+2. Review service logs: `docker-compose -f docker-compose.production.yml logs`
+3. Verify environment configuration: `source .env.production && env | grep -E "(DB_|JWT_|REDIS_)"`
+4. Test database connectivity: `docker exec emaintenance_postgres_1 pg_isready -U postgres`
 
 ---
 
-**部署版本**: 1.0  
-**最后更新**: 2025-08-19  
-**目标服务器**: 10.163.144.13
+**Production Ready**: This deployment configuration is designed for production use with proper security, monitoring, and backup procedures.

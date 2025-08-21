@@ -1,196 +1,243 @@
 version: '3.8'
 
 services:
-  # PostgreSQL Database - Production Configuration
-  database:
-    image: 10.163.144.13:5000/postgres:16-alpine
-    container_name: emaintenance-db
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: ${PROJECT_NAME:-emaintenance}_postgres_1
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: emaintenance
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-Emaint2024!}
-      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+      POSTGRES_DB: ${DB_NAME:-emaintenance}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
+      TZ: Asia/Shanghai
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init:/docker-entrypoint-initdb.d:ro
+      - ./database/seeds:/docker-entrypoint-initdb.d/seeds:ro
+      - postgres_logs:/var/log/postgresql
+    ports:
+      - "5433:5432"
     networks:
-      - emaintenance-network
-    restart: unless-stopped
-    # Database port only accessible within Docker network for security
-    # External access removed: ports: - "5432:5432"
+      - emaintenance_network
+    command: >
+      postgres 
+      -c max_connections=200
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c work_mem=4MB
+      -c maintenance_work_mem=64MB
+      -c random_page_cost=1.1
+      -c temp_file_limit=2GB
+      -c log_min_duration_statement=1000
+      -c log_checkpoints=on
+      -c log_connections=on
+      -c log_disconnections=on
+      -c log_lock_waits=on
+      -c log_statement=all
+      -c logging_collector=on
+      -c log_directory=/var/log/postgresql
+      -c log_filename=postgresql-%Y-%m-%d_%H%M%S.log
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d emaintenance"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-emaintenance}"]
+      interval: 10s
+      timeout: 5s
       retries: 5
       start_period: 30s
-    command: [
-      "postgres",
-      "-c", "max_connections=200",
-      "-c", "shared_buffers=256MB",
-      "-c", "effective_cache_size=1GB",
-      "-c", "work_mem=16MB",
-      "-c", "maintenance_work_mem=128MB",
-      "-c", "checkpoint_completion_target=0.9",
-      "-c", "wal_buffers=16MB"
-    ]
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '1.0'
 
-  # Redis Cache - Production Configuration
+  # Redis Cache
   redis:
-    image: 10.163.144.13:5000/redis:7-alpine
-    container_name: emaintenance-redis
-    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru --save 900 1 --save 300 10
+    image: redis:7-alpine
+    container_name: ${PROJECT_NAME:-emaintenance}_redis_1
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
     volumes:
       - redis_data:/data
+      - redis_logs:/var/log/redis
+    ports:
+      - "6379:6379"
     networks:
-      - emaintenance-network
-    restart: unless-stopped
+      - emaintenance_network
+    command: >
+      redis-server 
+      --requirepass ${REDIS_PASSWORD}
+      --appendonly yes
+      --appendfsync everysec
+      --auto-aof-rewrite-percentage 100
+      --auto-aof-rewrite-min-size 64mb
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --timeout 300
+      --tcp-keepalive 60
+      --logfile /var/log/redis/redis.log
+      --loglevel notice
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: '0.5'
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
 
-  # User Service API - Production
+  # User Service
   user-service:
     build:
-      context: ../apps/api/user-service
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker-deploy/dockerfiles/Dockerfile.api.fixed
       args:
-        NODE_ENV: production
-    container_name: emaintenance-user-service
+        SERVICE_NAME: user-service
+    container_name: ${PROJECT_NAME:-emaintenance}_user-service_1
+    restart: unless-stopped
     environment:
       NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      REDIS_URL: ${REDIS_URL}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
       PORT: 3001
-      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-Emaint2024!}@database:5432/emaintenance
-      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
-      REDIS_URL: redis://redis:6379
-      LOG_LEVEL: info
-      CORS_ORIGIN: ${FRONTEND_URL:-http://localhost:3000}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      TZ: Asia/Shanghai
+      # Rate limiting
+      RATE_LIMIT_WINDOW: ${RATE_LIMIT_WINDOW:-15}
+      RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-1000}
+      # Security settings
+      SESSION_TIMEOUT: ${SESSION_TIMEOUT:-3600000}
+      PASSWORD_MIN_LENGTH: ${PASSWORD_MIN_LENGTH:-12}
+      # Admin user configuration
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@emaintenance.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+    volumes:
+      - user_service_logs:/app/logs
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "3001:3001"
+    networks:
+      - emaintenance_network
     depends_on:
-      database:
+      postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    networks:
-      - emaintenance-network
-    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health", "||", "exit", "1"]
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60s
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: '0.5'
+      start_period: 40s
 
-  # Work Order Service API - Production
+  # Work Order Service
   work-order-service:
     build:
-      context: ../apps/api/work-order-service
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker-deploy/dockerfiles/Dockerfile.api.fixed
       args:
-        NODE_ENV: production
-    container_name: emaintenance-work-order-service
+        SERVICE_NAME: work-order-service
+    container_name: ${PROJECT_NAME:-emaintenance}_work-order-service_1
+    restart: unless-stopped
     environment:
       NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      REDIS_URL: ${REDIS_URL}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
       PORT: 3002
-      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-Emaint2024!}@database:5432/emaintenance
-      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
-      USER_SERVICE_URL: http://user-service:3001
-      ASSET_SERVICE_URL: http://asset-service:3003
-      LOG_LEVEL: info
-      CORS_ORIGIN: ${FRONTEND_URL:-http://localhost:3000}
+      USER_SERVICE_URL: ${USER_SERVICE_URL:-http://user-service:3001}
+      ASSET_SERVICE_URL: ${ASSET_SERVICE_URL:-http://asset-service:3003}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      TZ: Asia/Shanghai
+      # Rate limiting
+      RATE_LIMIT_WINDOW: ${RATE_LIMIT_WINDOW:-15}
+      RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-1000}
+    volumes:
+      - work_order_service_logs:/app/logs
+      - work_order_uploads:/app/uploads
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "3002:3002"
+    networks:
+      - emaintenance_network
     depends_on:
-      database:
+      postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
       user-service:
         condition: service_healthy
-    networks:
-      - emaintenance-network
-    restart: unless-stopped
-    volumes:
-      - work_order_uploads:/app/uploads
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3002/health", "||", "exit", "1"]
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60s
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: '0.5'
+      start_period: 40s
 
-  # Asset Service API - Production
+  # Asset Service
   asset-service:
     build:
-      context: ../apps/api/asset-service
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker-deploy/dockerfiles/Dockerfile.api.fixed
       args:
-        NODE_ENV: production
-    container_name: emaintenance-asset-service
+        SERVICE_NAME: asset-service
+    container_name: ${PROJECT_NAME:-emaintenance}_asset-service_1
+    restart: unless-stopped
     environment:
       NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      REDIS_URL: ${REDIS_URL}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
       PORT: 3003
-      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-Emaint2024!}@database:5432/emaintenance
-      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
-      USER_SERVICE_URL: http://user-service:3001
-      LOG_LEVEL: info
-      CORS_ORIGIN: ${FRONTEND_URL:-http://localhost:3000}
+      USER_SERVICE_URL: ${USER_SERVICE_URL:-http://user-service:3001}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      TZ: Asia/Shanghai
+      # Rate limiting
+      RATE_LIMIT_WINDOW: ${RATE_LIMIT_WINDOW:-15}
+      RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-1000}
+    volumes:
+      - asset_service_logs:/app/logs
+      - asset_uploads:/app/uploads
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "3003:3003"
+    networks:
+      - emaintenance_network
     depends_on:
-      database:
+      postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
       user-service:
         condition: service_healthy
-    networks:
-      - emaintenance-network
-    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3003/health", "||", "exit", "1"]
+      test: ["CMD", "curl", "-f", "http://localhost:3003/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60s
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: '0.5'
+      start_period: 40s
 
-  # Next.js Web Application - Production
+  # Next.js Web Application
   web:
     build:
-      context: ../apps/web
-      dockerfile: Dockerfile
-      args:
-        NODE_ENV: production
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://10.163.144.13}
-        NEXT_PUBLIC_USER_SERVICE_URL: ${NEXT_PUBLIC_USER_SERVICE_URL:-http://10.163.144.13:3001}
-        NEXT_PUBLIC_WORK_ORDER_SERVICE_URL: ${NEXT_PUBLIC_WORK_ORDER_SERVICE_URL:-http://10.163.144.13:3002}
-        NEXT_PUBLIC_ASSET_SERVICE_URL: ${NEXT_PUBLIC_ASSET_SERVICE_URL:-http://10.163.144.13:3003}
-    container_name: emaintenance-web
+      context: ..
+      dockerfile: docker-deploy/dockerfiles/Dockerfile.web.fixed
+    container_name: ${PROJECT_NAME:-emaintenance}_web_1
+    restart: unless-stopped
     environment:
       NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      NEXT_PUBLIC_USER_SERVICE_URL: ${NEXT_PUBLIC_USER_SERVICE_URL}
+      NEXT_PUBLIC_WORK_ORDER_SERVICE_URL: ${NEXT_PUBLIC_WORK_ORDER_SERVICE_URL}
+      NEXT_PUBLIC_ASSET_SERVICE_URL: ${NEXT_PUBLIC_ASSET_SERVICE_URL}
       PORT: 3000
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://10.163.144.13}
-      NEXT_PUBLIC_USER_SERVICE_URL: ${NEXT_PUBLIC_USER_SERVICE_URL:-http://10.163.144.13:3001}
-      NEXT_PUBLIC_WORK_ORDER_SERVICE_URL: ${NEXT_PUBLIC_WORK_ORDER_SERVICE_URL:-http://10.163.144.13:3002}
-      NEXT_PUBLIC_ASSET_SERVICE_URL: ${NEXT_PUBLIC_ASSET_SERVICE_URL:-http://10.163.144.13:3003}
+      TZ: Asia/Shanghai
+    volumes:
+      - web_logs:/app/.next/logs
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "3000:3000"
+    networks:
+      - emaintenance_network
     depends_on:
       user-service:
         condition: service_healthy
@@ -198,66 +245,157 @@ services:
         condition: service_healthy
       asset-service:
         condition: service_healthy
-    networks:
-      - emaintenance-network
-    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000", "||", "exit", "1"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 90s
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '0.5'
+      start_period: 60s
 
   # Nginx Reverse Proxy
   nginx:
-    image: 10.163.144.13:5000/nginx:alpine
-    container_name: emaintenance-nginx
-    ports:
-      - "80:80"
-      - "3001:3001"
-      - "3002:3002"
-      - "3003:3003"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/logs:/var/log/nginx
-    depends_on:
-      web:
-        condition: service_healthy
-      user-service:
-        condition: service_healthy
-      work-order-service:
-        condition: service_healthy
-      asset-service:
-        condition: service_healthy
-    networks:
-      - emaintenance-network
+    image: nginx:alpine
+    container_name: ${PROJECT_NAME:-emaintenance}_nginx_1
     restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+    volumes:
+      - ./nginx/nginx.fixed.conf:/etc/nginx/nginx.conf:ro
+      - nginx_logs:/var/log/nginx
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "${HTTP_PORT:-3030}:80"
+      - "${HTTPS_PORT:-443}:443"
+    networks:
+      - emaintenance_network
+    depends_on:
+      - web
+      - user-service
+      - work-order-service
+      - asset-service
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80", "||", "exit", "1"]
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
       interval: 30s
-      timeout: 5s
+      timeout: 10s
       retries: 3
-    deploy:
-      resources:
-        limits:
-          memory: 128M
-          cpus: '0.25'
+      start_period: 10s
+
+  # Optional: Database Backup Service
+  db-backup:
+    image: postgres:16-alpine
+    container_name: ${PROJECT_NAME:-emaintenance}_db-backup_1
+    restart: "no"
+    environment:
+      POSTGRES_DB: ${DB_NAME:-emaintenance}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      BACKUP_SCHEDULE: ${BACKUP_SCHEDULE:-"0 2 * * *"}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+      TZ: Asia/Shanghai
+    volumes:
+      - postgres_backups:/backups
+      - ./scripts/backup-database.sh:/backup-database.sh:ro
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - emaintenance_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: >
+      sh -c "
+        echo 'Database backup service configured'
+        echo 'Schedule: ${BACKUP_SCHEDULE:-0 2 * * *}'
+        echo 'Retention: ${BACKUP_RETENTION_DAYS:-30} days'
+        echo 'Manual backup: docker exec ${PROJECT_NAME:-emaintenance}_db-backup_1 /backup-database.sh'
+        tail -f /dev/null
+      "
+    profiles: ["backup"]
 
 volumes:
+  # Database volumes
   postgres_data:
     driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_DIR:-/opt/emaintenance/data}/postgres
+  postgres_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOG_DIR:-/opt/emaintenance/logs}/postgres
+  postgres_backups:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${BACKUP_DIR:-/opt/emaintenance/backups}/postgres
+
+  # Redis volumes
   redis_data:
     driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_DIR:-/opt/emaintenance/data}/redis
+  redis_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOG_DIR:-/opt/emaintenance/logs}/redis
+
+  # Application service volumes
+  user_service_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOG_DIR:-/opt/emaintenance/logs}/user-service
+  work_order_service_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOG_DIR:-/opt/emaintenance/logs}/work-order-service
+  asset_service_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOG_DIR:-/opt/emaintenance/logs}/asset-service
+  web_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOG_DIR:-/opt/emaintenance/logs}/web
+
+  # Nginx logs
+  nginx_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOG_DIR:-/opt/emaintenance/logs}/nginx
+
+  # Upload volumes
   work_order_uploads:
     driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_DIR:-/opt/emaintenance/data}/uploads/work-orders
+  asset_uploads:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_DIR:-/opt/emaintenance/data}/uploads/assets
 
 networks:
-  emaintenance-network:
+  emaintenance_network:
     driver: bridge
     ipam:
       config:

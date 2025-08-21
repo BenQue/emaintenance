@@ -35,6 +35,17 @@ tsconfig.tsbuildinfo
 .env.*
 !.env.example
 !.env.production.example
+!.env.production.secure
+!.env.production.template
+!.env.template
+
+# Deployment security - Never commit these
+.env.production
+.env.production.local
+credentials-*.txt
+*credentials*.txt
+docker-deploy/.env.production
+docker-deploy/credentials-*
 
 # Misc
 .DS_Store
