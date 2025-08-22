@@ -374,8 +374,15 @@ prepare_images() {
     
     info "Building custom images with environment variables..."
     
+    # Validate compose file syntax first
+    info "Validating Docker Compose configuration..."
+    if ! ${DOCKER_COMPOSE_CMD} -f "$COMPOSE_FILE" config > /dev/null 2>&1; then
+        error "Docker Compose file has syntax errors. Run '${DOCKER_COMPOSE_CMD} -f ${COMPOSE_FILE} config' to see details."
+    fi
+    success "✓ Docker Compose configuration is valid"
+    
     # Build with verbose output and proper environment passing
-    if ${DOCKER_COMPOSE_CMD} -f "$COMPOSE_FILE" build --no-cache --progress=plain; then
+    if ${DOCKER_COMPOSE_CMD} -f "$COMPOSE_FILE" build --no-cache; then
         success "✓ All images built successfully"
     else
         error "Image build failed. Check the output above for details."
@@ -383,9 +390,9 @@ prepare_images() {
     
     # Verify critical images were built
     info "Verifying built images..."
-    local services=("user-service" "work-order-service" "asset-service" "web")
+    local services=("user-service" "work-order-service" "asset-service" "web" "migrations")
     for service in "${services[@]}"; do
-        if docker images | grep -q "${PROJECT_NAME}_${service}"; then
+        if docker images | grep -q "${service}"; then
             info "✓ $service image built"
         else
             warning "⚠ $service image may not be built correctly"
@@ -426,7 +433,9 @@ deploy_services() {
     sleep 10
     
     info "Running database migrations..."
-    run_migrations
+    if ! run_migrations; then
+        error "Database migrations failed. Check logs for details."
+    fi
     
     info "Starting all services..."
     ${DOCKER_COMPOSE_CMD} -f "$COMPOSE_FILE" up -d
@@ -438,39 +447,41 @@ deploy_services() {
 run_migrations() {
     info "Running Prisma migrations..."
     
-    # Create a temporary container to run migrations
-    local temp_container="emaintenance_migration_$(date +%s)"
+    # Use the migrations service from compose file instead of manual container
+    info "Using migrations service from Docker Compose..."
     
-    docker run --rm \
-        --name "$temp_container" \
-        --network "${PROJECT_NAME}_default" \
-        --env-file "$ENV_FILE" \
-        -v "$(pwd):/workspace" \
-        -w "/workspace/packages/database" \
-        node:18-alpine \
-        sh -c "
-            npm install -g npm@latest
-            npm install
-            npx prisma migrate deploy
-            npx prisma generate
-        " || error "Database migrations failed"
+    # First, build the migrations service if not already built
+    if ! ${DOCKER_COMPOSE_CMD} -f "$COMPOSE_FILE" build migrations; then
+        warning "Failed to build migrations service, trying direct approach..."
+        
+        # Fallback to direct container approach
+        local temp_container="emaintenance_migration_$(date +%s)"
+        
+        docker run --rm \
+            --name "$temp_container" \
+            --network "docker-deploy_emaintenance_network" \
+            --env-file "$ENV_FILE" \
+            -v "$(pwd):/workspace" \
+            -w "/workspace/packages/database" \
+            node:18-alpine \
+            sh -c "
+                npm install -g npm@latest
+                npm install
+                npx prisma migrate deploy
+                npx prisma generate
+            " || return 1
+        
+        success "✓ Database migrations completed (fallback method)"
+        return 0
+    fi
     
-    success "✓ Database migrations completed"
-    
-    # Run data seeding
-    info "Running data seeding..."
-    
-    docker run --rm \
-        --name "${temp_container}_seed" \
-        --network "${PROJECT_NAME}_default" \
-        --env-file "$ENV_FILE" \
-        -v "$(pwd):/workspace" \
-        -w "/workspace/packages/database" \
-        node:18-alpine \
-        sh -c "
-            npm install
-            npx prisma db seed
-        " || warning "Data seeding failed, but continuing deployment"
+    # Run the migrations service
+    if ${DOCKER_COMPOSE_CMD} -f "$COMPOSE_FILE" run --rm migrations; then
+        success "✓ Database migrations completed"
+    else
+        warning "Migrations service failed, trying manual approach..."
+        return 1
+    fi
     
     # Run additional SQL seeds
     info "Running additional seed files..."
@@ -546,9 +557,9 @@ perform_health_checks() {
     # API Health Checks
     info "Testing API endpoints..."
     local api_endpoints=(
-        "http://localhost:3031/health"
-        "http://localhost:3032/health" 
-        "http://localhost:3033/health"
+        "http://localhost:3001/health"
+        "http://localhost:3002/health" 
+        "http://localhost:3003/health"
     )
     
     local max_attempts=15
@@ -561,7 +572,7 @@ perform_health_checks() {
             fi
             
             if [[ $attempt -eq $max_attempts ]]; then
-                failed_services+=("api-$(echo "$endpoint" | grep -o '303[0-9]')")
+                failed_services+=("api-$(echo "$endpoint" | grep -o '300[0-9]')")
             fi
             
             sleep 2
@@ -588,9 +599,9 @@ show_deployment_summary() {
     echo -e "${CYAN}📊 Access Information:${NC}"
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
     echo -e "🌐 Web Application:       ${YELLOW}http://${server_ip}:3030${NC}"
-    echo -e "🔧 User Service API:      ${YELLOW}http://${server_ip}:3031${NC}"  
-    echo -e "📋 Work Order Service:    ${YELLOW}http://${server_ip}:3032${NC}"
-    echo -e "🏭 Asset Service:         ${YELLOW}http://${server_ip}:3033${NC}"
+    echo -e "🔧 User Service API:      ${YELLOW}http://${server_ip}:3001${NC}"  
+    echo -e "📋 Work Order Service:    ${YELLOW}http://${server_ip}:3002${NC}"
+    echo -e "🏭 Asset Service:         ${YELLOW}http://${server_ip}:3003${NC}"
     echo
     echo -e "${CYAN}👥 Default Login Credentials:${NC}"
     echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"

@@ -332,9 +332,9 @@ services:
     container_name: emaintenance-migrations
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-Emaint2024!}@database:5432/emaintenance
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-Emaint2024!}@postgres:5432/emaintenance
     depends_on:
-      database:
+      postgres:
         condition: service_healthy
     networks:
       - emaintenance_network
