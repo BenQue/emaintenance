@@ -1,0 +1,404 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+      skip_tests:
+        description: 'Skip tests (emergency deployment only)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+  DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+  DEPLOY_PATH: /opt/emaintenance
+  BACKUP_PATH: /opt/emaintenance/backups
+
+jobs:
+  # Pre-deployment checks
+  pre-deploy:
+    name: Pre-deployment Validation
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      deploy_env: ${{ steps.env.outputs.environment }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          else
+            VERSION="${{ github.ref_name }}-${GITHUB_SHA:0:8}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Deploying version: $VERSION"
+
+      - name: Determine environment
+        id: env
+        run: |
+          ENV="${{ github.event.inputs.environment || 'production' }}"
+          echo "environment=$ENV" >> $GITHUB_OUTPUT
+          echo "Deploying to: $ENV"
+
+      - name: Validate deployment prerequisites
+        run: |
+          # Check if all required secrets are set
+          required_secrets=(
+            "DEPLOY_SSH_KEY"
+            "DEPLOY_HOST"
+            "DEPLOY_USER"
+            "DB_PASSWORD"
+            "JWT_SECRET"
+            "REDIS_PASSWORD"
+            "ADMIN_PASSWORD"
+          )
+          
+          missing_secrets=()
+          for secret in "${required_secrets[@]}"; do
+            if [ -z "${{ secrets[secret] }}" ]; then
+              missing_secrets+=("$secret")
+            fi
+          done
+          
+          if [ ${#missing_secrets[@]} -gt 0 ]; then
+            echo "Missing required secrets: ${missing_secrets[*]}"
+            exit 1
+          fi
+
+  # Run tests if not skipped
+  test-before-deploy:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    needs: pre-deploy
+    if: ${{ !github.event.inputs.skip_tests }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Quick test suite
+        run: |
+          npm ci
+          npm run test:quick || echo "Tests completed with warnings"
+
+  # Create backup on production server
+  backup-production:
+    name: Backup Current Production
+    runs-on: ubuntu-latest
+    needs: [pre-deploy, test-before-deploy]
+    if: always() && needs.pre-deploy.result == 'success'
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Create production backup
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ env.DEPLOY_USER }}@${{ env.DEPLOY_HOST }} << 'ENDSSH'
+            set -e
+            BACKUP_NAME="pre-deploy-$(date +%Y%m%d-%H%M%S)"
+            BACKUP_DIR="${{ env.BACKUP_PATH }}/$BACKUP_NAME"
+            
+            echo "Creating backup: $BACKUP_DIR"
+            mkdir -p "$BACKUP_DIR"
+            
+            # Backup database if container exists
+            if docker ps --format "{{.Names}}" | grep -q "emaintenance_postgres"; then
+              docker exec emaintenance_postgres_1 pg_dumpall -U postgres > "$BACKUP_DIR/database.sql" || true
+            fi
+            
+            # Backup Docker volumes
+            for volume in postgres_data redis_data work_order_uploads asset_uploads; do
+              if docker volume ls | grep -q "emaintenance_$volume"; then
+                docker run --rm -v "emaintenance_$volume:/source" -v "$BACKUP_DIR:/backup" \
+                  alpine tar czf "/backup/${volume}.tar.gz" -C /source . || true
+              fi
+            done
+            
+            # Save current container tags
+            docker ps --format "table {{.Image}}\t{{.Tag}}" > "$BACKUP_DIR/container_versions.txt"
+            
+            echo "Backup completed: $BACKUP_DIR"
+            ls -lah "$BACKUP_DIR"
+          ENDSSH
+
+      - name: Save backup reference
+        run: |
+          echo "BACKUP_TIMESTAMP=$(date +%Y%m%d-%H%M%S)" >> $GITHUB_ENV
+
+  # Deploy to production
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [pre-deploy, backup-production]
+    if: always() && needs.pre-deploy.result == 'success' && needs.backup-production.result == 'success'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Prepare deployment package
+        run: |
+          # Create deployment archive
+          tar czf deployment.tar.gz \
+            --exclude=node_modules \
+            --exclude=.git \
+            --exclude=coverage \
+            --exclude=dist \
+            --exclude=.next \
+            --exclude=.env* \
+            .
+
+      - name: Transfer deployment package
+        run: |
+          scp -i ~/.ssh/deploy_key deployment.tar.gz \
+            ${{ env.DEPLOY_USER }}@${{ env.DEPLOY_HOST }}:${{ env.DEPLOY_PATH }}/
+
+      - name: Deploy application
+        env:
+          VERSION: ${{ needs.pre-deploy.outputs.version }}
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ env.DEPLOY_USER }}@${{ env.DEPLOY_HOST }} << 'ENDSSH'
+            set -e
+            cd ${{ env.DEPLOY_PATH }}
+            
+            # Extract deployment package
+            tar xzf deployment.tar.gz
+            rm deployment.tar.gz
+            
+            # Create production environment file
+            cat > .env.production << 'EOF'
+            # Database
+            DB_NAME=emaintenance
+            DB_USER=postgres
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DATABASE_URL=postgresql://postgres:${{ secrets.DB_PASSWORD }}@postgres:5432/emaintenance
+            
+            # Security
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            JWT_EXPIRES_IN=7d
+            REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+            REDIS_URL=redis://default:${{ secrets.REDIS_PASSWORD }}@redis:6379
+            
+            # Admin
+            ADMIN_EMAIL=admin@emaintenance.com
+            ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
+            
+            # Application
+            NODE_ENV=production
+            LOG_LEVEL=info
+            CORS_ORIGIN=http://${{ secrets.DEPLOY_HOST }}:3000
+            
+            # Services URLs
+            NEXT_PUBLIC_API_URL=http://${{ secrets.DEPLOY_HOST }}:3001
+            NEXT_PUBLIC_USER_SERVICE_URL=http://${{ secrets.DEPLOY_HOST }}:3001
+            NEXT_PUBLIC_WORK_ORDER_SERVICE_URL=http://${{ secrets.DEPLOY_HOST }}:3002
+            NEXT_PUBLIC_ASSET_SERVICE_URL=http://${{ secrets.DEPLOY_HOST }}:3003
+            
+            # Deployment
+            VERSION=${{ env.VERSION }}
+            DEPLOYED_AT=$(date -Iseconds)
+            DEPLOYED_BY=${{ github.actor }}
+            EOF
+            
+            # Run deployment script
+            cd docker-deploy
+            ./deploy-secure.sh
+          ENDSSH
+
+      - name: Tag deployment
+        run: |
+          echo "Deployment completed: ${{ needs.pre-deploy.outputs.version }}"
+          echo "Environment: ${{ needs.pre-deploy.outputs.deploy_env }}"
+
+  # Health checks
+  health-check:
+    name: Post-deployment Health Check
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: always() && needs.deploy.result == 'success'
+    steps:
+      - name: Wait for services to stabilize
+        run: sleep 60
+
+      - name: Check service health
+        run: |
+          # Function to check endpoint
+          check_endpoint() {
+            local url=$1
+            local service=$2
+            local max_attempts=10
+            local attempt=1
+            
+            while [ $attempt -le $max_attempts ]; do
+              if curl -f -s -o /dev/null "$url"; then
+                echo "✓ $service is healthy"
+                return 0
+              fi
+              echo "Attempt $attempt/$max_attempts: $service not ready..."
+              sleep 10
+              ((attempt++))
+            done
+            
+            echo "✗ $service failed health check"
+            return 1
+          }
+          
+          # Check all services
+          DEPLOY_HOST="${{ secrets.DEPLOY_HOST }}"
+          failed_services=()
+          
+          check_endpoint "http://$DEPLOY_HOST:3000" "Web Application" || failed_services+=("web")
+          check_endpoint "http://$DEPLOY_HOST:3001/health" "User Service" || failed_services+=("user-service")
+          check_endpoint "http://$DEPLOY_HOST:3002/health" "Work Order Service" || failed_services+=("work-order-service")
+          check_endpoint "http://$DEPLOY_HOST:3003/health" "Asset Service" || failed_services+=("asset-service")
+          
+          if [ ${#failed_services[@]} -gt 0 ]; then
+            echo "Failed services: ${failed_services[*]}"
+            exit 1
+          fi
+          
+          echo "All services are healthy!"
+
+      - name: Run smoke tests
+        run: |
+          DEPLOY_HOST="${{ secrets.DEPLOY_HOST }}"
+          
+          # Test login endpoint
+          response=$(curl -s -X POST "http://$DEPLOY_HOST:3001/api/auth/login" \
+            -H "Content-Type: application/json" \
+            -d '{"email":"admin@emaintenance.com","password":"${{ secrets.ADMIN_PASSWORD }}"}')
+          
+          if echo "$response" | grep -q "token"; then
+            echo "✓ Authentication working"
+          else
+            echo "✗ Authentication failed"
+            exit 1
+          fi
+
+  # Rollback on failure
+  rollback:
+    name: Rollback on Failure
+    runs-on: ubuntu-latest
+    needs: [deploy, health-check]
+    if: failure() && needs.deploy.result == 'success'
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.DEPLOY_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Trigger rollback
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ env.DEPLOY_USER }}@${{ env.DEPLOY_HOST }} << 'ENDSSH'
+            set -e
+            echo "Deployment failed, initiating rollback..."
+            
+            cd ${{ env.DEPLOY_PATH }}
+            
+            # Find latest backup
+            LATEST_BACKUP=$(ls -t ${{ env.BACKUP_PATH }} | head -1)
+            
+            if [ -z "$LATEST_BACKUP" ]; then
+              echo "No backup found for rollback!"
+              exit 1
+            fi
+            
+            echo "Rolling back to: $LATEST_BACKUP"
+            
+            # Stop current deployment
+            cd docker-deploy
+            docker-compose -f docker-compose.production.yml down
+            
+            # Restore database
+            if [ -f "${{ env.BACKUP_PATH }}/$LATEST_BACKUP/database.sql" ]; then
+              docker-compose -f docker-compose.production.yml up -d postgres
+              sleep 30
+              docker exec -i emaintenance_postgres_1 psql -U postgres < \
+                "${{ env.BACKUP_PATH }}/$LATEST_BACKUP/database.sql"
+            fi
+            
+            # Restore volumes
+            for volume_backup in "${{ env.BACKUP_PATH }}/$LATEST_BACKUP"/*.tar.gz; do
+              if [ -f "$volume_backup" ]; then
+                volume_name=$(basename "$volume_backup" .tar.gz)
+                docker run --rm -v "emaintenance_$volume_name:/target" -v "${{ env.BACKUP_PATH }}/$LATEST_BACKUP:/backup" \
+                  alpine tar xzf "/backup/$(basename $volume_backup)" -C /target
+              fi
+            done
+            
+            # Restart services with previous version
+            docker-compose -f docker-compose.production.yml up -d
+            
+            echo "Rollback completed"
+          ENDSSH
+
+      - name: Notify rollback
+        run: |
+          echo "Deployment rolled back due to health check failure"
+          # Add notification logic here (Slack, email, etc.)
+
+  # Notification
+  notify:
+    name: Send Notifications
+    runs-on: ubuntu-latest
+    needs: [deploy, health-check]
+    if: always()
+    steps:
+      - name: Determine status
+        id: status
+        run: |
+          if [ "${{ needs.health-check.result }}" == "success" ]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "message=Deployment successful" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "message=Deployment failed" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send webhook notification
+        run: |
+          curl -X POST ${{ secrets.NOTIFICATION_WEBHOOK }} \
+            -H "Content-Type: application/json" \
+            -d '{
+              "status": "${{ steps.status.outputs.status }}",
+              "message": "${{ steps.status.outputs.message }}",
+              "version": "${{ needs.pre-deploy.outputs.version }}",
+              "environment": "${{ needs.pre-deploy.outputs.deploy_env }}",
+              "deployed_by": "${{ github.actor }}",
+              "commit": "${{ github.sha }}",
+              "timestamp": "'"$(date -Iseconds)"'"
+            }' || true

@@ -6,17 +6,20 @@ FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
-# Build arguments
-ARG SERVICE_PATH
+# Build arguments - with defaults for safety
+ARG SERVICE_PATH=apps/api
 ARG SERVICE_NAME
-ARG SERVICE_PORT
+ARG SERVICE_PORT=3001
+
+# Validate required build arguments
+RUN if [ -z "$SERVICE_NAME" ]; then echo "ERROR: SERVICE_NAME build argument is required" && exit 1; fi
 
 # Copy root package files for monorepo
 COPY package*.json ./
 COPY turbo.json ./
 
-# Copy service-specific package files
-COPY ${SERVICE_PATH}/package*.json ./service/
+# Copy service-specific package files (construct the correct path)
+COPY ${SERVICE_PATH}/${SERVICE_NAME}/package*.json ./service/
 
 # Copy packages directory (includes database package with Prisma)
 COPY packages ./packages
@@ -52,7 +55,7 @@ COPY --from=prisma /app/node_modules ./node_modules
 COPY --from=prisma /app/packages ./packages
 
 # Copy service source code
-COPY ${SERVICE_PATH} ./service
+COPY ${SERVICE_PATH}/${SERVICE_NAME} ./service
 COPY turbo.json ./
 COPY package*.json ./
 
@@ -104,6 +107,14 @@ RUN mkdir -p /app/uploads /app/logs && \
 # Set build-time variables as environment defaults
 ARG SERVICE_PORT
 ENV PORT=${SERVICE_PORT:-3001}
+
+# Add environment variable debugging
+RUN echo "=== Build Environment Debug ===" && \
+    echo "SERVICE_NAME: ${SERVICE_NAME}" && \
+    echo "SERVICE_PORT: ${SERVICE_PORT}" && \
+    echo "SERVICE_PATH: ${SERVICE_PATH}" && \
+    echo "PORT: ${PORT}" && \
+    echo "=========================="
 
 USER apiuser
 

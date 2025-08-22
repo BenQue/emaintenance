@@ -1,0 +1,283 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '18'
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+
+jobs:
+  # Code quality checks
+  quality-check:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm run install:all
+
+      - name: Run linting
+        run: npm run lint
+
+      - name: Type checking
+        run: |
+          cd apps/web && npm run type-check
+          cd ../api/user-service && npm run type-check
+          cd ../work-order-service && npm run type-check
+          cd ../asset-service && npm run type-check
+
+      - name: Check formatting
+        run: npm run format:check
+
+  # Unit and integration tests
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: testpass123
+          POSTGRES_DB: emaintenance_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm run install:all
+
+      - name: Setup test database
+        env:
+          DATABASE_URL: postgresql://postgres:testpass123@localhost:5432/emaintenance_test
+        run: |
+          cd packages/database
+          npx prisma generate
+          npx prisma db push
+          npx prisma db seed
+
+      - name: Run tests with coverage
+        env:
+          DATABASE_URL: postgresql://postgres:testpass123@localhost:5432/emaintenance_test
+          JWT_SECRET: test-jwt-secret-key-for-ci
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: test
+        run: |
+          npm run test:ci
+          npm run test:coverage
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-reports
+          path: |
+            apps/*/coverage/
+            apps/api/*/coverage/
+            packages/*/coverage/
+
+      - name: Check test coverage thresholds
+        run: |
+          # Add coverage threshold check
+          node scripts/check-coverage.js || echo "Coverage check completed"
+
+  # Build Docker images
+  build-docker:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: [quality-check, test]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    strategy:
+      matrix:
+        service:
+          - web
+          - user-service
+          - work-order-service
+          - asset-service
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Docker Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ secrets.DOCKER_REGISTRY }}
+          username: ${{ secrets.DOCKER_REGISTRY_USER }}
+          password: ${{ secrets.DOCKER_REGISTRY_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ secrets.DOCKER_REGISTRY }}/emaintenance/${{ matrix.service }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: docker-deploy/dockerfiles/Dockerfile.${{ matrix.service == 'web' && 'web.fixed' || 'api.fixed' }}
+          build-args: |
+            SERVICE_NAME=${{ matrix.service != 'web' && matrix.service || '' }}
+            BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            VCS_REF=${{ github.sha }}
+            VERSION=${{ steps.meta.outputs.version }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+  # Security scanning
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: build-docker
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    strategy:
+      matrix:
+        service:
+          - web
+          - user-service
+          - work-order-service
+          - asset-service
+    steps:
+      - name: Run Trivy security scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ secrets.DOCKER_REGISTRY }}/emaintenance/${{ matrix.service }}:${{ github.ref_name }}
+          format: 'sarif'
+          output: 'trivy-${{ matrix.service }}.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-${{ matrix.service }}.sarif'
+
+      - name: Check for critical vulnerabilities
+        run: |
+          if grep -q "CRITICAL" trivy-${{ matrix.service }}.sarif; then
+            echo "Critical vulnerabilities found!"
+            exit 1
+          fi
+
+  # Database migration check
+  migration-check:
+    name: Database Migration Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: testpass123
+          POSTGRES_DB: emaintenance_migration
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Prisma CLI
+        run: |
+          cd packages/database
+          npm install
+
+      - name: Check migration status
+        env:
+          DATABASE_URL: postgresql://postgres:testpass123@localhost:5432/emaintenance_migration
+        run: |
+          cd packages/database
+          npx prisma migrate status
+          npx prisma migrate deploy --dry-run
+
+  # Notify deployment readiness
+  notify-deploy:
+    name: Notify Deployment Ready
+    runs-on: ubuntu-latest
+    needs: [build-docker, security-scan]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Trigger deployment webhook
+        run: |
+          curl -X POST ${{ secrets.DEPLOY_WEBHOOK_URL }} \
+            -H "Content-Type: application/json" \
+            -H "X-Gitea-Signature: ${{ secrets.WEBHOOK_SECRET }}" \
+            -d '{
+              "ref": "${{ github.ref }}",
+              "sha": "${{ github.sha }}",
+              "repository": "${{ github.repository }}",
+              "pusher": "${{ github.actor }}",
+              "message": "${{ github.event.head_commit.message }}"
+            }'
+
+      - name: Create deployment status
+        run: |
+          echo "Deployment ready for commit ${{ github.sha }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Actor: ${{ github.actor }}"

@@ -177,8 +177,15 @@ setup_environment() {
         if [[ -f "$ENV_TEMPLATE" ]]; then
             info "Environment file not found. Setting up from template..."
             
-            # Check if generate-passwords.sh exists and is executable
-            if [[ -x "./generate-passwords.sh" ]]; then
+            # Check if generate-secure-env.sh exists and is executable
+            if [[ -x "./generate-secure-env.sh" ]]; then
+                info "Running secure environment generation script..."
+                if ./generate-secure-env.sh; then
+                    success "✓ Environment configured with secure passwords"
+                else
+                    error "Environment generation failed"
+                fi
+            elif [[ -x "./generate-passwords.sh" ]]; then
                 info "Running password generation script..."
                 if ./generate-passwords.sh; then
                     success "✓ Environment configured with secure passwords"
@@ -186,7 +193,7 @@ setup_environment() {
                     error "Password generation failed"
                 fi
             else
-                error "generate-passwords.sh not found or not executable. Please run it manually first."
+                error "No environment generation script found. Please run './generate-secure-env.sh' first."
             fi
         else
             error "Neither $ENV_FILE nor $ENV_TEMPLATE found. Please ensure environment configuration exists."
@@ -197,6 +204,9 @@ setup_environment() {
         # Validate critical environment variables
         validate_environment
     fi
+    
+    # Export environment variables for Docker build
+    export_build_variables
 }
 
 # Validate environment variables
@@ -234,6 +244,35 @@ validate_environment() {
     fi
     
     success "✓ Environment validation passed"
+}
+
+# Export build variables for Docker
+export_build_variables() {
+    info "Exporting build-time environment variables..."
+    
+    # Source environment file
+    set -a  # automatically export all variables
+    source "$ENV_FILE"
+    set +a  # stop automatically exporting
+    
+    # Ensure critical build variables are exported
+    export NODE_ENV=production
+    export DATABASE_URL
+    export JWT_SECRET
+    export REDIS_URL
+    export NEXT_PUBLIC_API_URL
+    export NEXT_PUBLIC_USER_SERVICE_URL
+    export NEXT_PUBLIC_WORK_ORDER_SERVICE_URL
+    export NEXT_PUBLIC_ASSET_SERVICE_URL
+    
+    # Debug: Show key variables (without sensitive data)
+    info "Key build variables configured:"
+    echo "  - NODE_ENV: $NODE_ENV"
+    echo "  - Database configured: $([ -n "$DATABASE_URL" ] && echo "✓" || echo "✗")"
+    echo "  - JWT secret configured: $([ -n "$JWT_SECRET" ] && echo "✓" || echo "✗")"
+    echo "  - Frontend URLs configured: $([ -n "$NEXT_PUBLIC_API_URL" ] && echo "✓" || echo "✗")"
+    
+    success "✓ Build variables exported"
 }
 
 # Pre-deployment backup
@@ -328,13 +367,32 @@ stop_services() {
 prepare_images() {
     section "Preparing Docker Images"
     
-    info "Pulling required images..."
-    ${DOCKER_COMPOSE_CMD} -f "$COMPOSE_FILE" pull
+    info "Pulling required base images..."
+    if ! ${DOCKER_COMPOSE_CMD} -f "$COMPOSE_FILE" pull; then
+        warning "Some base images failed to pull, continuing with available images"
+    fi
     
-    info "Building custom images..."
-    ${DOCKER_COMPOSE_CMD} -f "$COMPOSE_FILE" build --no-cache
+    info "Building custom images with environment variables..."
     
-    success "✓ All images prepared"
+    # Build with verbose output and proper environment passing
+    if ${DOCKER_COMPOSE_CMD} -f "$COMPOSE_FILE" build --no-cache --progress=plain; then
+        success "✓ All images built successfully"
+    else
+        error "Image build failed. Check the output above for details."
+    fi
+    
+    # Verify critical images were built
+    info "Verifying built images..."
+    local services=("user-service" "work-order-service" "asset-service" "web")
+    for service in "${services[@]}"; do
+        if docker images | grep -q "${PROJECT_NAME}_${service}"; then
+            info "✓ $service image built"
+        else
+            warning "⚠ $service image may not be built correctly"
+        fi
+    done
+    
+    success "✓ Image preparation completed"
 }
 
 # Deploy services

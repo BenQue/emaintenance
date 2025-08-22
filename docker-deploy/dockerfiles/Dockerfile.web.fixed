@@ -33,7 +33,7 @@ COPY apps/web ./apps/web
 COPY turbo.json ./
 COPY package*.json ./
 
-# Set build-time environment variables
+# Set build-time environment variables with defaults
 ARG NODE_ENV=production
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_USER_SERVICE_URL
@@ -45,6 +45,15 @@ ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV NEXT_PUBLIC_USER_SERVICE_URL=${NEXT_PUBLIC_USER_SERVICE_URL}
 ENV NEXT_PUBLIC_WORK_ORDER_SERVICE_URL=${NEXT_PUBLIC_WORK_ORDER_SERVICE_URL}
 ENV NEXT_PUBLIC_ASSET_SERVICE_URL=${NEXT_PUBLIC_ASSET_SERVICE_URL}
+
+# Debug environment variables during build
+RUN echo "=== Web Build Environment Debug ===" && \
+    echo "NODE_ENV: ${NODE_ENV}" && \
+    echo "NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}" && \
+    echo "NEXT_PUBLIC_USER_SERVICE_URL: ${NEXT_PUBLIC_USER_SERVICE_URL}" && \
+    echo "NEXT_PUBLIC_WORK_ORDER_SERVICE_URL: ${NEXT_PUBLIC_WORK_ORDER_SERVICE_URL}" && \
+    echo "NEXT_PUBLIC_ASSET_SERVICE_URL: ${NEXT_PUBLIC_ASSET_SERVICE_URL}" && \
+    echo "=================================="
 
 # Disable Next.js telemetry
 ENV NEXT_TELEMETRY_DISABLED=1

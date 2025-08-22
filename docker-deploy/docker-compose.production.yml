@@ -86,7 +86,9 @@ services:
       context: ..
       dockerfile: docker-deploy/dockerfiles/Dockerfile.api.fixed
       args:
+        SERVICE_PATH: apps/api
         SERVICE_NAME: user-service
+        SERVICE_PORT: 3001
     container_name: ${PROJECT_NAME:-emaintenance}_user-service_1
     restart: unless-stopped
     environment:
@@ -133,7 +135,9 @@ services:
       context: ..
       dockerfile: docker-deploy/dockerfiles/Dockerfile.api.fixed
       args:
+        SERVICE_PATH: apps/api
         SERVICE_NAME: work-order-service
+        SERVICE_PORT: 3002
     container_name: ${PROJECT_NAME:-emaintenance}_work-order-service_1
     restart: unless-stopped
     environment:
@@ -178,7 +182,9 @@ services:
       context: ..
       dockerfile: docker-deploy/dockerfiles/Dockerfile.api.fixed
       args:
+        SERVICE_PATH: apps/api
         SERVICE_NAME: asset-service
+        SERVICE_PORT: 3003
     container_name: ${PROJECT_NAME:-emaintenance}_asset-service_1
     restart: unless-stopped
     environment:
@@ -221,6 +227,12 @@ services:
     build:
       context: ..
       dockerfile: docker-deploy/dockerfiles/Dockerfile.web.fixed
+      args:
+        NODE_ENV: production
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_USER_SERVICE_URL: ${NEXT_PUBLIC_USER_SERVICE_URL}
+        NEXT_PUBLIC_WORK_ORDER_SERVICE_URL: ${NEXT_PUBLIC_WORK_ORDER_SERVICE_URL}
+        NEXT_PUBLIC_ASSET_SERVICE_URL: ${NEXT_PUBLIC_ASSET_SERVICE_URL}
     container_name: ${PROJECT_NAME:-emaintenance}_web_1
     restart: unless-stopped
     environment:

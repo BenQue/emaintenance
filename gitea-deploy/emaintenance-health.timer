@@ -1,0 +1,11 @@
+[Unit]
+Description=E-Maintenance Health Monitoring Timer
+Requires=emaintenance-health.service
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=5min
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

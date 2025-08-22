@@ -1,0 +1,25 @@
+[Unit]
+Description=E-Maintenance Health Monitoring Service
+After=network.target docker.service
+Requires=docker.service
+Documentation=file:///opt/emaintenance/gitea-deploy/DEPLOYMENT_GUIDE.md
+
+[Service]
+Type=oneshot
+User=ubuntu
+Group=docker
+WorkingDirectory=/opt/emaintenance/gitea-deploy
+ExecStart=/opt/emaintenance/gitea-deploy/health-monitor.sh monitor
+StandardOutput=journal
+StandardError=journal
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/emaintenance /var/log/emaintenance /var/run /tmp
+
+# Environment
+Environment=LOG_DIR=/var/log/emaintenance
+EnvironmentFile=-/opt/emaintenance/docker-deploy/.env.production
