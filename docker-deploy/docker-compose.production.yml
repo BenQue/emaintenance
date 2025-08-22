@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   # PostgreSQL Database
@@ -338,7 +337,7 @@ services:
       database:
         condition: service_healthy
     networks:
-      - emaintenance-network
+      - emaintenance_network
     restart: "no"
     command: ["sh", "-lc", "npm run db:generate && npm run db:push && npm run db:seed"]
 
