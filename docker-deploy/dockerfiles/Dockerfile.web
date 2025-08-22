@@ -6,14 +6,21 @@ FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Copy package files
-COPY apps/web/package*.json ./
-COPY package*.json ../
+# Copy package files (handle missing package-lock.json)
+COPY apps/web/package.json ./
+COPY package.json ../
 COPY turbo.json ../
 
-# Install dependencies with cache mount for faster builds
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci --only=production && \
+# Try to copy package-lock.json if it exists
+COPY apps/web/package-lock.jso[n] ./ 2>/dev/null || true
+COPY package-lock.jso[n] ../ 2>/dev/null || true
+
+# Install dependencies (use npm install if no lock file)
+RUN if [ -f "package-lock.json" ]; then \
+        npm ci --only=production; \
+    else \
+        npm install --only=production; \
+    fi && \
     npm cache clean --force
 
 # Stage 2: Builder
