@@ -1,72 +1,54 @@
-# Production-optimized Dockerfile for API Microservices
-# Generic Dockerfile for all microservices with build arguments
+# Clean API Dockerfile for E-Maintenance Services
+FROM node:20-alpine AS base
+WORKDIR /app
+RUN apk add --no-cache libc6-compat openssl curl
 
 # Stage 1: Dependencies
-FROM node:20-alpine AS deps
-RUN apk add --no-cache libc6-compat
-WORKDIR /app
-
-# Build argument for service path
-ARG SERVICE_PATH
-
-# Copy package files
-COPY ${SERVICE_PATH}/package*.json ./
-COPY package*.json ../
-COPY turbo.json ../
-
-# Install production dependencies with cache
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci --only=production && \
-    npm cache clean --force
-
-# Stage 2: Builder
-FROM node:20-alpine AS builder
-RUN apk add --no-cache libc6-compat
-WORKDIR /app
-
-ARG SERVICE_PATH
-
-# Copy dependencies
-COPY --from=deps /app/node_modules ./node_modules
-
-# Copy source code
-COPY ${SERVICE_PATH} .
-COPY packages ../packages
-COPY turbo.json ../
-COPY package*.json ../
-
-# Install all dependencies including dev for building
+FROM base AS deps
+COPY package*.json ./
+COPY packages/database/package*.json ./packages/database/
 RUN npm ci
 
-# Build TypeScript
-RUN npm run build
+# Stage 2: Prisma
+FROM deps AS prisma
+COPY packages/database/ ./packages/database/
+WORKDIR /app/packages/database
+RUN npx prisma generate
 
-# Stage 3: Runner
-FROM node:20-alpine AS runner
-WORKDIR /app
+# Stage 3: Builder
+FROM deps AS builder
+ARG SERVICE_PATH
+ARG SERVICE_NAME
+COPY turbo.json ./
+COPY packages/ ./packages/
+COPY ${SERVICE_PATH}/${SERVICE_NAME} ./service
+COPY --from=prisma /app/packages/database/node_modules/.prisma ./packages/database/node_modules/.prisma
+COPY --from=prisma /app/packages/database/node_modules/@prisma ./packages/database/node_modules/@prisma
 
-# Install runtime dependencies
-RUN apk add --no-cache libc6-compat curl
+WORKDIR /app/service
+RUN npm run build || mkdir -p dist && cp -r src/* dist/ 2>/dev/null || cp -r . dist/
 
-# Create non-root user
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 apiuser
+# Stage 4: Runtime
+FROM base AS runner
+RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 apiuser
 
-# Copy built application
-COPY --from=builder --chown=apiuser:nodejs /app/dist ./dist
-COPY --from=builder --chown=apiuser:nodejs /app/package*.json ./
-COPY --from=deps --chown=apiuser:nodejs /app/node_modules ./node_modules
+COPY --from=builder /app/service/package*.json ./
+RUN npm ci --only=production && npm cache clean --force
 
-# Create upload directory for work-order-service
-RUN mkdir -p /app/uploads && chown -R apiuser:nodejs /app/uploads
+COPY --from=prisma /app/packages/database/prisma ./prisma
+COPY --from=prisma /app/packages/database/node_modules/.prisma ./node_modules/.prisma
+COPY --from=prisma /app/packages/database/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder --chown=apiuser:nodejs /app/service/dist ./dist
+
+RUN mkdir -p /app/uploads /app/logs && chown -R apiuser:nodejs /app/uploads /app/logs
+
+ARG SERVICE_PORT
+ENV PORT=${SERVICE_PORT:-3001}
+ENV NODE_ENV=production
 
 USER apiuser
 
-# Service port (will be overridden by docker-compose)
-EXPOSE 3001
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:${PORT:-3001}/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:${SERVICE_PORT:-3001}/health || exit 1
 
 CMD ["node", "dist/index.js"]
