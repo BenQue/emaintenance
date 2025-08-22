@@ -22,8 +22,8 @@ ARG SERVICE_NAME
 COPY turbo.json ./
 COPY packages/ ./packages/
 COPY ${SERVICE_PATH}/${SERVICE_NAME} ./service
-COPY --from=prisma /app/packages/database/node_modules/.prisma ./packages/database/node_modules/.prisma
-COPY --from=prisma /app/packages/database/node_modules/@prisma ./packages/database/node_modules/@prisma
+COPY --from=prisma /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=prisma /app/node_modules/@prisma ./node_modules/@prisma
 
 WORKDIR /app/service
 RUN npm run build || mkdir -p dist && cp -r src/* dist/ 2>/dev/null || cp -r . dist/
@@ -36,8 +36,8 @@ COPY --from=builder /app/service/package*.json ./
 RUN npm ci --only=production && npm cache clean --force
 
 COPY --from=prisma /app/packages/database/prisma ./prisma
-COPY --from=prisma /app/packages/database/node_modules/.prisma ./node_modules/.prisma
-COPY --from=prisma /app/packages/database/node_modules/@prisma ./node_modules/@prisma
+COPY --from=prisma /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=prisma /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder --chown=apiuser:nodejs /app/service/dist ./dist
 
 RUN mkdir -p /app/uploads /app/logs && chown -R apiuser:nodejs /app/uploads /app/logs
