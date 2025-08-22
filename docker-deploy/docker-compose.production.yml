@@ -326,7 +326,7 @@ services:
   migrations:
     build:
       context: ..
-      dockerfile: docker-deploy/dockerfiles/Dockerfile.migrations
+      dockerfile: docker-deploy/dockerfiles/Dockerfile.migrations.simple
       args:
         NODE_ENV: production
     container_name: emaintenance-migrations

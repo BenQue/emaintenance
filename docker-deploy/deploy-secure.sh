@@ -368,8 +368,9 @@ prepare_images() {
     section "Preparing Docker Images"
     
     info "Pulling required base images..."
-    if ! ${DOCKER_COMPOSE_CMD} -f "$COMPOSE_FILE" pull; then
-        warning "Some base images failed to pull, continuing with available images"
+    if ! ${DOCKER_COMPOSE_CMD} -f "$COMPOSE_FILE" pull --ignore-pull-failures 2>/dev/null; then
+        warning "Some base images failed to pull, continuing with cached/available images"
+        warning "If this is the first deployment, some services may fail to build"
     fi
     
     info "Building custom images with environment variables..."
