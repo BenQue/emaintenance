@@ -111,3 +111,10 @@ Desktop.ini
 # Docker volumes and data
 docker-data/
 .docker/
+
+# Git hooks backup
+.git/hooks/*.backup.*
+.git/hooks/*.disabled
+
+# Build metadata
+build-info.json

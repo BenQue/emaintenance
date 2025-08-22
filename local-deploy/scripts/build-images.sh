@@ -176,27 +176,27 @@ build_service() {
 
     case $service in
         "web")
-            dockerfile="docker-deploy/dockerfiles/Dockerfile.web.fixed"
+            dockerfile="docker-deploy/dockerfiles/Dockerfile.web"
             image_name="${REGISTRY_PREFIX}/${PROJECT_NAME}-web:${VERSION_TAG}"
             build_args="--build-arg NODE_ENV=production"
             ;;
         "user-service")
-            dockerfile="docker-deploy/dockerfiles/Dockerfile.api.fixed"
+            dockerfile="docker-deploy/dockerfiles/Dockerfile.api"
             image_name="${REGISTRY_PREFIX}/${PROJECT_NAME}-user-service:${VERSION_TAG}"
             build_args="--build-arg SERVICE_PATH=apps/api --build-arg SERVICE_NAME=user-service --build-arg SERVICE_PORT=3001"
             ;;
         "work-order-service")
-            dockerfile="docker-deploy/dockerfiles/Dockerfile.api.fixed"
+            dockerfile="docker-deploy/dockerfiles/Dockerfile.api"
             image_name="${REGISTRY_PREFIX}/${PROJECT_NAME}-work-order-service:${VERSION_TAG}"
             build_args="--build-arg SERVICE_PATH=apps/api --build-arg SERVICE_NAME=work-order-service --build-arg SERVICE_PORT=3002"
             ;;
         "asset-service")
-            dockerfile="docker-deploy/dockerfiles/Dockerfile.api.fixed"
+            dockerfile="docker-deploy/dockerfiles/Dockerfile.api"
             image_name="${REGISTRY_PREFIX}/${PROJECT_NAME}-asset-service:${VERSION_TAG}"
             build_args="--build-arg SERVICE_PATH=apps/api --build-arg SERVICE_NAME=asset-service --build-arg SERVICE_PORT=3003"
             ;;
         "migrations")
-            dockerfile="packages/database/Dockerfile"
+            dockerfile="docker-deploy/dockerfiles/Dockerfile.migrations.clean"
             image_name="${REGISTRY_PREFIX}/${PROJECT_NAME}-migrations:${VERSION_TAG}"
             build_args="--build-arg NODE_ENV=production"
             ;;
