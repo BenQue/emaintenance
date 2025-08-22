@@ -1,0 +1,369 @@
+version: '3.8'
+
+# Local Testing Docker Compose Configuration
+# This configuration uses different ports to avoid conflicts with production setup
+# Ports: Web: 4000, API: 4001-4003, DB: 5434, Redis: 6380, Nginx: 4030
+
+services:
+  # PostgreSQL Database (Local Testing)
+  postgres-local:
+    image: postgres:16-alpine
+    container_name: ${PROJECT_NAME:-emaintenance}_postgres_local
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-emaintenance_local}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-LocalTest2024!}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
+      TZ: ${TZ:-Asia/Shanghai}
+    volumes:
+      - postgres_local_data:/var/lib/postgresql/data
+      - ../configs/database/init:/docker-entrypoint-initdb.d:ro
+      - postgres_local_logs:/var/log/postgresql
+    ports:
+      - "5434:5432"  # Different port for local testing
+    networks:
+      - emaintenance_local_network
+    command: >
+      postgres 
+      -c max_connections=100
+      -c shared_buffers=128MB
+      -c effective_cache_size=512MB
+      -c work_mem=2MB
+      -c maintenance_work_mem=32MB
+      -c random_page_cost=1.1
+      -c temp_file_limit=1GB
+      -c log_min_duration_statement=2000
+      -c log_checkpoints=on
+      -c log_connections=on
+      -c log_disconnections=on
+      -c log_lock_waits=on
+      -c log_statement=mod
+      -c logging_collector=on
+      -c log_directory=/var/log/postgresql
+      -c log_filename=postgresql-%Y-%m-%d_%H%M%S.log
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-emaintenance_local}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # Redis Cache (Local Testing)
+  redis-local:
+    image: redis:7-alpine
+    container_name: ${PROJECT_NAME:-emaintenance}_redis_local
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+    volumes:
+      - redis_local_data:/data
+      - redis_local_logs:/var/log/redis
+    ports:
+      - "6380:6379"  # Different port for local testing
+    networks:
+      - emaintenance_local_network
+    command: >
+      redis-server 
+      --requirepass ${REDIS_PASSWORD:-LocalRedis2024!}
+      --appendonly yes
+      --appendfsync everysec
+      --auto-aof-rewrite-percentage 100
+      --auto-aof-rewrite-min-size 32mb
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --timeout 300
+      --tcp-keepalive 60
+      --logfile /var/log/redis/redis.log
+      --loglevel notice
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+  # User Service (Local Testing)
+  user-service-local:
+    image: ${REGISTRY_PREFIX:-local}/${PROJECT_NAME:-emaintenance}-user-service:${IMAGE_TAG:-latest}
+    container_name: ${PROJECT_NAME:-emaintenance}_user-service_local
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-LocalTest2024!}@postgres-local:5432/${DB_NAME:-emaintenance_local}
+      JWT_SECRET: ${JWT_SECRET:-LocalJWT2024SecretKey}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-24h}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-LocalRedis2024!}@redis-local:6379
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
+      PORT: 3001
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:4000,http://localhost:4030}
+      TZ: ${TZ:-Asia/Shanghai}
+      # Rate limiting (more relaxed for local testing)
+      RATE_LIMIT_WINDOW: ${RATE_LIMIT_WINDOW:-15}
+      RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-10000}
+      # Security settings
+      SESSION_TIMEOUT: ${SESSION_TIMEOUT:-7200000}
+      PASSWORD_MIN_LENGTH: ${PASSWORD_MIN_LENGTH:-8}
+      # Admin user configuration
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@local.test}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-LocalAdmin2024!}
+    volumes:
+      - user_service_local_logs:/app/logs
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "4001:3001"  # Different port for local testing
+    networks:
+      - emaintenance_local_network
+    depends_on:
+      postgres-local:
+        condition: service_healthy
+      redis-local:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Work Order Service (Local Testing)
+  work-order-service-local:
+    image: ${REGISTRY_PREFIX:-local}/${PROJECT_NAME:-emaintenance}-work-order-service:${IMAGE_TAG:-latest}
+    container_name: ${PROJECT_NAME:-emaintenance}_work-order-service_local
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-LocalTest2024!}@postgres-local:5432/${DB_NAME:-emaintenance_local}
+      JWT_SECRET: ${JWT_SECRET:-LocalJWT2024SecretKey}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-LocalRedis2024!}@redis-local:6379
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
+      PORT: 3002
+      USER_SERVICE_URL: ${USER_SERVICE_URL:-http://user-service-local:3001}
+      ASSET_SERVICE_URL: ${ASSET_SERVICE_URL:-http://asset-service-local:3003}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:4000,http://localhost:4030}
+      TZ: ${TZ:-Asia/Shanghai}
+      # Rate limiting
+      RATE_LIMIT_WINDOW: ${RATE_LIMIT_WINDOW:-15}
+      RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-10000}
+    volumes:
+      - work_order_service_local_logs:/app/logs
+      - work_order_local_uploads:/app/uploads
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "4002:3002"  # Different port for local testing
+    networks:
+      - emaintenance_local_network
+    depends_on:
+      postgres-local:
+        condition: service_healthy
+      redis-local:
+        condition: service_healthy
+      user-service-local:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Asset Service (Local Testing)
+  asset-service-local:
+    image: ${REGISTRY_PREFIX:-local}/${PROJECT_NAME:-emaintenance}-asset-service:${IMAGE_TAG:-latest}
+    container_name: ${PROJECT_NAME:-emaintenance}_asset-service_local
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-LocalTest2024!}@postgres-local:5432/${DB_NAME:-emaintenance_local}
+      JWT_SECRET: ${JWT_SECRET:-LocalJWT2024SecretKey}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-LocalRedis2024!}@redis-local:6379
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
+      PORT: 3003
+      USER_SERVICE_URL: ${USER_SERVICE_URL:-http://user-service-local:3001}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:4000,http://localhost:4030}
+      TZ: ${TZ:-Asia/Shanghai}
+      # Rate limiting
+      RATE_LIMIT_WINDOW: ${RATE_LIMIT_WINDOW:-15}
+      RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-10000}
+    volumes:
+      - asset_service_local_logs:/app/logs
+      - asset_local_uploads:/app/uploads
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "4003:3003"  # Different port for local testing
+    networks:
+      - emaintenance_local_network
+    depends_on:
+      postgres-local:
+        condition: service_healthy
+      redis-local:
+        condition: service_healthy
+      user-service-local:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Next.js Web Application (Local Testing)
+  web-local:
+    image: ${REGISTRY_PREFIX:-local}/${PROJECT_NAME:-emaintenance}-web:${IMAGE_TAG:-latest}
+    container_name: ${PROJECT_NAME:-emaintenance}_web_local
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4001}
+      NEXT_PUBLIC_USER_SERVICE_URL: ${NEXT_PUBLIC_USER_SERVICE_URL:-http://localhost:4001}
+      NEXT_PUBLIC_WORK_ORDER_SERVICE_URL: ${NEXT_PUBLIC_WORK_ORDER_SERVICE_URL:-http://localhost:4002}
+      NEXT_PUBLIC_ASSET_SERVICE_URL: ${NEXT_PUBLIC_ASSET_SERVICE_URL:-http://localhost:4003}
+      PORT: 3000
+      TZ: ${TZ:-Asia/Shanghai}
+    volumes:
+      - web_local_logs:/app/.next/logs
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "4000:3000"  # Different port for local testing
+    networks:
+      - emaintenance_local_network
+    depends_on:
+      user-service-local:
+        condition: service_healthy
+      work-order-service-local:
+        condition: service_healthy
+      asset-service-local:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Nginx Reverse Proxy (Local Testing)
+  nginx-local:
+    image: nginx:alpine
+    container_name: ${PROJECT_NAME:-emaintenance}_nginx_local
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ:-Asia/Shanghai}
+    volumes:
+      - ../configs/nginx/nginx.local.conf:/etc/nginx/nginx.conf:ro
+      - nginx_local_logs:/var/log/nginx
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "4030:80"  # Different port for local testing
+    networks:
+      - emaintenance_local_network
+    depends_on:
+      - web-local
+      - user-service-local
+      - work-order-service-local
+      - asset-service-local
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Database Migrations (Local Testing)
+  migrations-local:
+    image: ${REGISTRY_PREFIX:-local}/${PROJECT_NAME:-emaintenance}-migrations:${IMAGE_TAG:-latest}
+    container_name: ${PROJECT_NAME:-emaintenance}_migrations_local
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-LocalTest2024!}@postgres-local:5432/${DB_NAME:-emaintenance_local}
+      TZ: ${TZ:-Asia/Shanghai}
+    depends_on:
+      postgres-local:
+        condition: service_healthy
+    networks:
+      - emaintenance_local_network
+    restart: "no"
+    command: ["sh", "-lc", "npm run db:generate && npm run db:push && npm run db:seed"]
+
+volumes:
+  # Database volumes (Local Testing)
+  postgres_local_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOCAL_DATA_DIR:-./local-data}/postgres
+  postgres_local_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOCAL_LOG_DIR:-./local-logs}/postgres
+
+  # Redis volumes (Local Testing)
+  redis_local_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOCAL_DATA_DIR:-./local-data}/redis
+  redis_local_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOCAL_LOG_DIR:-./local-logs}/redis
+
+  # Application service volumes (Local Testing)
+  user_service_local_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOCAL_LOG_DIR:-./local-logs}/user-service
+  work_order_service_local_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOCAL_LOG_DIR:-./local-logs}/work-order-service
+  asset_service_local_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOCAL_LOG_DIR:-./local-logs}/asset-service
+  web_local_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOCAL_LOG_DIR:-./local-logs}/web
+
+  # Nginx logs (Local Testing)
+  nginx_local_logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOCAL_LOG_DIR:-./local-logs}/nginx
+
+  # Upload volumes (Local Testing)
+  work_order_local_uploads:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOCAL_DATA_DIR:-./local-data}/uploads/work-orders
+  asset_local_uploads:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${LOCAL_DATA_DIR:-./local-data}/uploads/assets
+
+networks:
+  emaintenance_local_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
