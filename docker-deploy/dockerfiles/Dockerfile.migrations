@@ -1,0 +1,58 @@
+# Dockerfile for Database Migrations and Seeding
+# Optimized for production deployments
+# Version: 2.0
+
+FROM node:20-alpine AS base
+WORKDIR /app
+
+# Install system dependencies
+RUN apk add --no-cache \
+    openssl \
+    libc6-compat \
+    curl
+
+# Stage 1: Dependencies
+FROM base AS dependencies
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY packages/database/package*.json ./packages/database/
+
+# Install dependencies
+RUN npm ci --ignore-scripts
+
+# Stage 2: Build
+FROM dependencies AS builder
+WORKDIR /app
+
+# Copy source code
+COPY packages/database/ ./packages/database/
+COPY turbo.json ./
+
+# Generate Prisma client
+WORKDIR /app/packages/database
+RUN npx prisma generate
+
+# Stage 3: Runtime
+FROM base AS runtime
+WORKDIR /app/packages/database
+
+# Copy dependencies
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/packages/database/ ./
+
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 dbuser && \
+    chown -R dbuser:nodejs /app
+
+# Switch to non-root user
+USER dbuser
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+    CMD [ "sh", "-c", "npx prisma --version" ]
+
+# Default command
+CMD ["sh", "-c", "npx prisma migrate deploy"]
