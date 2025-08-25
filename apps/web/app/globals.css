@@ -252,4 +252,37 @@ body {
   .ring-ring {
     --tw-ring-color: hsl(var(--ring));
   }
+  
+  /* Sidebar utility classes */
+  .bg-sidebar {
+    background-color: hsl(var(--sidebar-background));
+  }
+  
+  .text-sidebar-foreground {
+    color: hsl(var(--sidebar-foreground));
+  }
+  
+  .bg-sidebar-primary {
+    background-color: hsl(var(--sidebar-primary));
+  }
+  
+  .text-sidebar-primary-foreground {
+    color: hsl(var(--sidebar-primary-foreground));
+  }
+  
+  .bg-sidebar-accent {
+    background-color: hsl(var(--sidebar-accent));
+  }
+  
+  .text-sidebar-accent-foreground {
+    color: hsl(var(--sidebar-accent-foreground));
+  }
+  
+  .border-sidebar-border {
+    border-color: hsl(var(--sidebar-border));
+  }
+  
+  .ring-sidebar-ring {
+    --tw-ring-color: hsl(var(--sidebar-ring));
+  }
 }
