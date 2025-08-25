@@ -1,0 +1,193 @@
+version: '3.8'
+
+networks:
+  emaintenance-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:
+  uploads-data:
+
+services:
+  # Database
+  postgres:
+    image: postgres:16
+    container_name: emaintenance-postgres
+    environment:
+      POSTGRES_DB: emaintenance
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-Qzy@7091!}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - emaintenance-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: emaintenance-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - emaintenance-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # User Service
+  user-service:
+    build:
+      context: ..
+      dockerfile: apps/api/user-service/Dockerfile
+      args:
+        SERVICE_NAME: user-service
+    container_name: emaintenance-user-service
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-Qzy@7091!}@postgres:5432/emaintenance
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: development
+      PORT: 3001
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - emaintenance-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Work Order Service
+  work-order-service:
+    build:
+      context: ..
+      dockerfile: apps/api/work-order-service/Dockerfile
+      args:
+        SERVICE_NAME: work-order-service
+    container_name: emaintenance-work-order-service
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-Qzy@7091!}@postgres:5432/emaintenance
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: development
+      PORT: 3002
+      USER_SERVICE_URL: http://user-service:3001
+    ports:
+      - "3002:3002"
+    volumes:
+      - uploads-data:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+    networks:
+      - emaintenance-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Asset Service
+  asset-service:
+    build:
+      context: ..
+      dockerfile: apps/api/asset-service/Dockerfile
+      args:
+        SERVICE_NAME: asset-service
+    container_name: emaintenance-asset-service
+    environment:
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-Qzy@7091!}@postgres:5432/emaintenance
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: development
+      PORT: 3003
+      USER_SERVICE_URL: http://user-service:3001
+    ports:
+      - "3003:3003"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      user-service:
+        condition: service_healthy
+    networks:
+      - emaintenance-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3003/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Web Application
+  web:
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+    container_name: emaintenance-web
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost
+      NEXT_PUBLIC_USER_SERVICE_URL: http://localhost
+      NEXT_PUBLIC_WORK_ORDER_SERVICE_URL: http://localhost
+      NEXT_PUBLIC_ASSET_SERVICE_URL: http://localhost
+      NODE_ENV: development
+    ports:
+      - "3000:3000"
+    depends_on:
+      user-service:
+        condition: service_healthy
+      work-order-service:
+        condition: service_healthy
+      asset-service:
+        condition: service_healthy
+    networks:
+      - emaintenance-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: emaintenance-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./configs/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - web
+      - user-service
+      - work-order-service
+      - asset-service
+    networks:
+      - emaintenance-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

@@ -1,0 +1,82 @@
+# Multi-stage Dockerfile for Node.js API Services (Production Optimized)
+# Supports user-service, work-order-service, asset-service
+
+ARG NODE_VERSION=18
+ARG SERVICE_NAME
+
+# Build stage
+FROM node:${NODE_VERSION}-alpine AS builder
+
+# Install build dependencies
+RUN apk add --no-cache libc6-compat python3 make g++
+
+WORKDIR /repo
+
+# Copy package files for dependency installation
+COPY package*.json ./
+COPY apps/api/${SERVICE_NAME}/package*.json apps/api/${SERVICE_NAME}/
+COPY packages/database/package*.json packages/database/
+COPY packages/eslint-config/package*.json packages/eslint-config/
+COPY packages/typescript-config/package*.json packages/typescript-config/
+
+# Install dependencies
+RUN npm ci --only=production && npm ci --only=development
+
+# Copy source code
+COPY . .
+
+# Build shared packages first
+RUN cd packages/database && npm run build
+
+# Generate Prisma client
+RUN cd packages/database && npx prisma generate
+
+# Build the specific service
+RUN cd apps/api/${SERVICE_NAME} && npm run build:prod
+
+# Runtime stage
+FROM node:${NODE_VERSION}-alpine AS runtime
+
+# Install runtime dependencies
+RUN apk add --no-cache \
+    libc6-compat \
+    curl \
+    ca-certificates \
+    tzdata \
+    tini
+
+# Set timezone
+ENV TZ=Asia/Shanghai
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+WORKDIR /app
+
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 apiuser
+
+# Copy runtime artifacts
+COPY --from=builder --chown=apiuser:nodejs /repo/node_modules ./node_modules
+COPY --from=builder --chown=apiuser:nodejs /repo/packages/database ./packages/database
+COPY --from=builder --chown=apiuser:nodejs /repo/apps/api/${SERVICE_NAME}/dist ./dist
+COPY --from=builder --chown=apiuser:nodejs /repo/apps/api/${SERVICE_NAME}/package*.json ./
+
+# Create necessary directories
+RUN mkdir -p /app/uploads /app/logs && \
+    chown -R apiuser:nodejs /app/uploads /app/logs
+
+# Switch to non-root user
+USER apiuser
+
+# Expose port (will be overridden by compose)
+EXPOSE 3001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:${PORT:-3001}/health || exit 1
+
+# Use tini as PID 1
+ENTRYPOINT ["/sbin/tini", "--"]
+
+# Start the service
+CMD ["node", "dist/index.js"]
