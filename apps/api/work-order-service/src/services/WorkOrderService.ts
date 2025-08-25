@@ -1,19 +1,19 @@
 import { PrismaClient } from '@emaintenance/database';
 import { WorkOrderStatus, Priority } from '@emaintenance/database';
 import { WorkOrderRepository } from '../repositories/WorkOrderRepository';
-import { AssignmentRuleService } from './AssignmentRuleService';
+// import { AssignmentRuleService } from './AssignmentRuleService';
 import { NotificationService } from './NotificationService';
 import { CreateWorkOrderRequest, UpdateWorkOrderRequest, WorkOrderWithRelations, WorkOrderFilters, PaginatedWorkOrders, UpdateWorkOrderStatusRequest, WorkOrderStatusHistoryItem, WorkOrderWithStatusHistory, CreateResolutionRecordRequest, ResolutionRecordResponse, WorkOrderWithResolution, MaintenanceHistoryResponse, AssetMaintenanceHistory, MTTRStatistics, WorkOrderTrends, KPIFilters, FilterOptionsResponse, WorkOrderForCSV, WorkOrderPhoto } from '../types/work-order';
 import { CSVGenerator } from '../utils/csv-generator';
 
 export class WorkOrderService {
   private workOrderRepository: WorkOrderRepository;
-  private assignmentRuleService: AssignmentRuleService;
+  // private assignmentRuleService: AssignmentRuleService;
   private notificationService: NotificationService;
 
   constructor(private prisma: PrismaClient) {
     this.workOrderRepository = new WorkOrderRepository(prisma);
-    this.assignmentRuleService = new AssignmentRuleService(prisma);
+    // this.assignmentRuleService = new AssignmentRuleService(prisma);
     this.notificationService = new NotificationService(prisma);
   }
 
@@ -48,7 +48,7 @@ export class WorkOrderService {
       }
 
       // Use asset location if no location provided
-      workOrderData.location = data.location || asset.location;
+      workOrderData.location = data.location || asset.location || undefined;
     } else {
       // If no assetId provided, create or find a default "General" asset
       let defaultAsset = await this.prisma.asset.findFirst({
@@ -71,7 +71,7 @@ export class WorkOrderService {
       }
 
       assetId = defaultAsset.id;
-      workOrderData.location = data.location || defaultAsset.location;
+      workOrderData.location = data.location || defaultAsset.location || undefined;
     }
 
     // Ensure assetId is set
@@ -83,35 +83,9 @@ export class WorkOrderService {
       createdById,
     });
 
-    // Attempt automatic assignment based on rules
-    try {
-      const assignmentMatch = await this.assignmentRuleService.findMatchingRule({
-        category: workOrder.category,
-        location: workOrder.location || undefined,
-        priority: workOrder.priority,
-      });
-
-      if (assignmentMatch) {
-        // Assign the work order to the matched technician
-        const assignedWorkOrder = await this.workOrderRepository.update(workOrder.id, {
-          assignedToId: assignmentMatch.assignToId,
-        });
-
-        // Send notification to assigned technician
-        if (assignedWorkOrder?.assignedToId) {
-          await this.notificationService.createWorkOrderAssignmentNotification(
-            workOrder.id,
-            assignedWorkOrder.assignedToId,
-            workOrder.title
-          );
-        }
-
-        return assignedWorkOrder || workOrder;
-      }
-    } catch (error) {
-      // Log assignment error but don't fail work order creation
-      console.warn(`Auto-assignment failed for work order ${workOrder.id}:`, error);
-    }
+    // TODO: Implement automatic assignment based on rules when AssignmentRuleService is available
+    // For now, work orders are created without automatic assignment
+    console.log(`Work order ${workOrder.id} created without automatic assignment`);
 
     return workOrder;
   }
@@ -1060,7 +1034,7 @@ export class WorkOrderService {
   }
 
   private calculateMTTRTrend(
-    workOrders: Array<{ reportedAt: Date; completedAt: Date | null; priority: any; category: string }>,
+    workOrders: Array<{ reportedAt: Date; completedAt: Date | null; priority: any; category: string | null }>,
     granularity: 'day' | 'week' | 'month'
   ): { period: string; mttr: number }[] {
     const grouped = this.groupWorkOrdersByPeriod(workOrders, granularity, 'completedAt');
@@ -1184,6 +1158,7 @@ export class WorkOrderService {
       orderBy: { uploadedAt: 'desc' },
       select: {
         id: true,
+        workOrderId: true,
         filename: true,
         originalName: true,
         filePath: true,
@@ -1202,6 +1177,7 @@ export class WorkOrderService {
       where: { id: photoId },
       select: {
         id: true,
+        workOrderId: true,
         filename: true,
         originalName: true,
         filePath: true,

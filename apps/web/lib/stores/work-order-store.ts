@@ -11,18 +11,7 @@ import {
   ResolutionRecord,
   Priority,
 } from '../types/work-order';
-import { workOrderService } from '../services/work-order-service';
-
-interface CreateWorkOrderData {
-  assetId: string;
-  title: string;
-  category: string;
-  reason: string;
-  location?: string;
-  priority: Priority;
-  description?: string;
-  photos?: File[];
-}
+import { workOrderService, CreateWorkOrderData } from '../services/work-order-service';
 
 interface WorkOrderState {
   // State

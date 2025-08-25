@@ -323,6 +323,6 @@ export class AssetRepository {
       orderBy: { location: 'asc' },
     });
 
-    return result.map(asset => asset.location);
+    return result.map(asset => asset.location).filter((location): location is string => location !== null);
   }
 }

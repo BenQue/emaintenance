@@ -13,7 +13,7 @@ import {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_WORK_ORDER_SERVICE_URL || 'http://localhost:3002';
 
-interface CreateWorkOrderData {
+export interface CreateWorkOrderData {
   assetId: string;
   title: string;
   category: string;

@@ -48,6 +48,32 @@ export const createWorkOrderRoutes = (prisma: PrismaClient) => {
     workOrderController.getAssignedWorkOrders
   );
 
+  // Specific routes must come BEFORE parameter routes
+  router.get('/filter-options', 
+    authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
+    workOrderController.getFilterOptions
+  );
+
+  router.get('/statistics/overview', 
+    authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
+    workOrderController.getStatistics
+  );
+
+  router.get('/kpi/mttr', 
+    authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
+    workOrderController.getMTTRStatistics
+  );
+
+  router.get('/kpi/completion-rate', 
+    authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
+    workOrderController.getWorkOrderTrends
+  );
+
+  router.get('/export/csv', 
+    authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
+    workOrderController.exportWorkOrdersCSV
+  );
+
   router.get('/:id', 
     authorize(UserRole.EMPLOYEE, UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
     checkWorkOrderAccess(prisma),
@@ -77,32 +103,7 @@ export const createWorkOrderRoutes = (prisma: PrismaClient) => {
     workOrderController.updateWorkOrderStatus
   );
 
-  // Work order statistics and KPI routes
-  router.get('/statistics/overview', 
-    authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
-    workOrderController.getStatistics
-  );
-
-  router.get('/filter-options', 
-    authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
-    workOrderController.getFilterOptions
-  );
-
-  router.get('/kpi/mttr', 
-    authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
-    workOrderController.getMTTRStatistics
-  );
-
-  router.get('/kpi/completion-rate', 
-    authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
-    workOrderController.getWorkOrderTrends
-  );
-
-  // Export routes
-  router.get('/export/csv', 
-    authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
-    workOrderController.exportWorkOrdersCSV
-  );
+  // Routes moved above for correct Express routing order
 
   // Asset maintenance history
   router.get('/asset/:assetId/maintenance-history', 

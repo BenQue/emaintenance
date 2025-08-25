@@ -5,7 +5,7 @@ import rateLimit from 'express-rate-limit';
 import path from 'path';
 import { PrismaClient } from '@emaintenance/database';
 import { createWorkOrderRoutes } from './routes/workOrders';
-import { createAssignmentRuleRoutes } from './routes/assignmentRules';
+// import { createAssignmentRuleRoutes } from './routes/assignmentRules';
 import { createNotificationRoutes } from './routes/notifications';
 import { globalErrorHandler } from './utils/errorHandler';
 
@@ -52,7 +52,10 @@ const strictLimiter = rateLimit({
 
 // Middleware
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map(o => o.trim()) : ['http://localhost:3000'],
+  credentials: true,
+}));
 // Apply general rate limiter to all routes by default (production only)
 if (process.env.NODE_ENV === 'production') {
   app.use(generalLimiter);
@@ -91,7 +94,7 @@ app.get('/health', async (req, res) => {
 
 // API Routes - Create routes with PrismaClient dependency injection
 app.use('/api/work-orders', createWorkOrderRoutes(prisma));
-app.use('/api/assignment-rules', createAssignmentRuleRoutes(prisma));
+// app.use('/api/assignment-rules', createAssignmentRuleRoutes(prisma));
 app.use('/api/notifications', createNotificationRoutes(prisma));
 
 // 404 handler

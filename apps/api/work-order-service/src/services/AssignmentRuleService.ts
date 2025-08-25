@@ -132,12 +132,11 @@ export class AssignmentRuleService {
   }
 
   private async verifyAssignedRole(assignedRole: string): Promise<void> {
-    const userRole = await this.prisma.userRole.findUnique({
-      where: { name: assignedRole },
-    });
-
-    if (!userRole) {
-      throw new Error(`Assigned role "${assignedRole}" not found`);
+    // TODO: Implement role validation using enum values
+    // For now, just validate it's one of the allowed values
+    const validRoles = ['EMPLOYEE', 'TECHNICIAN', 'SUPERVISOR', 'ADMIN'];
+    if (!validRoles.includes(assignedRole)) {
+      throw new Error(`Invalid assigned role: ${assignedRole}`);
     }
   }
 

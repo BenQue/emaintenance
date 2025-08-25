@@ -1,21 +1,26 @@
-'use client'
+'use client';
 
-export default function GlobalError({ error }: { error: Error & { digest?: string } }) {
+export default function GlobalError({ 
+  error,
+  reset
+}: { 
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
   return (
     <html>
       <body>
-        <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-8">
-          <h1 className="text-2xl font-semibold">应用发生错误</h1>
-          <p className="text-muted-foreground">{error?.message || 'Unknown error'}</p>
-          {error?.stack ? (
-            <pre className="max-w-[90vw] overflow-auto text-xs bg-gray-100 p-4 rounded-md">
-              {error.stack}
-            </pre>
-          ) : null}
+        <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', padding: '32px' }}>
+          <h1 style={{ fontSize: '24px', fontWeight: '600' }}>应用发生错误</h1>
+          <p style={{ color: '#666' }}>{error?.message || 'Unknown error'}</p>
+          <button 
+            style={{ padding: '8px 16px', borderRadius: '6px', backgroundColor: '#1E88E5', color: 'white', border: 'none', cursor: 'pointer' }}
+            onClick={reset}
+          >
+            重新加载
+          </button>
         </div>
       </body>
     </html>
-  )
+  );
 }
-
-

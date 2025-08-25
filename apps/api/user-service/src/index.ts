@@ -18,7 +18,7 @@ if (process.env.NODE_ENV === 'production') {
   app.use(generalRateLimit);
 }
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map(o => o.trim()) : ['http://localhost:3000'],
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));

@@ -342,7 +342,9 @@ export class AssetService {
     
     allAssetsForLocation.assets.forEach(asset => {
       const location = asset.location;
-      byLocation[location] = (byLocation[location] || 0) + 1;
+      if (location !== null) {
+        byLocation[location] = (byLocation[location] || 0) + 1;
+      }
     });
 
     return {

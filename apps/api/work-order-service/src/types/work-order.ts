@@ -2,12 +2,12 @@ import { Priority, WorkOrderStatus, FaultCode } from '@emaintenance/database';
 
 export interface CreateWorkOrderRequest {
   title: string;
-  description: string;
+  description?: string;
   category: string;
   reason: string;
   location?: string;
   priority: Priority;
-  assetId: string;
+  assetId?: string;
   attachments?: string[];
   // New fields for integrated categories and reasons
   categoryId?: string;
@@ -32,8 +32,8 @@ export interface WorkOrderWithRelations {
   id: string;
   title: string;
   description: string;
-  category: string;
-  reason: string;
+  category: string | null;
+  reason: string | null;
   location?: string | null;
   priority: Priority;
   status: WorkOrderStatus;
@@ -52,7 +52,7 @@ export interface WorkOrderWithRelations {
     id: string;
     assetCode: string;
     name: string;
-    location: string;
+    location: string | null;
   };
   createdBy: {
     id: string;
@@ -235,8 +235,8 @@ export interface WorkOrderForCSV {
   id: string;
   title: string;
   description: string;
-  category: string;
-  reason: string;
+  category: string | null;
+  reason: string | null;
   location?: string | null;
   priority: Priority;
   status: WorkOrderStatus;

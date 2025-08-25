@@ -372,7 +372,7 @@ export class WorkOrderRepository {
       const result = {
         statuses: Object.values(WorkOrderStatus),
         priorities: Object.values(Priority),
-        categories: categoriesResult.map(item => item.category),
+        categories: categoriesResult.map(item => item.category).filter((category): category is string => category !== null),
         assets: assetsResult,
         users: usersResult.map(user => ({
           id: user.id,

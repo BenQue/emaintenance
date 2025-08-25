@@ -208,7 +208,7 @@ export type ComponentWithAsChild<T = {}> = T & {
   asChild?: boolean
 }
 
-export type ComponentWithVariants<T, V> = T & VariantProps<V>
+export type ComponentWithVariants<T, V extends (...args: any[]) => any> = T & VariantProps<V>
 
 // =============================================================================
 // Form Integration Types
