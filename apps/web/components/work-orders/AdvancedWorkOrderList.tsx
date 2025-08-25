@@ -5,10 +5,13 @@ import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { DataTable } from '../interactive/tables/DataTable';
-import { ColumnDef } from '../interactive/tables/types';
+import { ColumnDef, TableAction } from '../interactive/tables/types';
+import { Eye, Edit, Trash2, X, CheckCircle, RotateCcw } from 'lucide-react';
 import { ConfirmDialog } from '../interactive/dialogs/ConfirmDialog';
-import { WorkOrder, PaginatedWorkOrders } from '../../lib/types/work-order';
+import { WorkOrder, PaginatedWorkOrders, WorkOrderStatus } from '../../lib/types/work-order';
 import { workOrderService } from '../../lib/services/work-order-service';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
+import { UserRole } from '../../lib/types/user';
 import {
   useWorkOrderFilterStore,
   WorkOrderFilters,
@@ -24,6 +27,7 @@ export function AdvancedWorkOrderList({
   filters, 
   onWorkOrderClick 
 }: AdvancedWorkOrderListProps) {
+  const { user, isAdmin, hasRole } = useCurrentUser();
   const {
     currentPage,
     pageSize,
@@ -164,6 +168,140 @@ export function AdvancedWorkOrderList({
       console.error('Failed to update work order status:', error);
     }
   }, [selectedRows, loadWorkOrders]);
+
+  // Handle individual work order actions
+  const handleViewDetail = useCallback((workOrder: WorkOrder) => {
+    if (onWorkOrderClick) {
+      onWorkOrderClick(workOrder);
+    } else {
+      // Navigate to detail page
+      window.location.href = `/dashboard/work-orders/${workOrder.id}`;
+    }
+  }, [onWorkOrderClick]);
+
+  const handleEdit = useCallback((workOrder: WorkOrder) => {
+    // Navigate to edit page
+    window.location.href = `/dashboard/work-orders/${workOrder.id}/edit`;
+  }, []);
+
+  const handleDelete = useCallback(async (workOrder: WorkOrder) => {
+    try {
+      await workOrderService.deleteWorkOrder(workOrder.id);
+      await loadWorkOrders(); // Refresh data
+    } catch (error) {
+      console.error('Failed to delete work order:', error);
+      setError(`删除工单失败: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }, [loadWorkOrders, setError]);
+
+  // Handle status change operations
+  const handleStatusChange = useCallback(async (workOrder: WorkOrder, newStatus: WorkOrderStatus) => {
+    try {
+      await workOrderService.updateWorkOrderStatus(workOrder.id, { 
+        status: newStatus,
+        notes: `状态变更为: ${getStatusLabel(newStatus)}`
+      });
+      await loadWorkOrders(); // Refresh data
+    } catch (error) {
+      console.error('Failed to update work order status:', error);
+      setError(`状态更新失败: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }, [loadWorkOrders, setError]);
+
+  const handleCancel = useCallback((workOrder: WorkOrder) => {
+    handleStatusChange(workOrder, WorkOrderStatus.CANCELLED);
+  }, [handleStatusChange]);
+
+  const handleComplete = useCallback((workOrder: WorkOrder) => {
+    handleStatusChange(workOrder, WorkOrderStatus.COMPLETED);
+  }, [handleStatusChange]);
+
+  const handleReopen = useCallback((workOrder: WorkOrder) => {
+    handleStatusChange(workOrder, WorkOrderStatus.PENDING);
+  }, [handleStatusChange]);
+
+  // Define table actions based on user permissions
+  const actions: TableAction<WorkOrder>[] = useMemo(() => {
+    const baseActions: TableAction<WorkOrder>[] = [
+      {
+        label: '查看详情',
+        icon: <Eye className="h-4 w-4" />,
+        onClick: handleViewDetail,
+      },
+    ];
+
+    // Edit action - available to TECHNICIAN and above, but not for completed/cancelled orders
+    if (hasRole(UserRole.TECHNICIAN)) {
+      baseActions.push({
+        label: '编辑',
+        icon: <Edit className="h-4 w-4" />,
+        onClick: handleEdit,
+        disabled: (workOrder) => 
+          workOrder.status === WorkOrderStatus.COMPLETED || 
+          workOrder.status === WorkOrderStatus.CANCELLED,
+      });
+    }
+
+    // Status change actions based on current status and role
+    const statusActions: TableAction<WorkOrder>[] = [];
+    
+    if (hasRole(UserRole.TECHNICIAN)) {
+      // Complete action - for technicians and above
+      statusActions.push({
+        label: '标记完成',
+        icon: <CheckCircle className="h-4 w-4" />,
+        onClick: handleComplete,
+        disabled: (workOrder) => 
+          workOrder.status === WorkOrderStatus.COMPLETED ||
+          workOrder.status === WorkOrderStatus.CANCELLED,
+      });
+    }
+
+    if (hasRole(UserRole.SUPERVISOR)) {
+      // Cancel action - for supervisors and above
+      statusActions.push({
+        label: '取消工单',
+        icon: <X className="h-4 w-4" />,
+        onClick: handleCancel,
+        variant: 'destructive' as const,
+        disabled: (workOrder) => 
+          workOrder.status === WorkOrderStatus.COMPLETED ||
+          workOrder.status === WorkOrderStatus.CANCELLED,
+      });
+
+      // Reopen action - for supervisors and above
+      statusActions.push({
+        label: '重新打开',
+        icon: <RotateCcw className="h-4 w-4" />,
+        onClick: handleReopen,
+        disabled: (workOrder) => 
+          workOrder.status !== WorkOrderStatus.COMPLETED &&
+          workOrder.status !== WorkOrderStatus.CANCELLED,
+      });
+    }
+
+    // Delete action - ONLY for system administrators
+    if (isAdmin) {
+      statusActions.push({
+        label: '永久删除',
+        icon: <Trash2 className="h-4 w-4" />,
+        onClick: handleDelete,
+        variant: 'destructive' as const,
+        disabled: (workOrder) => workOrder.status === WorkOrderStatus.IN_PROGRESS,
+      });
+    }
+
+    return [...baseActions, ...statusActions];
+  }, [
+    hasRole, 
+    isAdmin,
+    handleViewDetail, 
+    handleEdit, 
+    handleComplete,
+    handleCancel,
+    handleReopen,
+    handleDelete
+  ]);
 
   // Define table columns
   const columns: ColumnDef<WorkOrder>[] = useMemo(() => [
@@ -334,6 +472,7 @@ export function AdvancedWorkOrderList({
       <DataTable
         data={workOrders.workOrders}
         columns={columns}
+        actions={actions}
         selection={true}
         searchable={false}
         onSelectionChange={setSelectedRows}

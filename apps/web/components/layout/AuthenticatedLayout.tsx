@@ -14,6 +14,15 @@ export function AuthenticatedLayout({ children }: AuthenticatedLayoutProps) {
   const { isAuthenticated, isLoading, user, checkAuth } = useAuthStore();
   const [isMounted, setIsMounted] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
+  
+  // Debug logging
+  console.log('AuthenticatedLayout render:', {
+    isMounted,
+    isInitializing,
+    isLoading,
+    isAuthenticated,
+    hasUser: !!user
+  });
 
   // Handle hydration mismatch by ensuring component is mounted on client
   useEffect(() => {

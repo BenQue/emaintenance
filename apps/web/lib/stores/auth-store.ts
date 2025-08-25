@@ -73,24 +73,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   checkAuth: async () => {
-    // Auth check initiated
-    set({ isLoading: true }); // Set loading state immediately
+    console.log('AuthStore: checkAuth started');
+    set({ isLoading: true });
     
-    const token = authService.getToken();
-    if (token && await authService.validateToken()) {
-      try {
-        // Fetch complete user profile from server instead of relying on JWT payload
-        const user = await authService.fetchProfile();
-        // User profile fetched successfully
-        set({ 
-          user, 
-          isAuthenticated: true, 
-          isLoading: false, 
-          error: null 
-        });
-      } catch (error) {
-        // If profile fetch fails, treat as unauthenticated
-        // Profile fetch failed, clearing auth
+    try {
+      const token = authService.getToken();
+      console.log('AuthStore: token exists:', !!token);
+      
+      if (!token) {
+        console.log('AuthStore: no token found, clearing auth');
         authService.removeToken();
         set({
           user: null,
@@ -98,9 +89,38 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           isLoading: false,
           error: null,
         });
+        return;
       }
-    } else {
-      // No valid token, clearing auth
+
+      console.log('AuthStore: validating token...');
+      const isValid = await authService.validateToken();
+      console.log('AuthStore: token validation result:', isValid);
+      
+      if (!isValid) {
+        console.log('AuthStore: token invalid, clearing auth');
+        authService.removeToken();
+        set({
+          user: null,
+          isAuthenticated: false,
+          isLoading: false,
+          error: null,
+        });
+        return;
+      }
+
+      console.log('AuthStore: fetching user profile...');
+      const user = await authService.fetchProfile();
+      console.log('AuthStore: profile fetched successfully:', user);
+      
+      set({ 
+        user, 
+        isAuthenticated: true, 
+        isLoading: false, 
+        error: null 
+      });
+      
+    } catch (error) {
+      console.error('AuthStore: checkAuth failed:', error);
       authService.removeToken();
       set({
         user: null,

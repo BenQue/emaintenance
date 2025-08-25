@@ -14,9 +14,18 @@ export interface ColumnDef<T> {
   align?: 'left' | 'center' | 'right'
 }
 
+export interface TableAction<T> {
+  label: string
+  icon?: ReactNode
+  onClick: (row: T) => void
+  variant?: 'default' | 'destructive'
+  disabled?: (row: T) => boolean
+}
+
 export interface DataTableProps<T> {
   data: T[]
   columns: ColumnDef<T>[]
+  actions?: TableAction<T>[]
   pagination?: boolean
   selection?: boolean
   onSelectionChange?: (selectedRows: T[]) => void

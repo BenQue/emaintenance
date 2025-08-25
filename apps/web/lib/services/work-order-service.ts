@@ -240,7 +240,7 @@ class WorkOrderService {
         byPriority: Record<string, number>;
         averageResolutionTime: number | null;
       };
-    }>(`/api/work-orders/statistics?${queryParams}`);
+    }>(`/api/work-orders/statistics/overview?${queryParams}`);
     
     return response.statistics;
   }
@@ -310,7 +310,7 @@ class WorkOrderService {
       if (value) params.append(key, value);
     });
     
-    return this.request<any>(`/api/work-orders/statistics?${params.toString()}`);
+    return this.request<any>(`/api/work-orders/statistics/overview?${params.toString()}`);
   }
 
   // KPI Methods
@@ -339,7 +339,7 @@ class WorkOrderService {
       if (value) params.append(key, value);
     });
     
-    return this.request<any>(`/api/work-orders/kpi/trends?${params.toString()}`);
+    return this.request<any>(`/api/work-orders/kpi/completion-rate?${params.toString()}`);
   }
 
   // Advanced Filtering Methods
@@ -467,6 +467,22 @@ class WorkOrderService {
 
   getWorkOrderPhotoThumbnailUrl(workOrderId: string, photoId: string): string {
     return `${API_BASE_URL}/api/work-orders/${workOrderId}/work-order-photos/${photoId}/thumbnail`;
+  }
+
+  async deleteWorkOrder(id: string): Promise<void> {
+    await this.request<void>(`/api/work-orders/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async updateWorkOrder(
+    id: string,
+    updateData: Partial<CreateWorkOrderData>
+  ): Promise<WorkOrder> {
+    return this.request<WorkOrder>(`/api/work-orders/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updateData),
+    });
   }
 }
 

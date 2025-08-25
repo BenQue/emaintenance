@@ -20,12 +20,13 @@ import { Button } from '../../ui/button'
 import { Input } from '../../ui/input'
 import { Badge } from '../../ui/badge'
 import { MoreHorizontalIcon, ChevronUpIcon, ChevronDownIcon } from 'lucide-react'
-import { DataTableProps, ColumnDef, SortConfig } from './types'
+import { DataTableProps, ColumnDef, SortConfig, TableAction } from './types'
 import { cn } from '../../../lib/utils'
 
 export function DataTable<T extends Record<string, any>>({
   data,
   columns,
+  actions = [],
   pagination = true,
   selection = false,
   onSelectionChange,
@@ -197,14 +198,14 @@ export function DataTable<T extends Record<string, any>>({
                   </div>
                 </TableHead>
               ))}
-              <TableHead className="w-20">操作</TableHead>
+              {actions.length > 0 && <TableHead className="w-20">操作</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
                 <TableCell 
-                  colSpan={columns.length + (selection ? 1 : 0) + 1} 
+                  colSpan={columns.length + (selection ? 1 : 0) + (actions.length > 0 ? 1 : 0)} 
                   className="h-24 text-center"
                 >
                   加载中...
@@ -213,7 +214,7 @@ export function DataTable<T extends Record<string, any>>({
             ) : paginatedData.length === 0 ? (
               <TableRow>
                 <TableCell 
-                  colSpan={columns.length + (selection ? 1 : 0) + 1} 
+                  colSpan={columns.length + (selection ? 1 : 0) + (actions.length > 0 ? 1 : 0)} 
                   className="h-24 text-center text-muted-foreground"
                 >
                   {emptyMessage}
@@ -244,21 +245,36 @@ export function DataTable<T extends Record<string, any>>({
                       {column.cell(row)}
                     </TableCell>
                   ))}
-                  <TableCell key={`${row.id || index}-actions`}>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <MoreHorizontalIcon className="h-4 w-4" />
-                          <span className="sr-only">打开菜单</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>查看详情</DropdownMenuItem>
-                        <DropdownMenuItem>编辑</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">删除</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+                  {actions.length > 0 && (
+                    <TableCell key={`${row.id || index}-actions`}>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <MoreHorizontalIcon className="h-4 w-4" />
+                            <span className="sr-only">打开菜单</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {actions.map((action, actionIndex) => (
+                            <DropdownMenuItem
+                              key={`action-${actionIndex}`}
+                              className={action.variant === 'destructive' ? 'text-destructive' : ''}
+                              disabled={action.disabled?.(row)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (!action.disabled?.(row)) {
+                                  action.onClick(row);
+                                }
+                              }}
+                            >
+                              {action.icon && <span className="mr-2">{action.icon}</span>}
+                              {action.label}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             )}
