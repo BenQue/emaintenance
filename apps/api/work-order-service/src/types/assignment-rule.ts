@@ -2,33 +2,36 @@ import { AssignmentRule, NotificationType } from '@emaintenance/database';
 
 export interface CreateAssignmentRuleRequest {
   name: string;
-  description?: string;
-  categoryId?: string;
-  locationId?: string;
-  priority: string;
-  assignedRole: string;
+  priority: number;
   isActive?: boolean;
+  assetTypes: string[];
+  categories: string[];
+  locations: string[];
+  priorities: string[];
+  assignToId: string;
 }
 
 export interface UpdateAssignmentRuleRequest {
   name?: string;
-  description?: string;
-  categoryId?: string;
-  locationId?: string;
-  priority?: string;
-  assignedRole?: string;
+  priority?: number;
   isActive?: boolean;
+  assetTypes?: string[];
+  categories?: string[];
+  locations?: string[];
+  priorities?: string[];
+  assignToId?: string;
 }
 
 export interface AssignmentRuleResponse {
   id: string;
   name: string;
-  description?: string;
-  categoryId?: string;
-  locationId?: string;
-  priority: string;
-  assignedRole: string;
+  priority: number;
   isActive: boolean;
+  assetTypes: string[];
+  categories: string[];
+  locations: string[];
+  priorities: string[];
+  assignToId: string;
   assignTo: {
     id: string;
     firstName: string;

@@ -5,7 +5,7 @@ import rateLimit from 'express-rate-limit';
 import path from 'path';
 import { PrismaClient } from '@emaintenance/database';
 import { createWorkOrderRoutes } from './routes/workOrders';
-// import { createAssignmentRuleRoutes } from './routes/assignmentRules';
+import { createAssignmentRuleRoutes } from './routes/assignmentRules';
 import { createNotificationRoutes } from './routes/notifications';
 import { globalErrorHandler } from './utils/errorHandler';
 
@@ -94,7 +94,7 @@ app.get('/health', async (req, res) => {
 
 // API Routes - Create routes with PrismaClient dependency injection
 app.use('/api/work-orders', createWorkOrderRoutes(prisma));
-// app.use('/api/assignment-rules', createAssignmentRuleRoutes(prisma));
+app.use('/api/assignment-rules', createAssignmentRuleRoutes(prisma));
 app.use('/api/notifications', createNotificationRoutes(prisma));
 
 // 404 handler

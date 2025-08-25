@@ -7,12 +7,13 @@ import { z } from 'zod';
 // Validation schemas
 const createAssignmentRuleSchema = z.object({
   name: z.string().min(1, 'Name is required'),
-  description: z.string().optional(),
-  categoryId: z.string().optional(),
-  locationId: z.string().optional(),
-  priority: z.string().min(1, 'Priority is required'),
-  assignedRole: z.string().min(1, 'Assigned role is required'),
+  priority: z.number().min(0, 'Priority must be a non-negative number'),
   isActive: z.boolean().optional(),
+  assetTypes: z.array(z.string()),
+  categories: z.array(z.string()),
+  locations: z.array(z.string()),
+  priorities: z.array(z.string()),
+  assignToId: z.string().min(1, 'Assigned technician ID is required'),
 });
 
 const updateAssignmentRuleSchema = createAssignmentRuleSchema.partial();

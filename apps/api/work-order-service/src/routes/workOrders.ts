@@ -80,6 +80,18 @@ export const createWorkOrderRoutes = (prisma: PrismaClient) => {
     workOrderController.getWorkOrder
   );
 
+  router.get('/:id/history', 
+    authorize(UserRole.EMPLOYEE, UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
+    checkWorkOrderAccess(prisma),
+    workOrderController.getWorkOrderWithHistory.bind(workOrderController)
+  );
+
+  router.get('/:id/resolution', 
+    authorize(UserRole.EMPLOYEE, UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
+    checkWorkOrderAccess(prisma),
+    workOrderController.getWorkOrderWithResolution.bind(workOrderController)
+  );
+
   router.put('/:id', 
     authorize(UserRole.EMPLOYEE, UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
     checkWorkOrderAccess(prisma),
@@ -108,20 +120,39 @@ export const createWorkOrderRoutes = (prisma: PrismaClient) => {
   // Asset maintenance history
   router.get('/asset/:assetId/maintenance-history', 
     authorize(UserRole.EMPLOYEE, UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
-    workOrderController.getAssetMaintenanceHistory
+    workOrderController.getAssetMaintenanceHistory.bind(workOrderController)
+  );
+
+  // Alternative route for frontend compatibility (plural form)
+  router.get('/assets/:assetId/maintenance-history', 
+    authorize(UserRole.EMPLOYEE, UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
+    workOrderController.getAssetMaintenanceHistory.bind(workOrderController)
   );
 
   // Photo upload routes
   router.post('/:id/photos', 
     authorize(UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
     checkWorkOrderAccess(prisma),
-    workOrderController.uploadWorkOrderPhotos
+    workOrderController.uploadWorkOrderPhotos.bind(workOrderController)
   );
 
   router.get('/:id/photos', 
     authorize(UserRole.EMPLOYEE, UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
     checkWorkOrderAccess(prisma),
-    workOrderController.getWorkOrderPhotos
+    workOrderController.getWorkOrderPhotos.bind(workOrderController)
+  );
+
+  // Alternative route for frontend compatibility
+  router.get('/:id/work-order-photos', 
+    authorize(UserRole.EMPLOYEE, UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
+    checkWorkOrderAccess(prisma),
+    workOrderController.getWorkOrderPhotos.bind(workOrderController)
+  );
+
+  router.post('/:id/work-order-photos', 
+    authorize(UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
+    checkWorkOrderAccess(prisma),
+    workOrderController.uploadWorkOrderPhotos.bind(workOrderController)
   );
 
   return router;

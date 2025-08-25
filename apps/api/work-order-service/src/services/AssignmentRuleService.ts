@@ -23,8 +23,8 @@ export class AssignmentRuleService {
     // Verify user has supervisor role
     await this.verifyUserPermissions(userId, 'create');
 
-    // Verify assigned role is valid
-    await this.verifyAssignedRole(data.assignedRole);
+    // Verify assigned technician is valid
+    await this.verifyTechnician(data.assignToId);
 
     return this.assignmentRuleRepository.create(data);
   }
@@ -54,9 +54,9 @@ export class AssignmentRuleService {
   ): Promise<AssignmentRuleResponse | null> {
     await this.verifyUserPermissions(userId, 'update');
 
-    // If assignedRole is being updated, verify the new role
-    if (data.assignedRole) {
-      await this.verifyAssignedRole(data.assignedRole);
+    // If assignToId is being updated, verify the new technician
+    if (data.assignToId) {
+      await this.verifyTechnician(data.assignToId);
     }
 
     return this.assignmentRuleRepository.update(id, data);
@@ -80,7 +80,7 @@ export class AssignmentRuleService {
         return {
           ruleId: rule.id,
           ruleName: rule.name,
-          priority: parseInt(rule.priority),
+          priority: rule.priority,
           assignToId: rule.assignTo.id,
         };
       }
@@ -99,17 +99,17 @@ export class AssignmentRuleService {
     }
   ): boolean {
     // Check category match (if rule has category filter)
-    if (rule.categoryId && rule.categoryId !== workOrderData.category) {
+    if (rule.categories.length > 0 && !rule.categories.includes(workOrderData.category)) {
       return false;
     }
 
     // Check location match (if rule has location filter)
-    if (rule.locationId && rule.locationId !== workOrderData.location) {
+    if (rule.locations.length > 0 && workOrderData.location && !rule.locations.includes(workOrderData.location)) {
       return false;
     }
 
     // Check priority match
-    if (rule.priority !== workOrderData.priority) {
+    if (rule.priorities.length > 0 && !rule.priorities.includes(workOrderData.priority)) {
       return false;
     }
 

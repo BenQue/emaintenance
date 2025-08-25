@@ -21,7 +21,7 @@ export class AssignmentMatcher {
       .filter(rule => rule.isActive)
       .sort((a, b) => {
         if (a.priority !== b.priority) {
-          return parseInt(b.priority) - parseInt(a.priority); // Higher priority first
+          return b.priority - a.priority; // Higher priority first
         }
         return a.createdAt.getTime() - b.createdAt.getTime(); // Older rules first for tie-breaking
       });
@@ -42,18 +42,23 @@ export class AssignmentMatcher {
     rule: AssignmentRuleResponse,
     workOrderData: WorkOrderMatchData
   ): boolean {
+    // Check asset type match (if rule has asset type filter)
+    if (rule.assetTypes.length > 0 && workOrderData.assetType && !rule.assetTypes.includes(workOrderData.assetType)) {
+      return false;
+    }
+
     // Check category match (if rule has category filter)
-    if (rule.categoryId && rule.categoryId !== workOrderData.category) {
+    if (rule.categories.length > 0 && !rule.categories.includes(workOrderData.category)) {
       return false;
     }
 
     // Check location match (if rule has location filter)
-    if (rule.locationId && rule.locationId !== workOrderData.location) {
+    if (rule.locations.length > 0 && workOrderData.location && !rule.locations.includes(workOrderData.location)) {
       return false;
     }
 
     // Check priority match
-    if (rule.priority !== workOrderData.priority) {
+    if (rule.priorities.length > 0 && !rule.priorities.includes(workOrderData.priority)) {
       return false;
     }
 
@@ -64,17 +69,19 @@ export class AssignmentMatcher {
    * Validate that assignment rule conditions are properly configured
    */
   static validateRuleConditions(rule: {
-    categoryId?: string;
-    locationId?: string;
-    priority: string;
+    categories: string[];
+    locations: string[];
+    priorities: string[];
+    assetTypes: string[];
   }): string[] {
     const errors: string[] = [];
 
     // At least one condition must be specified
     const hasConditions = 
-      rule.categoryId ||
-      rule.locationId ||
-      rule.priority;
+      rule.categories.length > 0 ||
+      rule.locations.length > 0 ||
+      rule.priorities.length > 0 ||
+      rule.assetTypes.length > 0;
 
     if (!hasConditions) {
       errors.push('At least one matching condition must be specified');
@@ -82,8 +89,10 @@ export class AssignmentMatcher {
 
     // Validate priority values if specified
     const validPriorities = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
-    if (!validPriorities.includes(rule.priority)) {
-      errors.push(`Invalid priority value: ${rule.priority}`);
+    for (const priority of rule.priorities) {
+      if (!validPriorities.includes(priority)) {
+        errors.push(`Invalid priority value: ${priority}`);
+      }
     }
 
     return errors;
