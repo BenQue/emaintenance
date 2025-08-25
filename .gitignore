@@ -62,8 +62,10 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# Claude MCP configuration with secrets
-.claude/.mcp.local.json
+# Development tool configurations (local only)
+.bmad-core/
+.claude/
+.cursor/
 
 # Flutter
 **/doc/api/
