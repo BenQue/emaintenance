@@ -186,6 +186,27 @@ environment:
 
 **影响服务**: work-order-service, asset-service (可能)
 
+### 15. 资产服务健康检查端点路径不匹配
+**问题**: 健康检查端点注册在错误的路径下导致404错误
+```
+warn: Route not found {"path":"/health","method":"GET","service":"asset-service"}
+```
+
+**解决方案**: 将健康检查端点从`/api/health`移至根路径`/health`
+```typescript
+// 在主应用文件中直接注册健康检查端点
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    service: 'asset-service',
+    timestamp: new Date().toISOString()
+  });
+});
+```
+
+**影响服务**: asset-service
+**影响文件**: `apps/api/asset-service/src/index.ts`
+
 ## 修复状态追踪
 
 | 问题 | 状态 | 修复文件 | 备注 |
@@ -204,6 +225,7 @@ environment:
 | Docker容器目录权限 | ✅ 已修复 | 所有服务Dockerfile | 预先创建子目录 |
 | 卷挂载权限覆盖问题 | ✅ 已修复 | 工单服务部署脚本 | 宿主机预创建+权限 |
 | 数据库连接主机名错误 | ✅ 已修复 | 工单服务docker-compose.yml | 容器名修正 |
+| 资产服务健康检查端点路径 | ✅ 已修复 | asset-service/src/index.ts | /health路径修正 |
 
 ## 预防措施
 
