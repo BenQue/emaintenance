@@ -38,12 +38,11 @@ for service in "${REQUIRED_SERVICES[@]}"; do
     service_name=$(echo $service | cut -d':' -f1)
     service_port=$(echo $service | cut -d':' -f2)
     
-    # 检查容器是否运行并且健康
-    if ! docker ps --filter "name=${service_name}" --filter "status=running" --format "{{.Names}}\t{{.Status}}" | grep -q "healthy"; then
-        # 如果没有健康检查，至少要求容器正在运行
-        if ! docker ps --filter "name=${service_name}" --filter "status=running" --format "{{.Names}}" | grep -q "${service_name}"; then
-            MISSING_SERVICES+=("$service_name")
-        fi
+    # 简化检测：只要容器在运行就认为OK
+    if ! docker ps --filter "name=${service_name}" --filter "status=running" --format "{{.Names}}" | grep -q "^${service_name}$"; then
+        MISSING_SERVICES+=("$service_name")
+    else
+        log_info "检测到服务: $service_name"
     fi
 done
 
