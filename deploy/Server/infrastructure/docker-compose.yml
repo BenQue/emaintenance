@@ -1,0 +1,89 @@
+version: '3.8'
+
+# E-Maintenance 基础设施服务
+# 包含: PostgreSQL 数据库, Redis 缓存
+# 其他微服务依赖于这些基础服务
+
+networks:
+  emaintenance-network:
+    name: emaintenance-network
+    driver: bridge
+    external: false
+
+volumes:
+  postgres-data:
+    name: emaintenance-postgres-data
+  redis-data:
+    name: emaintenance-redis-data
+
+services:
+  # PostgreSQL 数据库
+  postgres:
+    image: postgres:16-alpine
+    container_name: emaintenance-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-emaintenance}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --locale=C"
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - /opt/emaintenance/data/postgres-backup:/backup
+      - ./init-scripts:/docker-entrypoint-initdb.d:ro
+    networks:
+      - emaintenance-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-emaintenance}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # 性能和安全配置
+    command: >
+      postgres
+      -c max_connections=200
+      -c shared_buffers=256MB
+      -c effective_cache_size=1GB
+      -c work_mem=4MB
+      -c maintenance_work_mem=64MB
+      -c log_statement=all
+      -c log_min_duration_statement=1000
+
+  # Redis 缓存
+  redis:
+    image: redis:7-alpine
+    container_name: emaintenance-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+      - /opt/emaintenance/data/redis-backup:/backup
+      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+    networks:
+      - emaintenance-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # Redis 配置
+    command: >
+      redis-server /usr/local/etc/redis/redis.conf
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --save 900 1 300 10 60 10000

@@ -1,0 +1,127 @@
+version: '3.8'
+
+# E-Maintenance Web应用服务
+# 依赖: 所有后端API服务 (User, Work Order, Asset Services)
+
+networks:
+  emaintenance-network:
+    external: true
+
+services:
+  web-service:
+    build:
+      context: ../../..
+      dockerfile: deploy/Server/web-service/Dockerfile
+    container_name: emaintenance-web-service
+    environment:
+      # Next.js 应用配置
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      
+      # 后端API服务URLs (容器内部通信)
+      NEXT_PUBLIC_USER_SERVICE_URL: http://localhost:${USER_SERVICE_PORT:-3001}
+      NEXT_PUBLIC_WORK_ORDER_SERVICE_URL: http://localhost:${WORK_ORDER_SERVICE_PORT:-3002}
+      NEXT_PUBLIC_ASSET_SERVICE_URL: http://localhost:${ASSET_SERVICE_PORT:-3003}
+      
+      # 内部服务通信URLs (用于服务端API调用)
+      USER_SERVICE_URL: http://emaintenance-user-service:3001
+      WORK_ORDER_SERVICE_URL: http://emaintenance-work-order-service:3002
+      ASSET_SERVICE_URL: http://emaintenance-asset-service:3003
+      
+      # 应用配置
+      NEXT_PUBLIC_APP_NAME: E-Maintenance
+      NEXT_PUBLIC_APP_VERSION: v2.0
+      NEXT_PUBLIC_APP_ENV: ${NODE_ENV:-production}
+      
+      # 安全配置
+      NEXTAUTH_SECRET: ${JWT_SECRET}
+      NEXTAUTH_URL: http://localhost:${WEB_SERVICE_PORT:-3000}
+      
+      # 数据库配置 (用于某些服务端操作)
+      DATABASE_URL: ${DATABASE_URL}
+      
+      # Redis配置 (用于会话和缓存)
+      REDIS_URL: ${REDIS_URL:-redis://emaintenance-redis:6379}
+      
+      # 文件上传配置
+      NEXT_PUBLIC_MAX_FILE_SIZE: ${MAX_FILE_SIZE:-10485760}
+      UPLOAD_DIR: /app/uploads
+      
+      # 日志配置
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      
+    ports:
+      - "${WEB_SERVICE_PORT:-3000}:3000"
+    
+    volumes:
+      - web-service-logs:/app/logs
+      - web-service-cache:/app/.next/cache
+      - web-service-uploads:/app/uploads
+      - /opt/emaintenance/logs/web-service:/backup/logs
+      - /opt/emaintenance/data/web-uploads:/backup/uploads
+      - /opt/emaintenance/data/web-cache:/backup/cache
+    
+    networks:
+      - emaintenance-network
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    # 依赖所有后端API服务
+    depends_on:
+      - user-service
+      - work-order-service
+      - asset-service
+    
+    # 资源限制 (Web服务需要更多内存用于Next.js)
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1024M
+        reservations:
+          cpus: '1.0'
+          memory: 512M
+
+  # 后端服务引用 (确保依赖存在)
+  user-service:
+    image: emaintenance-user-service:latest
+    container_name: emaintenance-user-service
+    external_links:
+      - emaintenance-user-service:user-service
+    networks:
+      - emaintenance-network
+
+  work-order-service:
+    image: emaintenance-work-order-service:latest
+    container_name: emaintenance-work-order-service
+    external_links:
+      - emaintenance-work-order-service:work-order-service
+    networks:
+      - emaintenance-network
+
+  asset-service:
+    image: emaintenance-asset-service:latest
+    container_name: emaintenance-asset-service
+    external_links:
+      - emaintenance-asset-service:asset-service
+    networks:
+      - emaintenance-network
+
+volumes:
+  web-service-logs:
+  web-service-cache:
+  web-service-uploads:
