@@ -95,6 +95,11 @@ docker-compose down 2>/dev/null || true
 
 # 构建镜像 (支持离线模式)
 log_info "构建用户服务镜像..."
+# 导出环境变量确保docker-compose构建时能访问
+export DATABASE_URL
+export JWT_SECRET
+export REDIS_URL
+export NODE_ENV
 
 if [ "$OFFLINE_MODE" = "true" ]; then
     log_info "离线模式，跳过镜像拉取"
@@ -107,6 +112,11 @@ fi
 
 # 启动用户服务
 log_info "启动用户服务..."
+# 导出环境变量确保docker-compose能访问
+export DATABASE_URL
+export JWT_SECRET
+export REDIS_URL
+export NODE_ENV
 docker-compose up -d user-service
 
 # 等待服务启动
