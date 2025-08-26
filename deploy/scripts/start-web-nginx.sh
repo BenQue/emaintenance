@@ -68,8 +68,8 @@ services:
     image: nginx:alpine
     container_name: emaintenance-nginx-prod
     ports:
-      - "${NGINX_HTTP_PORT:-8080}:80"
-      - "${NGINX_HTTPS_PORT:-8443}:443"
+      - "${NGINX_HTTP_PORT:-3030}:80"
+      - "${NGINX_HTTPS_PORT:-3443}:443"
     volumes:
       - $DEPLOY_DIR/configs/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - $DEPLOY_DIR/configs/nginx/conf.d:/etc/nginx/conf.d:ro
@@ -222,7 +222,7 @@ docker-compose -f docker-compose.web.yml ps
 
 # 显示访问信息
 SERVER_IP=$(hostname -I | awk '{print $1}')
-NGINX_PORT="${NGINX_HTTP_PORT:-8080}"
+NGINX_PORT="${NGINX_HTTP_PORT:-3030}"
 echo ""
 echo "✅ Web 和 Nginx 服务已启动!"
 echo ""
