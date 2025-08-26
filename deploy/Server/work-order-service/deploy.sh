@@ -74,8 +74,11 @@ export USER_SERVICE_URL="http://emaintenance-user-service:3001"
 
 # 创建必要目录
 log_info "创建服务目录..."
-sudo mkdir -p /opt/emaintenance/{logs/work-order-service,data/work-order-uploads}
-sudo chown -R $USER:$USER /opt/emaintenance/
+sudo mkdir -p /opt/emaintenance/logs/work-order-service
+sudo mkdir -p /opt/emaintenance/data/work-order-uploads/work-orders/{2024,2025,2026}/{01,02,03,04,05,06,07,08,09,10,11,12}/thumbnails
+sudo mkdir -p /opt/emaintenance/data/work-order-uploads/attachments
+sudo chown -R 1001:1001 /opt/emaintenance/data/work-order-uploads
+sudo chown -R $USER:$USER /opt/emaintenance/logs
 
 # 检查源代码
 WORK_ORDER_SERVICE_DIR="../../../apps/api/work-order-service"
