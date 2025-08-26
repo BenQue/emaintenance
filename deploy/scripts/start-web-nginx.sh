@@ -47,10 +47,10 @@ services:
     image: local/emaintenance-web:latest
     container_name: emaintenance-web-prod
     environment:
-      NEXT_PUBLIC_USER_SERVICE_URL: http://localhost:3001
-      NEXT_PUBLIC_WORK_ORDER_SERVICE_URL: http://localhost:3002
-      NEXT_PUBLIC_ASSET_SERVICE_URL: http://localhost:3003
-      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NEXT_PUBLIC_USER_SERVICE_URL: ${NEXT_PUBLIC_USER_SERVICE_URL:-http://user-service:3001}
+      NEXT_PUBLIC_WORK_ORDER_SERVICE_URL: ${NEXT_PUBLIC_WORK_ORDER_SERVICE_URL:-http://work-order-service:3002}
+      NEXT_PUBLIC_ASSET_SERVICE_URL: ${NEXT_PUBLIC_ASSET_SERVICE_URL:-http://asset-service:3003}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://user-service:3001}
       NODE_ENV: production
     ports:
       - "3000:3000"
