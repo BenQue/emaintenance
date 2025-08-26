@@ -1,14 +1,25 @@
-# Dockerfile for User Service API (monorepo-aware)
+# Dockerfile for User Service API (optimized for slow networks)
 FROM node:20-alpine AS base
 
 # Build stage
 FROM node:18-alpine AS builder
 
-# 配置国内镜像源
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+# 使用更快的镜像源（根据服务器位置选择）
+# 选项1: 阿里云（适合国内服务器）
+RUN echo "https://mirrors.aliyun.com/alpine/v3.18/main" > /etc/apk/repositories && \
+    echo "https://mirrors.aliyun.com/alpine/v3.18/community" >> /etc/apk/repositories
+# 选项2: 清华大学源（教育网较快）
+# RUN echo "https://mirrors.tuna.tsinghua.edu.cn/alpine/v3.18/main" > /etc/apk/repositories && \
+#     echo "https://mirrors.tuna.tsinghua.edu.cn/alpine/v3.18/community" >> /etc/apk/repositories
+# 选项3: 中科大源
+# RUN echo "https://mirrors.ustc.edu.cn/alpine/v3.18/main" > /etc/apk/repositories && \
+#     echo "https://mirrors.ustc.edu.cn/alpine/v3.18/community" >> /etc/apk/repositories
 
 WORKDIR /repo
-RUN apk add --no-cache libc6-compat
+
+# 单独安装依赖，便于缓存和调试
+RUN apk update --no-cache && \
+    apk add --no-cache libc6-compat
 
 # Copy workspace manifests to install all dependencies
 COPY package*.json ./
@@ -17,17 +28,15 @@ COPY packages/database/package*.json packages/database/
 COPY packages/eslint-config/package*.json packages/eslint-config/
 COPY packages/typescript-config/package*.json packages/typescript-config/
 
-# Install all dependencies (including workspace deps)
-RUN npm ci
+# Install all dependencies with timeout and retry
+RUN npm ci --network-timeout=300000 --fetch-retry-mintimeout=20000 --fetch-retry-maxtimeout=120000
 
 # Copy source code
 COPY . .
 
-# Build database package first, then user service (excluding test files)
+# Build database package first, then user service
 RUN cd packages/database && npm run build
 RUN ls -la packages/database/dist/
-# Skip Prisma generate during build - will be done at runtime
-# RUN cd packages/database && npm run db:generate
 RUN ls -la packages/database/node_modules/.prisma/ || echo "Prisma client not generated, checking for errors..."
 RUN ls -la packages/database/node_modules/ || echo "No node_modules found"
 RUN cd packages/database && npm list @prisma/client || echo "Prisma client not installed"
@@ -36,20 +45,20 @@ RUN mkdir -p apps/api/user-service/packages/database
 RUN cp -r packages/database/dist/* apps/api/user-service/packages/database/
 RUN cd apps/api/user-service && npm run build:prod
 
-# Runtime stage
+# Runtime stage - 使用更小的基础镜像
 FROM node:18-alpine AS runtime
 
-# 配置国内镜像源和超时设置
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
-    echo "http://mirrors.aliyun.com/alpine/v3.18/main" > /etc/apk/repositories && \
-    echo "http://mirrors.aliyun.com/alpine/v3.18/community" >> /etc/apk/repositories
+# 设置镜像源（与构建阶段保持一致）
+RUN echo "https://mirrors.aliyun.com/alpine/v3.18/main" > /etc/apk/repositories && \
+    echo "https://mirrors.aliyun.com/alpine/v3.18/community" >> /etc/apk/repositories
 
 WORKDIR /app
-# 分步安装包，便于定位问题
-RUN apk update && \
-    apk add --no-cache libc6-compat && \
-    apk add --no-cache curl && \
-    apk add --no-cache openssl
+
+# 分步安装运行时依赖，每步都有自己的缓存层
+RUN apk update --no-cache
+RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache curl
+RUN apk add --no-cache openssl
 
 # Create app user
 RUN addgroup --system --gid 1001 nodejs && \
