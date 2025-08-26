@@ -53,7 +53,7 @@ else
 fi
 
 # 创建临时 docker-compose 文件，使用优化 Dockerfile
-TEMP_COMPOSE_FILE="docker-compose.optimized.yml"
+TEMP_COMPOSE_FILE="$DEPLOY_DIR/docker-compose.optimized.yml"
 cp "$COMPOSE_FILE" "$TEMP_COMPOSE_FILE"
 
 echo "📝 配置优化构建选项..."
@@ -79,7 +79,15 @@ fi
 
 # 启动服务
 echo "🚀 启动所有服务..."
-docker-compose -f "$TEMP_COMPOSE_FILE" up -d
+# 确保使用正确的环境文件
+if [ -f "$DEPLOY_DIR/.env" ]; then
+    echo "📋 加载环境配置: $DEPLOY_DIR/.env"
+    docker-compose --env-file "$DEPLOY_DIR/.env" -f "$TEMP_COMPOSE_FILE" up -d
+else
+    echo "❌ 环境配置文件不存在: $DEPLOY_DIR/.env"
+    echo "请先运行: ./deploy/scripts/setup-server.sh"
+    exit 1
+fi
 
 # 等待服务启动
 echo "⏳ 等待服务启动..."
