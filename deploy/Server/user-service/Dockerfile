@@ -18,6 +18,10 @@ COPY apps/api/user-service ./apps/api/user-service/
 # 安装依赖
 RUN npm ci --only=production --ignore-scripts
 
+# 生成Prisma客户端（不需要数据库连接）
+WORKDIR /build/packages/database
+RUN npx prisma generate
+
 # 构建用户服务
 WORKDIR /build/apps/api/user-service
 RUN npm run build
