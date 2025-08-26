@@ -7,6 +7,9 @@ ARG SERVICE_NAME
 # Build stage
 FROM node:${NODE_VERSION}-alpine AS builder
 
+# Re-declare ARG for build stage
+ARG SERVICE_NAME
+
 # Install build dependencies
 RUN apk add --no-cache libc6-compat python3 make g++
 
@@ -32,10 +35,14 @@ RUN cd packages/database && npm run build
 RUN cd packages/database && npx prisma generate
 
 # Build the specific service
-RUN cd apps/api/${SERVICE_NAME} && npm run build:prod
+ARG SERVICE_NAME
+RUN cd apps/api/${SERVICE_NAME} && npm run build
 
 # Runtime stage
 FROM node:${NODE_VERSION}-alpine AS runtime
+
+# Re-declare ARG for runtime stage
+ARG SERVICE_NAME
 
 # Install runtime dependencies
 RUN apk add --no-cache \
