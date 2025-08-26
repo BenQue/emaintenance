@@ -44,8 +44,8 @@ COPY --from=builder --chown=apiuser:nodejs /build/apps/api/user-service/package*
 COPY --from=builder --chown=apiuser:nodejs /build/node_modules ./node_modules/
 COPY --from=builder --chown=apiuser:nodejs /build/packages ./packages/
 
-# 安装生产依赖
-RUN npm ci --only=production --ignore-scripts && npm cache clean --force
+# 清理npm缓存
+RUN npm cache clean --force
 
 # 切换到非root用户
 USER apiuser
