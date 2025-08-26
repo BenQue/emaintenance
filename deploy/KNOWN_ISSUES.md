@@ -126,6 +126,21 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 - 在.npmrc中配置淘宝NPM镜像
 - 预拉取基础镜像到本地
 
+### 11. TypeScript构建包含测试文件
+**问题**: Docker生产构建中包含了测试设置文件，导致Jest类型错误
+```
+src/test-setup.ts(5,1): error TS2304: Cannot find name 'jest'.
+```
+
+**解决方案**: 在所有服务的tsconfig.json中排除测试设置文件
+```json
+{
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/*.test.tsx", "**/__tests__/**", "**/test-setup.ts"]
+}
+```
+
+**影响服务**: user-service, work-order-service, asset-service
+
 ## 修复状态追踪
 
 | 问题 | 状态 | 修复文件 | 备注 |
@@ -140,6 +155,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 | Prisma二进制目标 | ✅ 已修复 | packages/database/prisma/schema.prisma | 添加目标 |
 | Alpine Linux依赖 | ✅ 已修复 | 所有Dockerfile | 运行时库 |
 | 中国镜像源 | ✅ 已修复 | 所有Dockerfile | 阿里云镜像 |
+| TypeScript测试文件 | ✅ 已修复 | 所有服务tsconfig.json | 排除test-setup.ts |
 
 ## 预防措施
 
