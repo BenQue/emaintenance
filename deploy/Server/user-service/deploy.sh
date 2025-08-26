@@ -31,24 +31,26 @@ cd "$SCRIPT_DIR"
 log_info "检查依赖服务状态..."
 
 # 检查基础设施服务
-if ! docker ps | grep -q "emaintenance-postgres.*Up"; then
+if ! docker ps --filter "name=emaintenance-postgres" --filter "status=running" --format "{{.Names}}" | grep -q "emaintenance-postgres"; then
     log_error "PostgreSQL 服务未运行"
     log_info "请先运行: cd ../infrastructure && ./deploy.sh"
     exit 1
 fi
 
-if ! docker ps | grep -q "emaintenance-redis.*Up"; then
+if ! docker ps --filter "name=emaintenance-redis" --filter "status=running" --format "{{.Names}}" | grep -q "emaintenance-redis"; then
     log_error "Redis 服务未运行"
     log_info "请先运行: cd ../infrastructure && ./deploy.sh"
     exit 1
 fi
 
 # 检查数据库是否已初始化
-if ! docker exec emaintenance-postgres psql -U postgres -d emaintenance -c "SELECT 1 FROM users LIMIT 1;" > /dev/null 2>&1; then
-    log_error "数据库未初始化"
-    log_info "请先运行: cd ../database && ./init.sh"
+log_info "验证数据库连接和数据..."
+if ! docker exec emaintenance-postgres psql -U postgres -d emaintenance -c "SELECT COUNT(*) FROM users;" > /dev/null 2>&1; then
+    log_error "数据库未初始化或连接失败"
+    log_info "请先运行: cd ../database && ./manual-init.sh"
     exit 1
 fi
+log_success "数据库连接正常"
 
 # 加载环境变量
 if [ -f ../infrastructure/.env ]; then
