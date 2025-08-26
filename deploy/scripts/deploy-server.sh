@@ -110,7 +110,54 @@ fi
 
 # 构建镜像
 echo "🔨 构建 Docker 镜像 (这可能需要几分钟)..."
-docker-compose -f $COMPOSE_FILE build --no-cache --parallel
+echo "📋 使用优化构建策略以处理网络问题..."
+
+# 设置构建超时和重试策略
+BUILD_TIMEOUT=1800  # 30分钟
+MAX_RETRIES=2
+
+build_with_retry() {
+    local service=$1
+    local retry_count=0
+    
+    while [ $retry_count -lt $MAX_RETRIES ]; do
+        echo "🔄 构建 $service (尝试 $((retry_count + 1))/$MAX_RETRIES)..."
+        
+        if timeout $BUILD_TIMEOUT docker-compose -f $COMPOSE_FILE build --no-cache $service; then
+            echo "✅ $service 构建成功"
+            return 0
+        else
+            exit_code=$?
+            retry_count=$((retry_count + 1))
+            
+            if [ $exit_code -eq 124 ]; then
+                echo "⏰ $service 构建超时，清理缓存后重试..."
+            else
+                echo "❌ $service 构建失败 (退出码: $exit_code)"
+            fi
+            
+            if [ $retry_count -lt $MAX_RETRIES ]; then
+                echo "🧹 清理构建缓存..."
+                docker builder prune -f
+                echo "⏳ 等待 10 秒后重试..."
+                sleep 10
+            fi
+        fi
+    done
+    
+    echo "❌ $service 构建失败，已达到最大重试次数"
+    return 1
+}
+
+# 按顺序构建各个服务，避免并行构建时的资源竞争
+for service in postgres redis user-service work-order-service asset-service web nginx; do
+    if docker-compose -f $COMPOSE_FILE config --services | grep -q "^$service$"; then
+        build_with_retry $service || {
+            echo "❌ 服务 $service 构建失败，停止部署"
+            exit 1
+        }
+    fi
+done
 
 # 启动服务
 echo "🚀 启动所有服务..."
