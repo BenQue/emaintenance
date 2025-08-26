@@ -53,11 +53,21 @@ if ! check_image "redis:7-alpine"; then
 fi
 
 # 检查构建的服务镜像
+# 注意：生产环境可能使用不同的镜像标签
 for service in user-service work-order-service asset-service; do
-    if ! check_image "local/emaintenance-$service:latest"; then
-        echo "⚠️  服务镜像未构建: $service"
-        echo "请先运行构建脚本: ./scripts/build-with-timeout.sh $service"
-        MISSING_IMAGES+=("local/emaintenance-$service:latest")
+    # 检查多种可能的镜像名称
+    if check_image "local/emaintenance-$service:latest"; then
+        continue
+    elif check_image "emaintenance-$service:latest"; then
+        continue
+    elif check_image "deploy-$service:latest"; then
+        continue
+    elif check_image "deploy_$service:latest"; then
+        continue
+    else
+        echo "⚠️  服务镜像未找到: $service"
+        echo "需要先构建镜像"
+        MISSING_IMAGES+=("$service")
     fi
 done
 
