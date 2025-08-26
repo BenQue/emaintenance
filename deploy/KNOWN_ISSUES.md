@@ -157,6 +157,35 @@ RUN addgroup --system --gid 1001 nodejs && \
 
 **影响服务**: user-service, work-order-service, asset-service
 
+### 13. 卷挂载权限覆盖问题
+**问题**: Docker卷挂载覆盖了容器内预创建的目录结构和权限
+```yaml
+volumes:
+  - /opt/emaintenance/data/work-order-uploads:/app/uploads  # 覆盖容器内目录
+```
+
+**解决方案**: 在部署脚本中预创建宿主机目录结构和权限
+```bash
+sudo mkdir -p /opt/emaintenance/data/work-order-uploads/work-orders/{2024,2025,2026}/{01,02,03,04,05,06,07,08,09,10,11,12}/thumbnails
+sudo chown -R 1001:1001 /opt/emaintenance/data/work-order-uploads
+```
+
+**影响服务**: 所有使用卷挂载的服务
+
+### 14. 数据库连接主机名配置错误
+**问题**: docker-compose.yml中DATABASE_URL使用错误的主机名和端口
+```
+DATABASE_URL=${DATABASE_URL}  # 可能指向 postgres:5433 (错误)
+```
+
+**解决方案**: 明确指定容器间通信的正确主机名
+```yaml
+environment:
+  - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@emaintenance-postgres:5432/emaintenance
+```
+
+**影响服务**: work-order-service, asset-service (可能)
+
 ## 修复状态追踪
 
 | 问题 | 状态 | 修复文件 | 备注 |
@@ -173,6 +202,8 @@ RUN addgroup --system --gid 1001 nodejs && \
 | 中国镜像源 | ✅ 已修复 | 所有Dockerfile | 阿里云镜像 |
 | TypeScript测试文件 | ✅ 已修复 | 所有服务tsconfig.json | 排除test-setup.ts |
 | Docker容器目录权限 | ✅ 已修复 | 所有服务Dockerfile | 预先创建子目录 |
+| 卷挂载权限覆盖问题 | ✅ 已修复 | 工单服务部署脚本 | 宿主机预创建+权限 |
+| 数据库连接主机名错误 | ✅ 已修复 | 工单服务docker-compose.yml | 容器名修正 |
 
 ## 预防措施
 

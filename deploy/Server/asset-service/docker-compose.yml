@@ -1,123 +1,36 @@
-version: '3.8'
-
-# E-Maintenance 资产服务
-# 依赖: PostgreSQL, Redis, User Service (基础设施和用户认证服务)
-
-networks:
-  emaintenance-network:
-    external: true
-
 services:
   asset-service:
     build:
-      context: ../../..
+      context: ../../../
       dockerfile: deploy/Server/asset-service/Dockerfile
     container_name: emaintenance-asset-service
-    environment:
-      # 数据库配置
-      DATABASE_URL: ${DATABASE_URL}
-      
-      # JWT 配置
-      JWT_SECRET: ${JWT_SECRET}
-      
-      # Redis 配置
-      REDIS_URL: ${REDIS_URL:-redis://emaintenance-redis:6379}
-      
-      # 用户服务 URL (用于用户验证和权限检查)
-      USER_SERVICE_URL: http://emaintenance-user-service:3001
-      
-      # 应用配置
-      NODE_ENV: ${NODE_ENV:-production}
-      PORT: 3003
-      
-      # 日志配置
-      LOG_LEVEL: ${LOG_LEVEL:-info}
-      LOG_FORMAT: ${LOG_FORMAT:-json}
-      
-      # CORS 配置
-      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
-      
-      # 速率限制配置
-      RATE_LIMIT_ENABLED: ${RATE_LIMIT_ENABLED:-true}
-      RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-100}
-      RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-900000}
-      
-      # 文件上传配置
-      MAX_FILE_SIZE: ${MAX_FILE_SIZE:-10485760}
-      UPLOAD_DIR: /app/uploads
-      
-      # QR码配置
-      QR_CODE_BASE_URL: ${QR_CODE_BASE_URL:-http://localhost:3000/assets}
-      
     ports:
       - "${ASSET_SERVICE_PORT:-3003}:3003"
-    
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=3003
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@emaintenance-postgres:5432/emaintenance
+      - JWT_SECRET=${JWT_SECRET}
+      - REDIS_URL=${REDIS_URL:-redis://emaintenance-redis:6379}
+      - USER_SERVICE_URL=${USER_SERVICE_URL:-http://emaintenance-user-service:3001}
+      - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:3000}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - MAX_FILE_SIZE=${MAX_FILE_SIZE:-10485760}
+      - QR_CODE_BASE_URL=${QR_CODE_BASE_URL:-http://localhost:3000/assets}
     volumes:
-      - asset-service-logs:/app/logs
-      - asset-service-uploads:/app/uploads
-      - /opt/emaintenance/logs/asset-service:/backup/logs
-      - /opt/emaintenance/data/asset-uploads:/backup/uploads
+      - /opt/emaintenance/logs/asset-service:/app/logs
+      - /opt/emaintenance/data/asset-uploads:/app/uploads
       - /opt/emaintenance/data/qr-codes:/app/qr-codes
-    
     networks:
       - emaintenance-network
-    
     restart: unless-stopped
-    
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3003/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 30s
-    
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
-    
-    # 依赖基础设施服务和用户服务
-    depends_on:
-      - postgres
-      - redis
-      - user-service
-    
-    # 资源限制
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 512M
-        reservations:
-          cpus: '0.5'
-          memory: 256M
 
-  # 基础设施服务引用 (确保依赖存在)
-  postgres:
-    image: postgres:16-alpine
-    container_name: emaintenance-postgres
-    external_links:
-      - emaintenance-postgres:postgres
-    networks:
-      - emaintenance-network
-
-  redis:
-    image: redis:7-alpine
-    container_name: emaintenance-redis
-    external_links:
-      - emaintenance-redis:redis
-    networks:
-      - emaintenance-network
-
-  user-service:
-    image: emaintenance-user-service:latest
-    container_name: emaintenance-user-service
-    external_links:
-      - emaintenance-user-service:user-service
-    networks:
-      - emaintenance-network
-
-volumes:
-  asset-service-logs:
-  asset-service-uploads:
+networks:
+  emaintenance-network:
+    external: true

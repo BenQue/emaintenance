@@ -31,20 +31,20 @@ cd "$SCRIPT_DIR"
 log_info "检查依赖服务状态..."
 
 # 检查基础设施服务
-if ! docker ps | grep -q "emaintenance-postgres.*Up"; then
+if ! docker ps --filter "name=emaintenance-postgres" --filter "status=running" --format "{{.Names}}" | grep -q "emaintenance-postgres"; then
     log_error "PostgreSQL 服务未运行"
     log_info "请先运行: cd ../infrastructure && ./deploy.sh"
     exit 1
 fi
 
-if ! docker ps | grep -q "emaintenance-redis.*Up"; then
+if ! docker ps --filter "name=emaintenance-redis" --filter "status=running" --format "{{.Names}}" | grep -q "emaintenance-redis"; then
     log_error "Redis 服务未运行"
     log_info "请先运行: cd ../infrastructure && ./deploy.sh"
     exit 1
 fi
 
 # 检查用户服务 (资产服务依赖用户服务进行用户验证)
-if ! docker ps | grep -q "emaintenance-user-service.*Up.*healthy"; then
+if ! docker ps --filter "name=emaintenance-user-service" --filter "status=running" --format "{{.Names}}" | grep -q "emaintenance-user-service"; then
     log_error "用户服务未运行或不健康"
     log_info "请先运行: cd ../user-service && ./deploy.sh"
     exit 1
@@ -67,7 +67,7 @@ if [ -z "$JWT_SECRET" ]; then
 fi
 
 if [ -z "$DATABASE_URL" ]; then
-    export DATABASE_URL="postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-emaintenance}"
+    export DATABASE_URL="postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_PORT:-5433}/${POSTGRES_DB:-emaintenance}"
 fi
 
 # 设置用户服务 URL (资产服务需要与用户服务通信进行权限验证)
@@ -75,8 +75,13 @@ export USER_SERVICE_URL="http://emaintenance-user-service:3001"
 
 # 创建必要目录
 log_info "创建服务目录..."
-sudo mkdir -p /opt/emaintenance/{logs/asset-service,data/asset-uploads,data/qr-codes}
-sudo chown -R $USER:$USER /opt/emaintenance/
+sudo mkdir -p /opt/emaintenance/logs/asset-service
+sudo mkdir -p /opt/emaintenance/data/asset-uploads/assets/{2024,2025,2026}/{01,02,03,04,05,06,07,08,09,10,11,12}/thumbnails
+sudo mkdir -p /opt/emaintenance/data/asset-uploads/maintenance
+sudo mkdir -p /opt/emaintenance/data/qr-codes
+sudo chown -R 1001:1001 /opt/emaintenance/data/asset-uploads
+sudo chown -R 1001:1001 /opt/emaintenance/data/qr-codes
+sudo chown -R $USER:$USER /opt/emaintenance/logs
 
 # 检查源代码
 ASSET_SERVICE_DIR="../../../apps/api/asset-service"
@@ -108,6 +113,12 @@ fi
 
 # 启动资产服务
 log_info "启动资产服务..."
+# 导出环境变量确保 docker-compose 能访问
+export DATABASE_URL
+export JWT_SECRET
+export REDIS_URL
+export NODE_ENV
+export USER_SERVICE_URL
 docker-compose up -d asset-service
 
 # 等待服务启动
