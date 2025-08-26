@@ -4,10 +4,19 @@ import fs from 'fs';
 import { Request } from 'express';
 import { AppError } from '../utils/errorHandler';
 
-// Upload directory (assumed to exist via Docker volume mount)
+// Ensure upload directory exists
 const uploadDir = path.join(process.cwd(), 'uploads', 'work-orders');
-console.log('Using upload directory:', uploadDir);
-// Note: Directory creation handled by Docker container setup
+if (!fs.existsSync(uploadDir)) {
+  try {
+    fs.mkdirSync(uploadDir, { recursive: true });
+    console.log('Created upload directory:', uploadDir);
+  } catch (error: any) {
+    console.warn('Upload directory creation failed, assuming it exists:', error.message);
+    // Continue execution - directory might already exist or be mounted
+  }
+} else {
+  console.log('Upload directory exists:', uploadDir);
+}
 
 // Configure multer storage - use memory storage for photo processing
 const storage = multer.memoryStorage();
