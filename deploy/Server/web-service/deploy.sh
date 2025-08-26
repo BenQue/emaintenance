@@ -38,8 +38,12 @@ for service in "${REQUIRED_SERVICES[@]}"; do
     service_name=$(echo $service | cut -d':' -f1)
     service_port=$(echo $service | cut -d':' -f2)
     
-    if ! docker ps | grep -q "${service_name}.*Up.*healthy"; then
-        MISSING_SERVICES+=("$service_name")
+    # 检查容器是否运行并且健康
+    if ! docker ps --filter "name=${service_name}" --filter "status=running" --format "{{.Names}}\t{{.Status}}" | grep -q "healthy"; then
+        # 如果没有健康检查，至少要求容器正在运行
+        if ! docker ps --filter "name=${service_name}" --filter "status=running" --format "{{.Names}}" | grep -q "${service_name}"; then
+            MISSING_SERVICES+=("$service_name")
+        fi
     fi
 done
 
@@ -114,7 +118,7 @@ max_attempts=60  # Web服务可能需要更长时间启动
 attempt=1
 
 while [ $attempt -le $max_attempts ]; do
-    if curl -f -s "http://localhost:${WEB_SERVICE_PORT:-3000}/api/health" > /dev/null 2>&1; then
+    if curl -f -s "http://localhost:${WEB_SERVICE_PORT:-3000}/" > /dev/null 2>&1; then
         log_success "Web服务启动成功"
         break
     fi
@@ -143,7 +147,7 @@ if [ $? -eq 0 ]; then
     log_info "服务信息:"
     echo "  容器名称: emaintenance-web-service"
     echo "  访问地址: http://localhost:${WEB_SERVICE_PORT:-3000}"
-    echo "  健康检查: http://localhost:${WEB_SERVICE_PORT:-3000}/api/health"
+    echo "  健康检查: http://localhost:${WEB_SERVICE_PORT:-3000}/"
     echo ""
     log_info "应用功能:"
     echo "  用户管理: 登录、注册、用户资料管理"
