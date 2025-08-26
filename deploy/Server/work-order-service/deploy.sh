@@ -30,20 +30,20 @@ cd "$SCRIPT_DIR"
 log_info "检查依赖服务状态..."
 
 # 检查基础设施服务
-if ! docker ps | grep -q "emaintenance-postgres.*Up"; then
+if ! docker ps --filter "name=emaintenance-postgres" --filter "status=running" --format "{{.Names}}" | grep -q "emaintenance-postgres"; then
     log_error "PostgreSQL 服务未运行"
     log_info "请先运行: cd ../infrastructure && ./deploy.sh"
     exit 1
 fi
 
-if ! docker ps | grep -q "emaintenance-redis.*Up"; then
+if ! docker ps --filter "name=emaintenance-redis" --filter "status=running" --format "{{.Names}}" | grep -q "emaintenance-redis"; then
     log_error "Redis 服务未运行"
     log_info "请先运行: cd ../infrastructure && ./deploy.sh"
     exit 1
 fi
 
 # 检查用户服务 (工单服务依赖用户服务进行用户验证)
-if ! docker ps | grep -q "emaintenance-user-service.*Up.*healthy"; then
+if ! docker ps --filter "name=emaintenance-user-service" --filter "status=running" --format "{{.Names}}" | grep -q "emaintenance-user-service"; then
     log_error "用户服务未运行或不健康"
     log_info "请先运行: cd ../user-service && ./deploy.sh"
     exit 1
@@ -66,7 +66,7 @@ if [ -z "$JWT_SECRET" ]; then
 fi
 
 if [ -z "$DATABASE_URL" ]; then
-    export DATABASE_URL="postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-emaintenance}"
+    export DATABASE_URL="postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_PORT:-5433}/${POSTGRES_DB:-emaintenance}"
 fi
 
 # 设置用户服务 URL
@@ -100,6 +100,12 @@ fi
 
 # 启动服务
 log_info "启动工单服务..."
+# 导出环境变量确保 docker-compose 能访问
+export DATABASE_URL
+export JWT_SECRET
+export REDIS_URL
+export NODE_ENV
+export USER_SERVICE_URL
 docker-compose up -d work-order-service
 
 # 等待服务启动
