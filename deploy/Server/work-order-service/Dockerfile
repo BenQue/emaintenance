@@ -28,6 +28,14 @@ RUN npm run build
 # 生产运行阶段
 FROM node:18-alpine AS runtime
 
+# 安装运行时依赖（包括Prisma所需的库）
+RUN apk add --no-cache \
+    libc6-compat \
+    openssl \
+    ca-certificates \
+    curl \
+    wget
+
 # 创建应用用户和必要目录
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 apiuser && \
