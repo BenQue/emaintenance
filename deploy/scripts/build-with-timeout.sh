@@ -7,7 +7,15 @@ SERVICE_NAME=${1:-user-service}
 TIMEOUT=${2:-1800}  # 30 minutes default timeout
 MAX_RETRIES=${3:-3}
 
+# 确保在项目根目录执行
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
 echo "Building $SERVICE_NAME with timeout $TIMEOUT seconds..."
+echo "Project root: $PROJECT_ROOT"
+
+# 切换到项目根目录
+cd "$PROJECT_ROOT"
 
 build_service() {
     local service=$1

@@ -14,13 +14,21 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     exit 1
 fi
 
-# 进入部署目录
-cd "$(dirname "$0")/.."
+# 确保在正确的目录执行
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+DEPLOY_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+echo "📁 项目根目录: $PROJECT_ROOT"
+echo "📁 部署目录: $DEPLOY_DIR"
+
+# 切换到项目根目录
+cd "$PROJECT_ROOT"
 
 # 检查是否存在优化版 Dockerfile
 OPTIMIZED_DOCKERFILES=()
 for service in user-service work-order-service asset-service; do
-    optimized_file="../apps/api/$service/Dockerfile.optimized"
+    optimized_file="apps/api/$service/Dockerfile.optimized"
     if [ -f "$optimized_file" ]; then
         OPTIMIZED_DOCKERFILES+=("$service")
         echo "📋 发现 $service 优化版 Dockerfile"
@@ -36,12 +44,12 @@ fi
 echo "🔧 使用优化构建模式，适用于网络较慢的环境"
 
 # 选择部署配置文件
-if [ -f docker-compose.prod.yml ]; then
-    COMPOSE_FILE="docker-compose.prod.yml"
-    echo "📋 使用生产环境配置: $COMPOSE_FILE"
+if [ -f "$DEPLOY_DIR/docker-compose.prod.yml" ]; then
+    COMPOSE_FILE="$DEPLOY_DIR/docker-compose.prod.yml"
+    echo "📋 使用生产环境配置: docker-compose.prod.yml"
 else
-    COMPOSE_FILE="docker-compose.yml"
-    echo "📋 使用默认配置: $COMPOSE_FILE"
+    COMPOSE_FILE="$DEPLOY_DIR/docker-compose.yml"
+    echo "📋 使用默认配置: docker-compose.yml"
 fi
 
 # 创建临时 docker-compose 文件，使用优化 Dockerfile
@@ -60,7 +68,7 @@ done
 echo "🔨 使用优化 Dockerfile 构建镜像..."
 
 # 使用专门的构建脚本
-./scripts/build-with-timeout.sh all 2700  # 45分钟总超时
+"$DEPLOY_DIR/scripts/build-with-timeout.sh" all 2700  # 45分钟总超时
 
 # 如果构建失败，清理临时文件并退出
 if [ $? -ne 0 ]; then
@@ -79,7 +87,7 @@ sleep 45
 
 # 健康检查
 echo "🏥 检查服务健康状态..."
-./scripts/health-check.sh
+"$DEPLOY_DIR/scripts/health-check.sh"
 
 # 清理临时文件
 rm -f "$TEMP_COMPOSE_FILE"
