@@ -1,9 +1,9 @@
 class Environment {
-  // 开发环境 - 本地开发服务器
-  static const String _devBaseUrl = 'http://192.168.31.53'; // 你的Mac IP地址
+  // 开发环境 - 本机开发服务器  
+  static const String _devBaseUrl = 'http://localhost'; // 本机开发环境
   
-  // 生产环境 - 测试服务器地址
-  static const String _prodBaseUrl = 'http://10.163.144.13'; // 测试服务器
+  // 生产环境 - 生产服务器地址
+  static const String _prodBaseUrl = 'http://10.163.144.13'; // 生产服务器地址
   
   // 自动检测环境：Release构建时自动使用生产环境
   static bool get isDevelopment {
