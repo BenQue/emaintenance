@@ -7,7 +7,11 @@ import { AppError } from '../utils/errorHandler';
 // Ensure upload directory exists
 const uploadDir = path.join(process.cwd(), 'uploads', 'work-orders');
 if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
+  try {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  } catch (error) {
+    console.warn('Upload directory creation failed, assuming it exists:', error);
+  }
 }
 
 // Configure multer storage - use memory storage for photo processing

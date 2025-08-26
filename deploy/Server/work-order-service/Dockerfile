@@ -40,7 +40,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 # 创建应用用户和必要目录
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 apiuser && \
-    mkdir -p /app/logs /app/uploads/work-orders /app/uploads/attachments && \
+    mkdir -p /app/logs /app/uploads/work-orders/{2024,2025,2026}/{01,02,03,04,05,06,07,08,09,10,11,12}/thumbnails /app/uploads/attachments && \
     chown -R apiuser:nodejs /app/logs /app/uploads
 
 WORKDIR /app

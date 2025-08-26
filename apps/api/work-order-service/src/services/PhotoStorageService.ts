@@ -29,8 +29,15 @@ export class PhotoStorageService {
       const yearMonthDir = path.join(this.baseUploadDir, year, month);
       const thumbnailDir = path.join(yearMonthDir, 'thumbnails');
       
-      await fs.mkdir(yearMonthDir, { recursive: true });
-      await fs.mkdir(thumbnailDir, { recursive: true });
+      try {
+        await fs.mkdir(yearMonthDir, { recursive: true });
+        await fs.mkdir(thumbnailDir, { recursive: true });
+      } catch (error) {
+        // Directory might already exist or permission denied, continue if directory exists
+        if (!await fs.access(yearMonthDir).then(() => true).catch(() => false)) {
+          throw new Error(`Cannot create upload directory: ${error}`);
+        }
+      }
       
       // Generate unique filename with workOrderId prefix
       const timestamp = Date.now();
