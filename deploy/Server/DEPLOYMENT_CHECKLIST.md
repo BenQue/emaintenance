@@ -158,6 +158,18 @@ cd deploy/Server/infrastructure/
 docker-compose restart postgres
 ```
 
+#### Redis连接问题
+```bash
+# 检查Redis日志
+docker-compose logs redis
+
+# 常见配置错误：keepalive 应该是 tcp-keepalive
+# 检查并修复 redis.conf 文件
+
+# 重启Redis
+docker-compose restart redis
+```
+
 ## 📊 性能监控
 
 ### 资源使用检查

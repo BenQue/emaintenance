@@ -134,6 +134,7 @@ cd Server/[service-name]/
 2. **权限问题**: 检查 `/opt/emaintenance/` 目录权限
 3. **端口冲突**: 检查 80, 3000-3003, 5432, 6380 端口占用
 4. **内存不足**: 至少需要 4GB RAM，推荐 8GB
+5. **Redis配置**: Redis 7.4.5 配置文件 `keepalive` 应为 `tcp-keepalive`
 
 ### 快速修复
 ```bash

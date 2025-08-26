@@ -77,6 +77,10 @@
   ```bash
   ./health-check.sh
   # 确保 PostgreSQL 和 Redis 都正常运行
+  
+  # 如果Redis启动失败，检查配置文件：
+  # 常见问题：keepalive 应该是 tcp-keepalive
+  docker-compose logs redis
   ```
 
 - [ ] **5.3** 记录服务状态
@@ -91,7 +95,13 @@
 - [ ] **6.1** 初始化数据库
   ```bash
   cd deploy/Server/database/
-  ./init.sh
+  
+  # 使用手动脚本（推荐，包含完整初始化）
+  chmod +x manual-init.sh
+  ./manual-init.sh
+  
+  # 注意：自动脚本init.sh可能有端口配置问题
+  # 需要设置: export POSTGRES_PORT=5433
   ```
 
 - [ ] **6.2** 验证数据库初始化
@@ -99,8 +109,15 @@
   # 检查表是否创建成功
   docker exec emaintenance-postgres psql -U postgres -d emaintenance -c "\dt"
   
-  # 检查基础数据是否存在
-  docker exec emaintenance-postgres psql -U postgres -d emaintenance -c "SELECT COUNT(*) FROM users;"
+  # 检查主数据和测试数据
+  docker exec emaintenance-postgres psql -U postgres -d emaintenance -c "
+    SELECT 'Users' as entity, COUNT(*) FROM \"User\"
+    UNION ALL SELECT 'Assets', COUNT(*) FROM \"Asset\"
+    UNION ALL SELECT 'WorkOrders', COUNT(*) FROM \"WorkOrder\";
+  "
+  
+  # 验证默认用户
+  docker exec emaintenance-postgres psql -U postgres -d emaintenance -c "SELECT email, role FROM \"User\";"
   ```
 
 ## 👤 用户服务部署阶段

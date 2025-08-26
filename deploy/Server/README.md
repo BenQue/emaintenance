@@ -115,6 +115,43 @@ docker-compose logs [service-name]
 docker-compose exec [service-name] /bin/bash
 ```
 
+### 常见问题和解决方案
+
+#### 🔄 Redis配置错误
+**问题**: Redis 7.4.5 启动失败，报错 `Bad directive or wrong number of arguments` at line 6 `keepalive 60`
+
+**解决方案**:
+```bash
+# 1. 检查错误日志
+docker-compose logs redis
+
+# 2. 修复配置文件 (已在最新版本修复)
+sed -i 's/keepalive 60/tcp-keepalive 60/g' redis.conf
+
+# 3. 重启Redis
+docker-compose restart redis
+
+# 4. 验证修复
+docker exec emaintenance-redis redis-cli ping
+```
+
+#### 🔌 端口冲突处理
+**问题**: 端口 5432, 6379, 3000 被现有服务占用
+
+**解决方案**:
+```bash
+# 1. 运行安全检查
+cd deploy/Server/scripts/ && ./docker-safety-check.sh
+
+# 2. 使用替代端口 (已在配置中设置)
+# PostgreSQL: 5432 → 5433
+# Redis: 6379 → 6380
+# Web应用: 通过Nginx代理访问，无冲突
+
+# 3. 在.env文件中确认端口配置
+grep -E "(POSTGRES_PORT|REDIS_PORT|NGINX_HTTP_PORT)" .env
+```
+
 ## 🔧 手工部署支持
 
 每个服务目录都包含 `manual-deploy.md` 文件，提供：

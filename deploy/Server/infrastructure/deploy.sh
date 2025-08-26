@@ -99,7 +99,7 @@ bind 0.0.0.0
 protected-mode yes
 port 6379
 timeout 300
-keepalive 60
+tcp-keepalive 60
 maxclients 10000
 save 900 1
 save 300 10  
