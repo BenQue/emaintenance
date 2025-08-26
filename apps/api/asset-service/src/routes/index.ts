@@ -41,14 +41,7 @@ const strictRateLimit = rateLimit({
 router.use(requestLogger);
 router.use(generalRateLimit);
 
-// Health check (no auth required)
-router.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
-    service: 'asset-service',
-    timestamp: new Date().toISOString()
-  });
-});
+// Health check moved to main app.ts to avoid /api prefix
 
 // Asset CRUD Operations
 router.post(

@@ -44,6 +44,15 @@ if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
+// Health check endpoint (must be before API routes)
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'ok', 
+    service: 'asset-service',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // API routes
 app.use('/api', assetRoutes);
 
