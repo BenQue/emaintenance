@@ -14,6 +14,7 @@ if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
 // Export Prisma client types
 export * from '@prisma/client';
+export type { User, UserRole, Asset, WorkOrder, Category, Location, FaultCodeMaster, Reason, PriorityLevel } from '@prisma/client';
 
 
 export interface MasterDataCreateInput {
