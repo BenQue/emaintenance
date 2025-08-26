@@ -32,10 +32,16 @@ export class PhotoStorageService {
       try {
         await fs.mkdir(yearMonthDir, { recursive: true });
         await fs.mkdir(thumbnailDir, { recursive: true });
-      } catch (error) {
-        // Directory might already exist or permission denied, continue if directory exists
-        if (!await fs.access(yearMonthDir).then(() => true).catch(() => false)) {
-          throw new Error(`Cannot create upload directory: ${error}`);
+        console.log('Created photo directories:', { yearMonthDir, thumbnailDir });
+      } catch (error: any) {
+        console.warn('Photo directory creation failed, checking if exists:', error.message);
+        // Check if directories exist, if not throw error
+        try {
+          await fs.access(yearMonthDir);
+          await fs.access(thumbnailDir);
+          console.log('Photo directories already exist:', { yearMonthDir, thumbnailDir });
+        } catch (accessError) {
+          throw new Error(`Cannot create or access photo directories: ${error.message}`);
         }
       }
       
