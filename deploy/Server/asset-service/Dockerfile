@@ -18,6 +18,10 @@ COPY apps/api/asset-service ./apps/api/asset-service/
 # 安装依赖
 RUN npm ci --only=production --ignore-scripts
 
+# 生成Prisma客户端（不需要数据库连接）
+WORKDIR /build/packages/database
+RUN npx prisma generate
+
 # 构建资产服务
 WORKDIR /build/apps/api/asset-service
 RUN npm run build

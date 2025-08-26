@@ -14,9 +14,14 @@ COPY packages/typescript-config ./packages/typescript-config/
 COPY packages/eslint-config ./packages/eslint-config/
 COPY apps/api/work-order-service ./apps/api/work-order-service/
 
-# 安装依赖并构建
+# 安装依赖
 RUN npm ci --only=production --ignore-scripts
 
+# 生成Prisma客户端（不需要数据库连接）
+WORKDIR /build/packages/database
+RUN npx prisma generate
+
+# 构建工单服务
 WORKDIR /build/apps/api/work-order-service
 RUN npm run build
 
