@@ -141,6 +141,22 @@ src/test-setup.ts(5,1): error TS2304: Cannot find name 'jest'.
 
 **影响服务**: user-service, work-order-service, asset-service
 
+### 12. Docker容器内目录创建权限问题
+**问题**: 应用启动时无法在uploads目录下创建子目录
+```
+Error: EACCES: permission denied, mkdir '/app/uploads/work-orders'
+```
+
+**解决方案**: 在Dockerfile中预先创建所有必要的子目录
+```dockerfile
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 apiuser && \
+    mkdir -p /app/logs /app/uploads/work-orders /app/uploads/attachments && \
+    chown -R apiuser:nodejs /app/logs /app/uploads
+```
+
+**影响服务**: user-service, work-order-service, asset-service
+
 ## 修复状态追踪
 
 | 问题 | 状态 | 修复文件 | 备注 |
@@ -156,6 +172,7 @@ src/test-setup.ts(5,1): error TS2304: Cannot find name 'jest'.
 | Alpine Linux依赖 | ✅ 已修复 | 所有Dockerfile | 运行时库 |
 | 中国镜像源 | ✅ 已修复 | 所有Dockerfile | 阿里云镜像 |
 | TypeScript测试文件 | ✅ 已修复 | 所有服务tsconfig.json | 排除test-setup.ts |
+| Docker容器目录权限 | ✅ 已修复 | 所有服务Dockerfile | 预先创建子目录 |
 
 ## 预防措施
 
