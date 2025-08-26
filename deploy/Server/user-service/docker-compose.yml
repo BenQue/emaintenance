@@ -64,11 +64,6 @@ services:
         max-size: "10m"
         max-file: "3"
     
-    # 依赖基础设施服务
-    depends_on:
-      - postgres
-      - redis
-    
     # 资源限制
     deploy:
       resources:
@@ -78,23 +73,6 @@ services:
         reservations:
           cpus: '0.5'
           memory: 256M
-
-  # 基础设施服务引用 (确保依赖存在)
-  postgres:
-    image: postgres:16-alpine
-    container_name: emaintenance-postgres
-    external_links:
-      - emaintenance-postgres:postgres
-    networks:
-      - emaintenance-network
-
-  redis:
-    image: redis:7-alpine
-    container_name: emaintenance-redis
-    external_links:
-      - emaintenance-redis:redis
-    networks:
-      - emaintenance-network
 
 volumes:
   user-service-logs:
