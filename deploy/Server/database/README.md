@@ -59,12 +59,14 @@ npm run db:seed
 - **通知**: 2个示例通知
 
 ### 默认账号
-| 角色 | 邮箱 | 密码 |
+| 角色 | 邮箱 | 用户名 |
 |------|------|------|
-| 管理员 | admin@emaintenance.com | admin123 |
-| 主管 | supervisor@emaintenance.com | supervisor123 |
-| 技术员 | technician@emaintenance.com | tech123 |
-| 员工 | employee@emaintenance.com | emp123 |
+| 管理员 | admin@emaintenance.com | admin |
+| 主管 | supervisor@emaintenance.com | supervisor |
+| 技术员 | technician@emaintenance.com | technician |
+| 员工 | employee@emaintenance.com | employee |
+
+*注：默认账号需要在实际部署时设置安全密码*
 
 ## 🔧 故障排查
 

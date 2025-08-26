@@ -29,8 +29,9 @@ RUN npm run build
 # 生产运行阶段
 FROM node:18-alpine AS runtime
 
-# 安装运行时依赖（包括Prisma所需的库）
-RUN apk add --no-cache \
+# 配置中国镜像源并安装运行时依赖（包括Prisma所需的库）
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
+    apk add --no-cache \
     libc6-compat \
     openssl \
     ca-certificates \

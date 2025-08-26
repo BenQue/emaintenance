@@ -220,7 +220,7 @@
 - [ ] **12.3** 功能测试
   - [ ] 访问主页: `http://服务器IP:3030`
   - [ ] 健康检查: `http://服务器IP:3030/health`
-  - [ ] 用户登录: admin@emaintenance.com / admin123
+  - [ ] 用户登录: admin@emaintenance.com
   - [ ] 创建测试工单
   - [ ] 上传测试文件
 

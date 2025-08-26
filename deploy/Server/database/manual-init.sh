@@ -106,18 +106,18 @@ cat > /tmp/init-master-data.sql << 'EOSQL'
 -- E-Maintenance 主数据初始化
 
 -- 清理现有数据
-TRUNCATE TABLE "User", "Asset", "WorkOrder", "AssignmentRule", "Notification" CASCADE;
+TRUNCATE TABLE users, assets, work_orders, assignment_rules, notifications CASCADE;
 
 -- 插入默认用户
-INSERT INTO "User" (id, email, username, password, fullName, role, department, phone, isActive, createdAt, updatedAt)
+INSERT INTO users (id, email, username, password, "fullName", role, department, phone, "isActive", "createdAt", "updatedAt")
 VALUES 
-    ('usr_admin_001', 'admin@emaintenance.com', 'admin', '$2a$10$YourHashedPasswordHere', '系统管理员', 'ADMIN', 'IT部门', '13800000000', true, NOW(), NOW()),
-    ('usr_super_001', 'supervisor@emaintenance.com', 'supervisor', '$2a$10$YourHashedPasswordHere', '主管用户', 'SUPERVISOR', '维修部', '13800000001', true, NOW(), NOW()),
-    ('usr_tech_001', 'technician@emaintenance.com', 'technician', '$2a$10$YourHashedPasswordHere', '技术员', 'TECHNICIAN', '维修部', '13800000002', true, NOW(), NOW()),
-    ('usr_emp_001', 'employee@emaintenance.com', 'employee', '$2a$10$YourHashedPasswordHere', '普通员工', 'EMPLOYEE', '生产部', '13800000003', true, NOW(), NOW());
+    ('usr_admin_001', 'admin@emaintenance.com', 'admin', '$2a$10$YourHashedAuthToken', '系统管理员', 'ADMIN', 'IT部门', '13800000000', true, NOW(), NOW()),
+    ('usr_super_001', 'supervisor@emaintenance.com', 'supervisor', '$2a$10$YourHashedAuthToken', '主管用户', 'SUPERVISOR', '维修部', '13800000001', true, NOW(), NOW()),
+    ('usr_tech_001', 'technician@emaintenance.com', 'technician', '$2a$10$YourHashedAuthToken', '技术员', 'TECHNICIAN', '维修部', '13800000002', true, NOW(), NOW()),
+    ('usr_emp_001', 'employee@emaintenance.com', 'employee', '$2a$10$YourHashedAuthToken', '普通员工', 'EMPLOYEE', '生产部', '13800000003', true, NOW(), NOW());
 
 -- 插入示例资产
-INSERT INTO "Asset" (id, name, "assetCode", type, manufacturer, model, "serialNumber", "purchaseDate", location, status, "maintenanceSchedule", "lastMaintenanceDate", department, "responsiblePerson", description, createdAt, updatedAt)
+INSERT INTO assets (id, name, "assetCode", type, manufacturer, model, "serialNumber", "purchaseDate", location, status, "maintenanceSchedule", "lastMaintenanceDate", department, "responsiblePerson", description, "createdAt", "updatedAt")
 VALUES
     ('ast_001', '数控机床#1', 'CNC-001', 'PRODUCTION', '大连机床', 'DL-CNC-2000', 'SN202301001', '2023-01-15', '生产车间A区', 'ACTIVE', '每月保养', '2024-07-01', '生产部', '张三', '高精度数控加工中心', NOW(), NOW()),
     ('ast_002', '空压机#1', 'COMP-001', 'UTILITY', '阿特拉斯', 'GA-55', 'SN202302001', '2023-02-20', '设备间B1', 'ACTIVE', '每季度保养', '2024-06-01', '设备部', '李四', '螺杆式空压机', NOW(), NOW()),
@@ -125,30 +125,30 @@ VALUES
     ('ast_004', '激光切割机#1', 'LASER-001', 'PRODUCTION', '大族激光', 'HAN-3015', 'SN202304001', '2023-04-05', '生产车间B区', 'MAINTENANCE', '每两周保养', '2024-07-20', '生产部', '赵六', '光纤激光切割机', NOW(), NOW());
 
 -- 插入示例工单
-INSERT INTO "WorkOrder" (id, title, description, type, priority, status, "assetId", "reporterId", "assigneeId", "scheduledDate", location, createdAt, updatedAt)
+INSERT INTO work_orders (id, title, description, type, priority, status, "assetId", "reporterId", "assigneeId", "scheduledDate", location, "createdAt", "updatedAt")
 VALUES
     ('wo_001', '数控机床定期保养', '月度例行保养，包括润滑、清洁、精度检查', 'MAINTENANCE', 'MEDIUM', 'PENDING', 'ast_001', 'usr_super_001', 'usr_tech_001', '2024-08-01', '生产车间A区', NOW(), NOW()),
     ('wo_002', '空压机异常噪音检修', '运行时有异常噪音，需要检查并维修', 'REPAIR', 'HIGH', 'IN_PROGRESS', 'ast_002', 'usr_emp_001', 'usr_tech_001', '2024-07-28', '设备间B1', NOW(), NOW()),
     ('wo_003', '叉车年度检验', '年度安全检验和性能测试', 'INSPECTION', 'LOW', 'PENDING', 'ast_003', 'usr_super_001', NULL, '2024-08-15', '仓库区', NOW(), NOW());
 
 -- 插入分配规则
-INSERT INTO "AssignmentRule" (id, name, description, "ruleType", priority, conditions, actions, isActive, createdAt, updatedAt)
+INSERT INTO assignment_rules (id, name, description, "ruleType", priority, conditions, actions, "isActive", "createdAt", "updatedAt")
 VALUES
     ('rule_001', '高优先级自动分配', '高优先级工单自动分配给技术主管', 'AUTO_ASSIGN', 1, '{"priority": "HIGH"}', '{"assignTo": "SUPERVISOR"}', true, NOW(), NOW()),
     ('rule_002', '设备类型分配', '根据设备类型分配给对应技术员', 'CONDITIONAL', 2, '{"assetType": "PRODUCTION"}', '{"assignToTeam": "PRODUCTION_TEAM"}', true, NOW(), NOW());
 
 -- 插入通知记录
-INSERT INTO "Notification" (id, type, title, message, "userId", "relatedId", "relatedType", "isRead", createdAt, updatedAt)
+INSERT INTO notifications (id, type, title, message, "userId", "relatedId", "relatedType", "isRead", "createdAt", "updatedAt")
 VALUES
     ('notif_001', 'WORK_ORDER_ASSIGNED', '新工单分配', '您有一个新的工单待处理', 'usr_tech_001', 'wo_001', 'WORK_ORDER', false, NOW(), NOW()),
     ('notif_002', 'WORK_ORDER_UPDATED', '工单状态更新', '工单#wo_002状态已更新为进行中', 'usr_super_001', 'wo_002', 'WORK_ORDER', false, NOW(), NOW());
 
 -- 显示初始化结果
-SELECT 'Users' as entity, COUNT(*) as count FROM "User"
-UNION ALL SELECT 'Assets', COUNT(*) FROM "Asset"
-UNION ALL SELECT 'WorkOrders', COUNT(*) FROM "WorkOrder"
-UNION ALL SELECT 'AssignmentRules', COUNT(*) FROM "AssignmentRule"
-UNION ALL SELECT 'Notifications', COUNT(*) FROM "Notification";
+SELECT 'Users' as entity, COUNT(*) as count FROM users
+UNION ALL SELECT 'Assets', COUNT(*) FROM assets
+UNION ALL SELECT 'WorkOrders', COUNT(*) FROM work_orders
+UNION ALL SELECT 'AssignmentRules', COUNT(*) FROM assignment_rules
+UNION ALL SELECT 'Notifications', COUNT(*) FROM notifications;
 EOSQL
 
 # 执行主数据初始化
@@ -184,11 +184,11 @@ docker exec emaintenance-postgres psql -U $DB_USER -d $DB_NAME -c "\dt" | head -
 # 检查数据统计
 log_info "数据统计："
 docker exec emaintenance-postgres psql -U $DB_USER -d $DB_NAME -c "
-    SELECT 'Users' as table_name, COUNT(*) as count FROM \"User\"
-    UNION ALL SELECT 'Assets', COUNT(*) FROM \"Asset\"
-    UNION ALL SELECT 'WorkOrders', COUNT(*) FROM \"WorkOrder\"
-    UNION ALL SELECT 'AssignmentRules', COUNT(*) FROM \"AssignmentRule\"
-    UNION ALL SELECT 'Notifications', COUNT(*) FROM \"Notification\";
+    SELECT 'Users' as table_name, COUNT(*) as count FROM users
+    UNION ALL SELECT 'Assets', COUNT(*) FROM assets
+    UNION ALL SELECT 'WorkOrders', COUNT(*) FROM work_orders
+    UNION ALL SELECT 'AssignmentRules', COUNT(*) FROM assignment_rules
+    UNION ALL SELECT 'Notifications', COUNT(*) FROM notifications;
 "
 
 # 清理临时文件
@@ -206,10 +206,11 @@ echo "  3. 初始化主数据（用户、资产、工单等）"
 echo "  4. 填充测试数据"
 echo ""
 log_info "📝 默认用户账号："
-echo "  管理员: admin@emaintenance.com / admin123"
-echo "  主管: supervisor@emaintenance.com / supervisor123"
-echo "  技术员: technician@emaintenance.com / tech123"
-echo "  员工: employee@emaintenance.com / emp123"
+echo "  管理员: admin@emaintenance.com"
+echo "  主管: supervisor@emaintenance.com"
+echo "  技术员: technician@emaintenance.com"
+echo "  员工: employee@emaintenance.com"
+echo "  注：请在实际部署时为这些账号设置安全密码"
 echo ""
 log_info "🚀 下一步："
 echo "  cd ../user-service && ./deploy.sh"
