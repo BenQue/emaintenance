@@ -44,7 +44,7 @@ EMAINTENANCE_PORTS=(
     "3002:工单服务内部"
     "3003:资产服务内部"
     "5432:PostgreSQL"
-    "6379:Redis"
+    "6380:Redis"
 )
 
 PORT_CONFLICTS=false

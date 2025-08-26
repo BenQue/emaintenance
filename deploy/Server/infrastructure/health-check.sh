@@ -134,11 +134,11 @@ else
 fi
 
 # 检查 Redis 端口
-REDIS_PORT_CHECK=$(netstat -ln 2>/dev/null | grep ":${REDIS_PORT:-6379}" || ss -ln 2>/dev/null | grep ":${REDIS_PORT:-6379}" || echo "")
+REDIS_PORT_CHECK=$(netstat -ln 2>/dev/null | grep ":${REDIS_PORT:-6380}" || ss -ln 2>/dev/null | grep ":${REDIS_PORT:-6380}" || echo "")
 if [ -n "$REDIS_PORT_CHECK" ]; then
-    log_success "Redis 端口 ${REDIS_PORT:-6379} 已监听"
+    log_success "Redis 端口 ${REDIS_PORT:-6380} 已监听"
 else
-    log_warning "Redis 端口 ${REDIS_PORT:-6379} 未监听"
+    log_warning "Redis 端口 ${REDIS_PORT:-6380} 未监听"
 fi
 
 echo ""
@@ -182,7 +182,7 @@ if [ "$POSTGRES_OK" = true ] && [ "$REDIS_OK" = true ]; then
     echo ""
     log_info "服务访问信息:"
     echo "  PostgreSQL: localhost:${POSTGRES_PORT:-5432}"
-    echo "  Redis: localhost:${REDIS_PORT:-6379}"
+    echo "  Redis: localhost:${REDIS_PORT:-6380}"
     echo ""
     log_info "下一步:"
     echo "  cd ../database && ./init.sh"

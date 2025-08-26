@@ -169,7 +169,7 @@ if [ $? -eq 0 ]; then
     echo ""
     log_info "服务访问地址:"
     echo "  PostgreSQL: localhost:${POSTGRES_PORT:-5432}"
-    echo "  Redis: localhost:${REDIS_PORT:-6379}"
+    echo "  Redis: localhost:${REDIS_PORT:-6380}"
     echo ""
     log_info "下一步: 运行数据库初始化"
     echo "  cd ../database && ./init.sh"

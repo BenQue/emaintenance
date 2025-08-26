@@ -89,7 +89,7 @@ PORTS=(
     "80:Nginx HTTP"
     "443:Nginx HTTPS"
     "5432:PostgreSQL"
-    "6379:Redis"
+    "6380:Redis"
     "3000:Web应用"
     "3001:用户服务"
     "3002:工单服务"

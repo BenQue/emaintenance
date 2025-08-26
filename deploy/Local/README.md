@@ -45,7 +45,7 @@ curl http://localhost:3000/health
 - **工单服务 API**: http://localhost:3002
 - **资产服务 API**: http://localhost:3003
 - **数据库**: localhost:5433 (外部访问)
-- **Redis**: localhost:6379
+- **Redis**: localhost:6380
 
 ## ⚙️ 本地环境特点
 
@@ -82,7 +82,7 @@ docker-compose -f docker-compose.local.yml exec [service-name] /bin/bash
 ```
 
 ### 常见问题
-1. **端口冲突**: 确保端口 3000-3003, 5433, 6379 未被占用
+1. **端口冲突**: 确保端口 3000-3003, 5433, 6380 未被占用
 2. **权限问题**: 确保 Docker 有足够权限访问项目目录
 3. **内存不足**: M4 Pro 一般不会遇到，但请确保有足够的可用内存
 

@@ -330,7 +330,7 @@ if [ $? -eq 0 ]; then
     echo "  工单服务: 3002 (内部)"
     echo "  资产服务: 3003 (内部)"
     echo "  PostgreSQL: ${POSTGRES_PORT:-5432}"
-    echo "  Redis: ${REDIS_PORT:-6379}"
+    echo "  Redis: ${REDIS_PORT:-6380}"
     echo ""
     log_info "📊 系统监控:"
     echo "  查看所有服务: docker ps"
