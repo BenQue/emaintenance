@@ -23,7 +23,7 @@ RUN apk update --no-cache && \
 
 # Copy workspace manifests to install all dependencies
 COPY package*.json ./
-COPY apps/api/asset-service/package*.json apps/api/asset-service/
+COPY apps/api/work-order-service/package*.json apps/api/work-order-service/
 COPY packages/database/package*.json packages/database/
 COPY packages/eslint-config/package*.json packages/eslint-config/
 COPY packages/typescript-config/package*.json packages/typescript-config/
@@ -45,14 +45,14 @@ RUN ls -la packages/database/node_modules/ || echo "No node_modules found"
 RUN cd packages/database && npm list @prisma/client || echo "Prisma client not installed"
 
 # Ensure database types are available for API build
-RUN mkdir -p apps/api/asset-service/packages/database
-RUN cp -r packages/database/dist/* apps/api/asset-service/packages/database/
+RUN mkdir -p apps/api/work-order-service/packages/database
+RUN cp -r packages/database/dist/* apps/api/work-order-service/packages/database/
 
 # Verify the copied files include proper exports
 RUN cat packages/database/dist/index.d.ts | head -5
 
 # Build user service with generated types
-RUN cd apps/api/asset-service && npm run build
+RUN cd apps/api/work-order-service && npm run build
 
 # Runtime stage - 使用更小的基础镜像
 FROM node:18-alpine AS runtime
@@ -69,17 +69,15 @@ RUN apk add --no-cache libc6-compat
 RUN apk add --no-cache curl
 RUN apk add --no-cache openssl
 
-# Create app user and necessary directories
+# Create app user
 RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 apiuser && \
-    mkdir -p /app/logs /app/uploads && \
-    chown -R apiuser:nodejs /app/logs /app/uploads
+    adduser --system --uid 1001 apiuser
 
 # Copy artifacts
 COPY --from=builder --chown=apiuser:nodejs /repo/node_modules ./node_modules
 COPY --from=builder --chown=apiuser:nodejs /repo/packages/database ./packages/database
-COPY --from=builder --chown=apiuser:nodejs /repo/apps/api/asset-service/dist ./dist
-COPY --from=builder --chown=apiuser:nodejs /repo/apps/api/asset-service/package*.json ./
+COPY --from=builder --chown=apiuser:nodejs /repo/apps/api/work-order-service/dist ./dist
+COPY --from=builder --chown=apiuser:nodejs /repo/apps/api/work-order-service/package*.json ./
 
 # Ensure Prisma client is generated for runtime
 RUN npx prisma generate --schema=./packages/database/prisma/schema.prisma || (echo "Prisma generate failed" && ls -la ./packages/database/prisma && exit 1)

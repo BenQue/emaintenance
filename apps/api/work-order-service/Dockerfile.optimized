@@ -69,9 +69,11 @@ RUN apk add --no-cache libc6-compat
 RUN apk add --no-cache curl
 RUN apk add --no-cache openssl
 
-# Create app user
+# Create app user and necessary directories
 RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 apiuser
+    adduser --system --uid 1001 apiuser && \
+    mkdir -p /app/logs /app/uploads && \
+    chown -R apiuser:nodejs /app/logs /app/uploads
 
 # Copy artifacts
 COPY --from=builder --chown=apiuser:nodejs /repo/node_modules ./node_modules
