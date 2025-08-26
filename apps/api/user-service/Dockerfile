@@ -23,11 +23,10 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build database package first, then user service (excluding test files)
+# Generate Prisma client first (required for TypeScript types)
+RUN cd packages/database && npx prisma generate
 RUN cd packages/database && npm run build
 RUN ls -la packages/database/dist/
-# Skip Prisma generate during build - will be done at runtime
-# RUN cd packages/database && npm run db:generate
 RUN ls -la packages/database/node_modules/.prisma/ || echo "Prisma client not generated, checking for errors..."
 RUN ls -la packages/database/node_modules/ || echo "No node_modules found"
 RUN cd packages/database && npm list @prisma/client || echo "Prisma client not installed"

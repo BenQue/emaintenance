@@ -34,15 +34,24 @@ RUN npm ci --network-timeout=300000 --fetch-retry-mintimeout=20000 --fetch-retry
 # Copy source code
 COPY . .
 
-# Build database package first, then user service
+# Generate Prisma client first (critical for TypeScript types)
+RUN cd packages/database && npx prisma generate
 RUN cd packages/database && npm run build
+
+# Verify Prisma client generation
 RUN ls -la packages/database/dist/
 RUN ls -la packages/database/node_modules/.prisma/ || echo "Prisma client not generated, checking for errors..."
 RUN ls -la packages/database/node_modules/ || echo "No node_modules found"
 RUN cd packages/database && npm list @prisma/client || echo "Prisma client not installed"
+
 # Ensure database types are available for API build
 RUN mkdir -p apps/api/user-service/packages/database
 RUN cp -r packages/database/dist/* apps/api/user-service/packages/database/
+
+# Verify the copied files include proper exports
+RUN cat packages/database/dist/index.d.ts | head -5
+
+# Build user service with generated types
 RUN cd apps/api/user-service && npm run build:prod
 
 # Runtime stage - 使用更小的基础镜像
