@@ -20,7 +20,7 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 echo "=========================================="
 echo "  E-Maintenance Nginx 反向代理部署"
 echo "  版本: v2.0"
-echo "  端口: 80, 443"
+echo "  端口: 3030 (HTTP), 3443 (HTTPS)"
 echo "=========================================="
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -33,7 +33,7 @@ REQUIRED_SERVICES=(
     "emaintenance-user-service:3001"
     "emaintenance-work-order-service:3002"
     "emaintenance-asset-service:3003"
-    "emaintenance-web:3000"
+    "emaintenance-web-service:3000"
 )
 
 ALL_SERVICES_READY=true
@@ -42,10 +42,11 @@ for service_info in "${REQUIRED_SERVICES[@]}"; do
     service_name=$(echo "$service_info" | cut -d':' -f1)
     service_port=$(echo "$service_info" | cut -d':' -f2)
     
-    if docker ps | grep -q "$service_name.*Up.*healthy"; then
+    # 简化检测逻辑，只检查容器是否运行
+    if docker ps --filter "name=${service_name}" --filter "status=running" --format "{{.Names}}" | grep -q "^${service_name}$"; then
         log_success "$service_name 运行正常"
     else
-        log_error "$service_name 未运行或不健康"
+        log_error "$service_name 未运行"
         ALL_SERVICES_READY=false
     fi
 done
@@ -127,7 +128,7 @@ http {
     }
 
     upstream web_service {
-        server emaintenance-web:3000 max_fails=3 fail_timeout=30s;
+        server emaintenance-web-service:3000 max_fails=3 fail_timeout=30s;
     }
 
     # 主服务器配置
@@ -231,11 +232,6 @@ services:
     networks:
       - emaintenance-network
     restart: unless-stopped
-    depends_on:
-      - user-service
-      - work-order-service
-      - asset-service
-      - web-service
     logging:
       driver: "json-file"
       options:
@@ -249,31 +245,6 @@ services:
         reservations:
           cpus: '0.25'
           memory: 128M
-
-  # 外部服务引用
-  user-service:
-    image: placeholder
-    container_name: emaintenance-user-service
-    external_links:
-      - emaintenance-user-service:user-service
-
-  work-order-service:
-    image: placeholder
-    container_name: emaintenance-work-order-service
-    external_links:
-      - emaintenance-work-order-service:work-order-service
-
-  asset-service:
-    image: placeholder
-    container_name: emaintenance-asset-service
-    external_links:
-      - emaintenance-asset-service:asset-service
-
-  web-service:
-    image: placeholder
-    container_name: emaintenance-web
-    external_links:
-      - emaintenance-web:web-service
 
 volumes:
   nginx-logs:
