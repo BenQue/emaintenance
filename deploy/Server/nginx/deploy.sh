@@ -211,8 +211,6 @@ EOF
 
 # 创建 Docker Compose 配置
 cat > docker-compose.yml << 'EOF'
-version: '3.8'
-
 networks:
   emaintenance-network:
     external: true
