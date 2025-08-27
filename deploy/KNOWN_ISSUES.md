@@ -2,6 +2,30 @@
 
 ## 问题汇总 (2025年8月)
 
+### 0. 数据库认证失败 - POSTGRES_PASSWORD环境变量未导出
+**问题**: 所有服务的docker-compose无法正确解析${POSTGRES_PASSWORD}变量
+```
+Authentication failed against database server at `emaintenance-postgres`, 
+the provided database credentials for `postgres` are not valid.
+```
+
+**根本原因**: 部署脚本中缺少 `export POSTGRES_PASSWORD` 导致docker-compose无法访问该环境变量
+
+**解决方案**: 在所有服务部署脚本中添加环境变量导出
+```bash
+# 在所有 deploy.sh 中添加
+export POSTGRES_PASSWORD="${POSTGRES_PASSWORD}"
+export DATABASE_URL
+export JWT_SECRET
+export REDIS_URL
+export NODE_ENV
+```
+
+**影响服务**: 用户服务、工单服务、资产服务、Web服务
+**修复状态**: ✅ 已修复 (commit 37999c1)
+
+---
+
 ### 1. Docker权限问题
 **问题**: 非root用户无法执行docker命令
 ```bash
