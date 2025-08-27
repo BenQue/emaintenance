@@ -101,11 +101,11 @@ log_info "构建Web服务镜像..."
 
 if [ "$OFFLINE_MODE" = "true" ]; then
     log_info "离线模式，跳过镜像拉取"
-    docker-compose build --no-cache web-service
+    docker-compose build --no-cache --build-arg NEXT_PUBLIC_API_URL=http://localhost:3030 web-service
 else
     # 在线模式，尝试拉取基础镜像
     docker pull node:18-alpine || log_warning "基础镜像拉取失败，使用本地镜像"
-    docker-compose build web-service
+    docker-compose build --build-arg NEXT_PUBLIC_API_URL=http://localhost:3030 web-service
 fi
 
 # 启动Web服务
