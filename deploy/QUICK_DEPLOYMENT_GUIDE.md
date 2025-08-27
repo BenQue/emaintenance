@@ -277,4 +277,29 @@ docker network create emaintenance-network
 5. **调试工具**: 充分利用提供的调试脚本快速定位问题
 6. **验证测试**: 每个步骤都进行必要的验证确保正确性
 
+## 🚨 关键注意事项 (2025-08-27更新)
+
+### Web服务部署必须指定服务器IP
+```bash
+cd deploy/Server/web-service
+# 关键: 必须指定SERVER_IP，不能使用localhost
+SERVER_IP=10.163.144.13 ./deploy.sh
+```
+
+### Nginx路由配置完整性
+确保所有API端点都在Nginx中配置了路由：
+- `/api/auth` → user-service
+- `/api/users` → user-service  
+- `/api/settings` → user-service
+- `/api/work-orders` → work-order-service
+- `/api/assignment-rules` → work-order-service
+- `/api/notifications` → work-order-service
+- `/api/assets` → asset-service
+
+### 常见问题快速解决
+如果遇到页面无法显示数据或API 404错误：
+1. 检查 [远程部署故障排除指南](REMOTE_DEPLOYMENT_TROUBLESHOOTING.md)
+2. 重新构建Web服务（指定服务器IP）
+3. 重新部署Nginx服务
+
 遵循这个指南可以避免大部分常见问题，实现一次性成功部署。
