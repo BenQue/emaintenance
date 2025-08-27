@@ -109,6 +109,16 @@ fi
 
 # 启动Web服务
 log_info "启动Web服务..."
+# 导出环境变量确保 docker-compose 能访问
+export DATABASE_URL="${DATABASE_URL:-postgresql://postgres:${POSTGRES_PASSWORD}@emaintenance-postgres:5432/emaintenance}"
+export JWT_SECRET="${JWT_SECRET}"
+export REDIS_URL="${REDIS_URL:-redis://emaintenance-redis:6379}"
+export NODE_ENV="${NODE_ENV:-production}"
+export USER_SERVICE_PORT="${USER_SERVICE_PORT:-3001}"
+export WORK_ORDER_SERVICE_PORT="${WORK_ORDER_SERVICE_PORT:-3002}"
+export ASSET_SERVICE_PORT="${ASSET_SERVICE_PORT:-3003}"
+export WEB_SERVICE_PORT="${WEB_SERVICE_PORT:-3000}"
+
 docker-compose up -d web-service
 
 # 等待服务启动

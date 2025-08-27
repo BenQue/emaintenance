@@ -80,12 +80,6 @@ services:
         max-size: "10m"
         max-file: "3"
     
-    # 依赖所有后端API服务
-    depends_on:
-      - user-service
-      - work-order-service
-      - asset-service
-    
     # 资源限制 (Web服务需要更多内存用于Next.js)
     deploy:
       resources:
@@ -95,31 +89,6 @@ services:
         reservations:
           cpus: '1.0'
           memory: 512M
-
-  # 后端服务引用 (确保依赖存在)
-  user-service:
-    image: emaintenance-user-service:latest
-    container_name: emaintenance-user-service
-    external_links:
-      - emaintenance-user-service:user-service
-    networks:
-      - emaintenance-network
-
-  work-order-service:
-    image: emaintenance-work-order-service:latest
-    container_name: emaintenance-work-order-service
-    external_links:
-      - emaintenance-work-order-service:work-order-service
-    networks:
-      - emaintenance-network
-
-  asset-service:
-    image: emaintenance-asset-service:latest
-    container_name: emaintenance-asset-service
-    external_links:
-      - emaintenance-asset-service:asset-service
-    networks:
-      - emaintenance-network
 
 volumes:
   web-service-logs:
