@@ -2,7 +2,52 @@
 
 ## 问题汇总 (2025年8月)
 
-### 0. 数据库认证失败 - POSTGRES_PASSWORD环境变量未导出
+### 0. Web前端API地址配置问题(远程部署) - 最关键
+**问题**: 浏览器访问远程服务器时出现连接拒绝错误
+```
+POST http://localhost:3030/api/auth/login net::ERR_CONNECTION_REFUSED
+```
+
+**根本原因**: 浏览器中的`localhost:3030`指向用户本地计算机，而不是远程服务器
+
+**解决方案**: Web服务构建时使用服务器实际IP地址
+```bash
+# 自动检测并使用服务器IP构建Web服务
+cd deploy/Server/web-service
+SERVER_IP=10.163.144.13 ./deploy.sh
+```
+
+**技术细节**: Next.js在构建时将NEXT_PUBLIC_*环境变量嵌入静态文件，必须在构建时指定正确的API地址
+**修复状态**: ✅ 已修复 (commit db20ed3)
+
+---
+
+### 1. 容器间数据库连接地址错误
+**问题**: 微服务无法连接数据库服务
+```
+Can't reach database server at `localhost:5432`
+Can't reach database server at `localhost:5433`
+```
+
+**根本原因**: 部署脚本中DATABASE_URL使用了`localhost`，但容器间通信必须使用容器网络名称
+
+**错误配置**:
+```bash
+DATABASE_URL="postgresql://...@localhost:5432/..."  # ❌ 错误
+DATABASE_URL="postgresql://...@localhost:5433/..."  # ❌ 错误  
+```
+
+**正确配置**:
+```bash
+DATABASE_URL="postgresql://...@emaintenance-postgres:5432/..."  # ✅ 正确
+```
+
+**影响服务**: 用户服务、工单服务、资产服务
+**修复状态**: ✅ 已修复 (commit 45f1d61)
+
+---
+
+### 2. 数据库认证失败 - POSTGRES_PASSWORD环境变量未导出
 **问题**: 所有服务的docker-compose无法正确解析${POSTGRES_PASSWORD}变量
 ```
 Authentication failed against database server at `emaintenance-postgres`, 
