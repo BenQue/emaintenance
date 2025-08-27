@@ -207,6 +207,31 @@ app.get('/health', (req, res) => {
 **影响服务**: asset-service
 **影响文件**: `apps/api/asset-service/src/index.ts`
 
+### 16. Nginx容器网络连接和DNS解析问题
+**问题**: Nginx无法解析后端服务容器名称导致API代理失败
+```
+** server can't find emaintenance-user-service.bizlinkbgin.com: NXDOMAIN
+```
+
+**解决方案**: Docker重启Nginx后网络连接正常，但DNS解析仍有问题
+```bash
+# 重启Nginx容器重新加载网络配置
+docker restart emaintenance-nginx
+
+# 验证容器间连通性(ping成功即可，DNS解析失败不影响)
+docker exec emaintenance-nginx ping -c 2 emaintenance-user-service
+```
+
+**根本原因**: Docker容器网络在某些情况下需要重新初始化连接
+
+**预防措施**: 
+- 按正确顺序部署服务(先后端服务，后Nginx)
+- 如果API代理失败，重启Nginx容器
+- 考虑在Nginx配置中使用IP地址而非域名
+
+**影响服务**: nginx反向代理
+**影响功能**: 所有API路由(/api/auth, /api/users, /api/work-orders, /api/assets)
+
 ## 修复状态追踪
 
 | 问题 | 状态 | 修复文件 | 备注 |
@@ -226,6 +251,7 @@ app.get('/health', (req, res) => {
 | 卷挂载权限覆盖问题 | ✅ 已修复 | 工单服务部署脚本 | 宿主机预创建+权限 |
 | 数据库连接主机名错误 | ✅ 已修复 | 工单服务docker-compose.yml | 容器名修正 |
 | 资产服务健康检查端点路径 | ✅ 已修复 | asset-service/src/index.ts | /health路径修正 |
+| Nginx容器网络连接问题 | ⚠️ 临时修复 | 重启nginx容器 | 需要重启解决 |
 
 ## 预防措施
 
