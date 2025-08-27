@@ -174,6 +174,11 @@ http {
             include /etc/nginx/proxy_params;
         }
 
+        location /api/assignment-rules {
+            proxy_pass http://work_order_service;
+            include /etc/nginx/proxy_params;
+        }
+
         location /api/notifications {
             proxy_pass http://work_order_service;
             include /etc/nginx/proxy_params;
