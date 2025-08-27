@@ -70,9 +70,12 @@ fi
 
 # 设置 Web 服务环境变量
 # NEXT_PUBLIC_* 变量会暴露到浏览器端，应该指向Nginx代理地址
-export NEXT_PUBLIC_USER_SERVICE_URL="http://localhost:3030"
-export NEXT_PUBLIC_WORK_ORDER_SERVICE_URL="http://localhost:3030"  
-export NEXT_PUBLIC_ASSET_SERVICE_URL="http://localhost:3030"
+# 在远程部署时必须使用服务器IP地址，不能使用localhost
+NGINX_URL="http://${SERVER_IP:-localhost}:3030"
+export NEXT_PUBLIC_USER_SERVICE_URL="${NGINX_URL}"
+export NEXT_PUBLIC_WORK_ORDER_SERVICE_URL="${NGINX_URL}"
+export NEXT_PUBLIC_ASSET_SERVICE_URL="${NGINX_URL}"
+export NEXT_PUBLIC_API_URL="${NGINX_URL}"
 export NEXT_PUBLIC_APP_ENV="${NODE_ENV:-production}"
 
 # 创建必要目录
@@ -116,11 +119,21 @@ fi
 
 if [ "$OFFLINE_MODE" = "true" ]; then
     log_info "离线模式，跳过镜像拉取"
-    docker-compose build --no-cache --build-arg NEXT_PUBLIC_API_URL=http://${SERVER_IP}:3030 web-service
+    docker-compose build --no-cache \
+        --build-arg NEXT_PUBLIC_API_URL="${NGINX_URL}" \
+        --build-arg NEXT_PUBLIC_USER_SERVICE_URL="${NGINX_URL}" \
+        --build-arg NEXT_PUBLIC_WORK_ORDER_SERVICE_URL="${NGINX_URL}" \
+        --build-arg NEXT_PUBLIC_ASSET_SERVICE_URL="${NGINX_URL}" \
+        web-service
 else
     # 在线模式，尝试拉取基础镜像
     docker pull node:18-alpine || log_warning "基础镜像拉取失败，使用本地镜像"
-    docker-compose build --build-arg NEXT_PUBLIC_API_URL=http://${SERVER_IP}:3030 web-service
+    docker-compose build \
+        --build-arg NEXT_PUBLIC_API_URL="${NGINX_URL}" \
+        --build-arg NEXT_PUBLIC_USER_SERVICE_URL="${NGINX_URL}" \
+        --build-arg NEXT_PUBLIC_WORK_ORDER_SERVICE_URL="${NGINX_URL}" \
+        --build-arg NEXT_PUBLIC_ASSET_SERVICE_URL="${NGINX_URL}" \
+        web-service
 fi
 
 # 启动Web服务
