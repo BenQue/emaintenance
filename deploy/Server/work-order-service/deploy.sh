@@ -66,7 +66,7 @@ if [ -z "$JWT_SECRET" ]; then
 fi
 
 if [ -z "$DATABASE_URL" ]; then
-    export DATABASE_URL="postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_PORT:-5433}/${POSTGRES_DB:-emaintenance}"
+    export DATABASE_URL="postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@emaintenance-postgres:5432/${POSTGRES_DB:-emaintenance}"
 fi
 
 # 设置用户服务 URL
