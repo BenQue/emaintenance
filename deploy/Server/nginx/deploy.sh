@@ -164,7 +164,17 @@ http {
             include /etc/nginx/proxy_params;
         }
 
+        location /api/settings {
+            proxy_pass http://user_service;
+            include /etc/nginx/proxy_params;
+        }
+
         location /api/work-orders {
+            proxy_pass http://work_order_service;
+            include /etc/nginx/proxy_params;
+        }
+
+        location /api/notifications {
             proxy_pass http://work_order_service;
             include /etc/nginx/proxy_params;
         }
