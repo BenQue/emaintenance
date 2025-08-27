@@ -14,8 +14,8 @@ services:
       dockerfile: deploy/Server/user-service/Dockerfile
     container_name: emaintenance-user-service
     environment:
-      # 数据库配置
-      DATABASE_URL: ${DATABASE_URL}
+      # 数据库配置 (容器间通信使用内部端口5432)
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@emaintenance-postgres:5432/emaintenance
       
       # JWT 配置
       JWT_SECRET: ${JWT_SECRET}
