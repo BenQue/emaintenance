@@ -109,6 +109,7 @@ export JWT_SECRET
 export REDIS_URL
 export NODE_ENV
 export USER_SERVICE_URL
+export POSTGRES_PASSWORD
 docker-compose up -d work-order-service
 
 # 等待服务启动

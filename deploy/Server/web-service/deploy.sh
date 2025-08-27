@@ -111,6 +111,7 @@ fi
 # 启动Web服务
 log_info "启动Web服务..."
 # 导出环境变量确保 docker-compose 能访问
+export POSTGRES_PASSWORD="${POSTGRES_PASSWORD}"
 export DATABASE_URL="${DATABASE_URL:-postgresql://postgres:${POSTGRES_PASSWORD}@emaintenance-postgres:5432/emaintenance}"
 export JWT_SECRET="${JWT_SECRET}"
 export REDIS_URL="${REDIS_URL:-redis://emaintenance-redis:6379}"

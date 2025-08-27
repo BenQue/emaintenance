@@ -100,6 +100,7 @@ export DATABASE_URL
 export JWT_SECRET
 export REDIS_URL
 export NODE_ENV
+export POSTGRES_PASSWORD
 
 if [ "$OFFLINE_MODE" = "true" ]; then
     log_info "离线模式，跳过镜像拉取"
@@ -117,6 +118,7 @@ export DATABASE_URL
 export JWT_SECRET
 export REDIS_URL
 export NODE_ENV
+export POSTGRES_PASSWORD
 docker-compose up -d user-service
 
 # 等待服务启动
