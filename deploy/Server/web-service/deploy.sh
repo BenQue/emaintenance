@@ -99,13 +99,28 @@ docker-compose down 2>/dev/null || true
 # 构建镜像 (支持离线模式)
 log_info "构建Web服务镜像..."
 
+# 获取服务器外部IP地址用于API URL
+if [ -z "$SERVER_IP" ]; then
+    SERVER_IP=$(curl -s ifconfig.me || curl -s ipinfo.io/ip || hostname -I | awk '{print $1}' || echo "localhost")
+    log_info "自动检测到服务器IP: $SERVER_IP"
+else
+    log_info "使用指定的服务器IP: $SERVER_IP"
+fi
+
+# 如果检测失败，提示用户手动指定
+if [ "$SERVER_IP" = "localhost" ]; then
+    log_warning "无法自动检测服务器IP地址"
+    log_info "请手动指定服务器IP，例如: SERVER_IP=10.163.144.13 ./deploy.sh"
+    log_info "或者编辑部署脚本手动设置SERVER_IP变量"
+fi
+
 if [ "$OFFLINE_MODE" = "true" ]; then
     log_info "离线模式，跳过镜像拉取"
-    docker-compose build --no-cache --build-arg NEXT_PUBLIC_API_URL=http://localhost:3030 web-service
+    docker-compose build --no-cache --build-arg NEXT_PUBLIC_API_URL=http://${SERVER_IP}:3030 web-service
 else
     # 在线模式，尝试拉取基础镜像
     docker pull node:18-alpine || log_warning "基础镜像拉取失败，使用本地镜像"
-    docker-compose build --build-arg NEXT_PUBLIC_API_URL=http://localhost:3030 web-service
+    docker-compose build --build-arg NEXT_PUBLIC_API_URL=http://${SERVER_IP}:3030 web-service
 fi
 
 # 启动Web服务
