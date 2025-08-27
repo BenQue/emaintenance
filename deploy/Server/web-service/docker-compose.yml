@@ -20,6 +20,7 @@ services:
       HOSTNAME: 0.0.0.0
       
       # 后端API服务URLs (浏览器端通过Nginx代理访问)
+      NEXT_PUBLIC_API_URL: http://localhost:3030
       NEXT_PUBLIC_USER_SERVICE_URL: http://localhost:3030
       NEXT_PUBLIC_WORK_ORDER_SERVICE_URL: http://localhost:3030
       NEXT_PUBLIC_ASSET_SERVICE_URL: http://localhost:3030
