@@ -114,21 +114,25 @@ http {
         application/atom+xml
         image/svg+xml;
 
-    # 上游服务定义
+    # 上游服务定义 - 使用容器网络中的服务名
     upstream user_service {
         server emaintenance-user-service:3001 max_fails=3 fail_timeout=30s;
+        keepalive 16;
     }
 
     upstream work_order_service {
         server emaintenance-work-order-service:3002 max_fails=3 fail_timeout=30s;
+        keepalive 16;
     }
 
     upstream asset_service {
         server emaintenance-asset-service:3003 max_fails=3 fail_timeout=30s;
+        keepalive 16;
     }
 
     upstream web_service {
         server emaintenance-web-service:3000 max_fails=3 fail_timeout=30s;
+        keepalive 16;
     }
 
     # 主服务器配置
@@ -198,7 +202,7 @@ EOF
 cat > configs/proxy_params << 'EOF'
 proxy_http_version 1.1;
 proxy_set_header Upgrade $http_upgrade;
-proxy_set_header Connection 'upgrade';
+proxy_set_header Connection "";
 proxy_set_header Host $host;
 proxy_set_header X-Real-IP $remote_addr;
 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -207,6 +211,7 @@ proxy_cache_bypass $http_upgrade;
 proxy_connect_timeout 30s;
 proxy_send_timeout 30s;
 proxy_read_timeout 30s;
+proxy_buffering off;
 EOF
 
 # 创建 Docker Compose 配置
