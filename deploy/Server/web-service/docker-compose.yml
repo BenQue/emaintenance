@@ -19,10 +19,10 @@ services:
       PORT: 3000
       HOSTNAME: 0.0.0.0
       
-      # 后端API服务URLs (容器内部通信)
-      NEXT_PUBLIC_USER_SERVICE_URL: http://localhost:${USER_SERVICE_PORT:-3001}
-      NEXT_PUBLIC_WORK_ORDER_SERVICE_URL: http://localhost:${WORK_ORDER_SERVICE_PORT:-3002}
-      NEXT_PUBLIC_ASSET_SERVICE_URL: http://localhost:${ASSET_SERVICE_PORT:-3003}
+      # 后端API服务URLs (浏览器端通过Nginx代理访问)
+      NEXT_PUBLIC_USER_SERVICE_URL: http://localhost:3030
+      NEXT_PUBLIC_WORK_ORDER_SERVICE_URL: http://localhost:3030
+      NEXT_PUBLIC_ASSET_SERVICE_URL: http://localhost:3030
       
       # 内部服务通信URLs (用于服务端API调用)
       USER_SERVICE_URL: http://emaintenance-user-service:3001

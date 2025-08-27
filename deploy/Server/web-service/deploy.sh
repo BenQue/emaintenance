@@ -69,9 +69,10 @@ else
 fi
 
 # 设置 Web 服务环境变量
-export NEXT_PUBLIC_USER_SERVICE_URL="http://localhost:${USER_SERVICE_PORT:-3001}"
-export NEXT_PUBLIC_WORK_ORDER_SERVICE_URL="http://localhost:${WORK_ORDER_SERVICE_PORT:-3002}"
-export NEXT_PUBLIC_ASSET_SERVICE_URL="http://localhost:${ASSET_SERVICE_PORT:-3003}"
+# NEXT_PUBLIC_* 变量会暴露到浏览器端，应该指向Nginx代理地址
+export NEXT_PUBLIC_USER_SERVICE_URL="http://localhost:3030"
+export NEXT_PUBLIC_WORK_ORDER_SERVICE_URL="http://localhost:3030"  
+export NEXT_PUBLIC_ASSET_SERVICE_URL="http://localhost:3030"
 export NEXT_PUBLIC_APP_ENV="${NODE_ENV:-production}"
 
 # 创建必要目录
