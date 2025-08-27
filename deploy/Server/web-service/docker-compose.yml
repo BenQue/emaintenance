@@ -39,7 +39,7 @@ services:
       NEXTAUTH_URL: http://localhost:${WEB_SERVICE_PORT:-3000}
       
       # 数据库配置 (用于某些服务端操作)
-      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD}@emaintenance-postgres:5432/emaintenance
       
       # Redis配置 (用于会话和缓存)
       REDIS_URL: ${REDIS_URL:-redis://emaintenance-redis:6379}
