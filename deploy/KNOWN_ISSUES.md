@@ -59,7 +59,7 @@ the provided database credentials for `postgres` are not valid.
 **解决方案**: 在所有服务部署脚本中添加环境变量导出
 ```bash
 # 在所有 deploy.sh 中添加
-export POSTGRES_PASSWORD="${POSTGRES_PASSWORD}"
+export POSTGRES_PASSWORD
 export DATABASE_URL
 export JWT_SECRET
 export REDIS_URL
@@ -106,7 +106,7 @@ tcp-keepalive 60
 **解决方案**: 使用替代端口5433
 ```bash
 # 所有配置文件中的数据库连接
-DATABASE_URL="postgresql://postgres:password@localhost:5433/emaintenance"
+DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5433/emaintenance"
 POSTGRES_PORT=5433
 ```
 
@@ -250,7 +250,7 @@ DATABASE_URL=${DATABASE_URL}  # 可能指向 postgres:5433 (错误)
 **解决方案**: 明确指定容器间通信的正确主机名
 ```yaml
 environment:
-  - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@emaintenance-postgres:5432/emaintenance
+  - DATABASE_URL=postgresql://postgres:${DB_PASSWORD}@emaintenance-postgres:5432/emaintenance
 ```
 
 **影响服务**: work-order-service, asset-service (可能)
@@ -276,7 +276,30 @@ app.get('/health', (req, res) => {
 **影响服务**: asset-service
 **影响文件**: `apps/api/asset-service/src/index.ts`
 
-### 16. Nginx容器网络连接和DNS解析问题
+### 16. 工单分配API方法不匹配（PUT vs POST）
+**问题**: 前端使用PUT方法调用工单分配API，但后端路由定义为POST方法
+```
+PUT /api/work-orders/wo001/assign 404 Not Found
+```
+
+**根本原因**: 前后端HTTP方法定义不一致
+- 前端: `workOrderServiceClient.put('/api/work-orders/${workOrderId}/assign')`
+- 后端: `router.post('/:id/assign', ...)`
+
+**解决方案**: 修改后端路由支持PUT方法
+```typescript
+// apps/api/work-order-service/src/routes/workOrders.ts
+router.put('/:id/assign',  // 改为PUT方法
+  authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
+  workOrderController.assignWorkOrder
+);
+```
+
+**影响服务**: work-order-service
+**影响功能**: 工单分配功能
+**修复状态**: ✅ 已修复
+
+### 17. Nginx容器网络连接和DNS解析问题
 **问题**: Nginx无法解析后端服务容器名称导致API代理失败
 ```
 ** server can't find emaintenance-user-service.bizlinkbgin.com: NXDOMAIN
@@ -320,6 +343,7 @@ docker exec emaintenance-nginx ping -c 2 emaintenance-user-service
 | 卷挂载权限覆盖问题 | ✅ 已修复 | 工单服务部署脚本 | 宿主机预创建+权限 |
 | 数据库连接主机名错误 | ✅ 已修复 | 工单服务docker-compose.yml | 容器名修正 |
 | 资产服务健康检查端点路径 | ✅ 已修复 | asset-service/src/index.ts | /health路径修正 |
+| 工单分配API方法不匹配 | ✅ 已修复 | work-order-service/src/routes/workOrders.ts | PUT方法修正 |
 | Nginx容器网络连接问题 | ⚠️ 临时修复 | 重启nginx容器 | 需要重启解决 |
 
 ## 预防措施
