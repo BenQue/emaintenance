@@ -3,9 +3,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 class FlexibleEnvironment {
   // 默认服务器地址配置
   static const Map<String, String> _defaultServers = {
-    'development': 'http://192.168.31.53',
-    'testing': 'http://10.163.144.13', 
-    'production': 'https://your-production-server.com',
+    'development': 'http://192.168.31.53',  // Mac local IP for Docker services
+    'testing': 'http://10.163.144.13:3030',  // Testing server with port
+    'production': 'http://10.163.144.13:3030',  // Production server
     'local': 'http://localhost',
   };
   
@@ -35,7 +35,7 @@ class FlexibleEnvironment {
     // 3. 回退到默认环境检测
     return isDevelopment 
         ? _defaultServers['development']! 
-        : _defaultServers['testing']!;
+        : _defaultServers['production']!;
   }
   
   // 动态设置服务器地址

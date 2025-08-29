@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/environment.dart';
+import '../config/environment_flexible.dart';
 
 class ApiClient {
   final String _baseUrl;
@@ -12,12 +13,16 @@ class ApiClient {
   ApiClient._internal(this._baseUrl) {
     _dio = Dio(BaseOptions(
       baseUrl: _baseUrl,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
-      sendTimeout: const Duration(seconds: 10),
+      connectTimeout: const Duration(seconds: 30),
+      receiveTimeout: const Duration(seconds: 30),
+      sendTimeout: const Duration(seconds: 30),
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+      },
+      validateStatus: (status) {
+        // Accept any status code less than 500
+        return status != null && status < 500;
       },
     ));
     
@@ -50,17 +55,23 @@ class ApiClient {
     return _instance!;
   }
   
-  // 为不同服务创建特定的客户端实例
+  // 为不同服务创建特定的客户端实例（支持灵活配置）
   static Future<ApiClient> getUserServiceClient() async {
-    return await getInstance(baseUrl: Environment.userServiceUrl);
+    final baseUrl = await FlexibleEnvironment.getBaseUrl();
+    final port = FlexibleEnvironment.isDevelopment ? ':3001' : '/user-service';
+    return await getInstance(baseUrl: '$baseUrl$port');
   }
   
   static Future<ApiClient> getWorkOrderServiceClient() async {
-    return await getInstance(baseUrl: Environment.workOrderServiceUrl);
+    final baseUrl = await FlexibleEnvironment.getBaseUrl();
+    final port = FlexibleEnvironment.isDevelopment ? ':3002' : '/work-order-service';
+    return await getInstance(baseUrl: '$baseUrl$port');
   }
   
   static Future<ApiClient> getAssetServiceClient() async {
-    return await getInstance(baseUrl: Environment.assetServiceUrl);
+    final baseUrl = await FlexibleEnvironment.getBaseUrl();
+    final port = FlexibleEnvironment.isDevelopment ? ':3003' : '/asset-service';
+    return await getInstance(baseUrl: '$baseUrl$port');
   }
   
   Future<String?> getToken() async {

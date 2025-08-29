@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Release APKs (too large for git, should be distributed separately)
+/releases/android/*.apk

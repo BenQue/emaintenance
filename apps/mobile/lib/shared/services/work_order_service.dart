@@ -132,8 +132,9 @@ class WorkOrderService {
         throw Exception('API client not initialized');
       }
       
+      // 先尝试获取基本工单信息
       final response = await _apiClient!.get<Map<String, dynamic>>(
-        '/api/work-orders/$workOrderId/history',
+        '/api/work-orders/$workOrderId',
       );
 
       if (response.data == null) {
@@ -154,18 +155,21 @@ class WorkOrderService {
         throw Exception('API client not initialized');
       }
       
-      final response = await _apiClient!.get<Map<String, dynamic>>(
-        '/api/work-orders/$workOrderId/status-history',
-      );
-
-      if (response.data == null) {
-        throw Exception('Empty response from server');
-      }
-
-      final historyData = response.data!['data']['statusHistory'] as List;
-      return historyData
-          .map((item) => WorkOrderStatusHistory.fromJson(item as Map<String, dynamic>))
-          .toList();
+      // 暂时返回空列表，因为 status-history 端点不存在
+      // TODO: 实现后端的 status-history 端点
+      return [];
+      
+      // 原始代码保留供后续使用
+      // final response = await _apiClient!.get<Map<String, dynamic>>(
+      //   '/api/work-orders/$workOrderId/status-history',
+      // );
+      // if (response.data == null) {
+      //   throw Exception('Empty response from server');
+      // }
+      // final historyData = response.data!['data']['statusHistory'] as List;
+      // return historyData
+      //     .map((item) => WorkOrderStatusHistory.fromJson(item as Map<String, dynamic>))
+      //     .toList();
     } catch (e) {
       throw Exception('Failed to get work order status history: $e');
     }
@@ -286,7 +290,7 @@ class WorkOrderService {
       
       
       final response = await _apiClient!.post<Map<String, dynamic>>(
-        '/api/work-orders/$workOrderId/work-order-photos',
+        '/api/work-orders/$workOrderId/photos',  // 修正上传路径
         data: formData,
         options: Options(
           headers: {
@@ -314,7 +318,7 @@ class WorkOrderService {
       }
       
       final response = await _apiClient!.get<Map<String, dynamic>>(
-        '/api/work-orders/$workOrderId/work-order-photos',
+        '/api/work-orders/$workOrderId/photos',  // 修正路径
       );
 
       if (response.data == null) {
