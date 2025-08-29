@@ -14,7 +14,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.prisma = void 0;
+exports.UserRole = exports.prisma = void 0;
 const client_1 = require("@prisma/client");
 const globalForPrisma = globalThis;
 exports.prisma = globalForPrisma.prisma ??
@@ -25,4 +25,6 @@ if (process.env.NODE_ENV !== 'production')
     globalForPrisma.prisma = exports.prisma;
 // Export Prisma client types
 __exportStar(require("@prisma/client"), exports);
+var client_2 = require("@prisma/client");
+Object.defineProperty(exports, "UserRole", { enumerable: true, get: function () { return client_2.UserRole; } });
 exports.default = exports.prisma;

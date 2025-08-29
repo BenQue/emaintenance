@@ -148,11 +148,16 @@ services:
       dockerfile: apps/web/Dockerfile
     container_name: emaintenance-web
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost
-      NEXT_PUBLIC_USER_SERVICE_URL: http://localhost
-      NEXT_PUBLIC_WORK_ORDER_SERVICE_URL: http://localhost
-      NEXT_PUBLIC_ASSET_SERVICE_URL: http://localhost
-      NODE_ENV: development
+      # 标记运行在Docker环境中
+      RUNNING_IN_DOCKER: "true"
+      # API网关地址（可选，留空则使用相对路径通过Nginx）
+      NEXT_PUBLIC_API_GATEWAY_URL: ${API_GATEWAY_URL:-}
+      # 服务URL配置（留空则自动配置）
+      NEXT_PUBLIC_API_URL: ${API_URL:-}
+      NEXT_PUBLIC_USER_SERVICE_URL: ${USER_SERVICE_URL:-}
+      NEXT_PUBLIC_WORK_ORDER_SERVICE_URL: ${WORK_ORDER_SERVICE_URL:-}
+      NEXT_PUBLIC_ASSET_SERVICE_URL: ${ASSET_SERVICE_URL:-}
+      NODE_ENV: ${NODE_ENV:-development}
     ports:
       - "3000:3000"
     depends_on:

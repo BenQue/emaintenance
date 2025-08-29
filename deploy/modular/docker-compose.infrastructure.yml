@@ -1,0 +1,254 @@
+version: '3.8'
+
+# 基础设施模块：数据库、缓存、网关等核心基础服务
+# 这些服务是其他所有服务的基础依赖
+
+networks:
+  emaintenance-infra:
+    name: emaintenance-infra
+    driver: bridge
+    external: false
+  
+  # 外部网络，供其他模块连接
+  emaintenance-network:
+    name: emaintenance-network 
+    driver: bridge
+    external: false
+
+volumes:
+  # 数据持久化卷
+  postgres-data:
+    name: emaintenance-postgres-data
+  redis-data:
+    name: emaintenance-redis-data
+  uploads-data:
+    name: emaintenance-uploads-data
+  nginx-logs:
+    name: emaintenance-nginx-logs
+
+services:
+  # PostgreSQL 主数据库
+  postgres:
+    image: postgres:16-alpine
+    container_name: emaintenance-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-emaintenance}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ../init-scripts:/docker-entrypoint-initdb.d:ro
+    networks:
+      - emaintenance-infra
+      - emaintenance-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+          cpus: '0.5'
+        reservations:
+          memory: 512m
+          cpus: '0.25'
+
+  # Redis 缓存和会话存储
+  redis:
+    image: redis:7-alpine
+    container_name: emaintenance-redis
+    restart: unless-stopped
+    command: >
+      redis-server 
+      --requirepass ${REDIS_PASSWORD:-""}
+      --maxmemory ${REDIS_MAX_MEMORY:-512mb}
+      --maxmemory-policy allkeys-lru
+      --appendonly yes
+      --appendfsync everysec
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - emaintenance-infra
+      - emaintenance-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: '0.25'
+        reservations:
+          memory: 128m
+          cpus: '0.1'
+
+  # Nginx API网关和反向代理
+  nginx:
+    image: nginx:alpine
+    container_name: emaintenance-nginx
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    volumes:
+      - ./configs/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./configs/conf.d:/etc/nginx/conf.d:ro
+      - uploads-data:/var/www/uploads:ro
+      - nginx-logs:/var/log/nginx
+      # SSL证书目录（可选）
+      - ${SSL_CERT_DIR:-./ssl}:/etc/nginx/ssl:ro
+    networks:
+      - emaintenance-infra
+      - emaintenance-network
+    depends_on:
+      - postgres
+      - redis
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+          cpus: '0.25'
+        reservations:
+          memory: 64m
+          cpus: '0.1'
+
+  # 文件存储服务（可选：用于大型部署）
+  minio:
+    image: minio/minio:latest
+    container_name: emaintenance-minio
+    restart: unless-stopped
+    profiles:
+      - object-storage
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin123}
+    ports:
+      - "${MINIO_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - uploads-data:/data
+    networks:
+      - emaintenance-infra
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  # 日志聚合服务（可选：用于大型部署）
+  fluentd:
+    image: fluent/fluentd:v1.16-debian-1
+    container_name: emaintenance-fluentd
+    restart: unless-stopped
+    profiles:
+      - logging
+    volumes:
+      - ./configs/fluentd.conf:/fluentd/etc/fluent.conf:ro
+      - ../logs:/fluentd/log
+    ports:
+      - "24224:24224"
+    networks:
+      - emaintenance-infra
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  # 监控服务：Prometheus（可选）
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: emaintenance-prometheus
+    restart: unless-stopped
+    profiles:
+      - monitoring
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - emaintenance-infra
+      - emaintenance-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+  # 监控可视化：Grafana（可选）
+  grafana:
+    image: grafana/grafana:latest
+    container_name: emaintenance-grafana
+    restart: unless-stopped
+    profiles:
+      - monitoring
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin123}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - emaintenance-infra
+    depends_on:
+      - prometheus
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+
+# 额外的卷定义
+volumes:
+  prometheus-data:
+    name: emaintenance-prometheus-data
+  grafana-data:
+    name: emaintenance-grafana-data

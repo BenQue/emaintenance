@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 export declare const prisma: PrismaClient<import(".prisma/client").Prisma.PrismaClientOptions, never, import("@prisma/client/runtime/library").DefaultArgs>;
 export * from '@prisma/client';
+export type { User, Asset, WorkOrder, Category, Location, FaultCodeMaster, Reason, PriorityLevel } from '@prisma/client';
+export { UserRole } from '@prisma/client';
 export interface MasterDataCreateInput {
     name: string;
     description?: string;

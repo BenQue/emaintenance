@@ -3,10 +3,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 class FlexibleEnvironment {
   // 默认服务器地址配置
   static const Map<String, String> _defaultServers = {
-    'development': 'http://192.168.31.53',  // Mac local IP for Docker services
-    'testing': 'http://10.163.144.13:3030',  // Testing server with port
-    'production': 'http://10.163.144.13:3030',  // Production server
-    'local': 'http://localhost',
+    'docker-local': 'http://192.168.31.53',  // Docker部署（局域网访问）
+    'docker-gateway': 'http://localhost',     // Docker部署（网关模式）
+    'development': 'http://localhost',        // 本地开发模式
+    'testing': 'http://10.163.144.13:3030',  // 测试服务器
+    'production': 'http://10.163.144.13:3030', // 生产服务器
   };
   
   // 当前环境检测
@@ -77,15 +78,16 @@ class FlexibleEnvironment {
   
   // 根据环境获取服务路径
   static String _getServicePath(String serviceName) {
-    return isDevelopment ? ':${_getServicePort(serviceName)}' : '/$serviceName';
+    // Docker环境使用统一的API网关
+    return '/api${_getApiPath(serviceName)}';
   }
   
-  static String _getServicePort(String serviceName) {
+  static String _getApiPath(String serviceName) {
     switch (serviceName) {
-      case 'user-service': return '3001';
-      case 'work-order-service': return '3002';
-      case 'asset-service': return '3003';
-      default: return '3000';
+      case 'user-service': return '/users';
+      case 'work-order-service': return '/work-orders';
+      case 'asset-service': return '/assets';
+      default: return '';
     }
   }
   

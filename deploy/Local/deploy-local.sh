@@ -52,10 +52,10 @@ fi
 
 # 构建并启动服务
 echo "🔨 构建 Docker 镜像..."
-docker-compose build --no-cache
+docker-compose -f docker-compose.local.yml build --no-cache
 
 echo "🚀 启动所有服务..."
-docker-compose up -d
+docker-compose -f docker-compose.local.yml up -d
 
 # 等待服务启动
 echo "⏳ 等待服务启动..."
@@ -76,8 +76,8 @@ echo "   资产服务:        http://localhost:3003/health"
 echo "   Nginx 代理:      http://localhost/health"
 echo ""
 echo "🔍 查看日志:"
-echo "   所有服务:        docker-compose -f deploy/docker-compose.yml logs"
-echo "   特定服务:        docker-compose -f deploy/docker-compose.yml logs [service-name]"
+echo "   所有服务:        docker-compose -f docker-compose.local.yml logs"
+echo "   特定服务:        docker-compose -f docker-compose.local.yml logs [service-name]"
 echo ""
 echo "🛑 停止服务:"
-echo "   docker-compose -f deploy/docker-compose.yml down"
+echo "   docker-compose -f docker-compose.local.yml down"

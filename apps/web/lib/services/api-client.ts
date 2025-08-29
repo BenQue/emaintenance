@@ -1,6 +1,5 @@
 import { authService } from './auth-service';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+import { buildApiUrl } from '../config/api-config';
 
 export interface ApiResponse<T> {
   success: boolean;
@@ -27,12 +26,12 @@ interface RequestConfig extends RequestInit {
 }
 
 export class ApiClient {
-  private baseUrl: string;
   private timeout: number;
   private retries: number;
+  private service?: 'user' | 'workOrder' | 'asset';
 
-  constructor(baseUrl: string = API_BASE_URL, timeout: number = 10000, retries: number = 2) {
-    this.baseUrl = baseUrl;
+  constructor(service?: 'user' | 'workOrder' | 'asset', timeout: number = 10000, retries: number = 2) {
+    this.service = service;
     this.timeout = timeout;
     this.retries = retries;
   }
@@ -41,7 +40,7 @@ export class ApiClient {
     endpoint: string,
     options: RequestConfig = {}
   ): Promise<ApiResponse<T>> {
-    const url = `${this.baseUrl}${endpoint}`;
+    const url = buildApiUrl(endpoint, this.service);
     const { timeout = this.timeout, retries = this.retries, ...fetchOptions } = options;
     
     const defaultHeaders: HeadersInit = {
@@ -188,6 +187,9 @@ export class ApiRequestError extends Error {
     this.details = details;
   }
 }
+
+// Export default client for user service
+export const apiClient = new ApiClient('user');
 
 export class ApiAuthError extends Error {
   public status: number;

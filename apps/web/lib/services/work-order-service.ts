@@ -10,8 +10,7 @@ import {
   AssetMaintenanceHistory,
   Priority,
 } from '../types/work-order';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_WORK_ORDER_SERVICE_URL || 'http://localhost:3002';
+import { buildApiUrl, apiFetch } from '../config/api-config';
 
 export interface CreateWorkOrderData {
   assetId: string;
@@ -38,7 +37,8 @@ class WorkOrderService {
       throw new Error('认证token不存在，请重新登录');
     }
     
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const url = buildApiUrl(endpoint, 'workOrder');
+    const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
