@@ -196,7 +196,7 @@ class WorkOrderService {
 
   async getWorkOrderStatusHistory(id: string): Promise<WorkOrderStatusHistoryItem[]> {
     const response = await this.request<{ statusHistory: WorkOrderStatusHistoryItem[] }>(
-      `/api/work-orders/${id}/status-history`
+      `/api/work-orders/${id}/history`
     );
     return response.statusHistory;
   }
@@ -206,7 +206,7 @@ class WorkOrderService {
     statusUpdate: UpdateWorkOrderStatusRequest
   ): Promise<WorkOrder> {
     return this.request<WorkOrder>(`/api/work-orders/${id}/status`, {
-      method: 'PUT',
+      method: 'POST',
       body: JSON.stringify(statusUpdate),
     });
   }
