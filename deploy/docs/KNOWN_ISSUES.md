@@ -2,12 +2,12 @@
 
 ## 问题汇总 (2025年8月)
 
-**总计**: 19个已识别问题
-- ✅ **已完全修复**: 17个问题
+**总计**: 21个已识别问题
+- ✅ **已完全修复**: 19个问题
 - ⚠️ **临时修复**: 1个问题 (Nginx网络连接)
-- 📊 **影响最大**: Web前端API地址配置问题
+- 📊 **影响最大**: 前后端API路由不匹配问题
 
-**最新更新**: 2025-08-30 - 合并并统一问题文档
+**最新更新**: 2025-08-30 - 发现并修复前后端API路由不匹配问题
 
 ### 0. 系统设置API 404错误(本地开发环境) - 已解决
 **问题**: 系统设置页面功能完全无法使用
@@ -428,6 +428,62 @@ INSERT INTO users (name, email, role) VALUES (...);   -- ✅ 正确
 **影响文件**: `deploy/Server/database/manual-init.sh`
 **修复状态**: ✅ 已修复 (2025-08-26)
 
+---
+
+### 20. 工单状态更新前后端API路由不匹配 - 已解决
+**问题**: 工单状态更新功能完全失效，前端报告404错误
+```javascript
+PUT http://localhost/api/work-orders/wo005/status 404 (Not Found)
+```
+
+**根本原因**: 前后端API契约不一致
+- 前端调用: `PUT /api/work-orders/:id/status`
+- 后端路由: `POST /:id/status`  
+- HTTP方法不匹配导致路由无法找到
+
+**解决方案**: 修改前端HTTP方法与后端保持一致
+```typescript
+// apps/web/lib/services/work-order-service.ts
+// 修复前: method: 'PUT'
+// 修复后: method: 'POST'
+```
+
+**影响范围**: 
+- 工单状态更新功能完全失效
+- 用户无法完成工单处理流程
+- 影响核心业务功能体验
+
+**修复状态**: ✅ 已修复 (2025-08-30)
+**详细文档**: [API_ROUTE_MISMATCH_ISSUES.md](./API_ROUTE_MISMATCH_ISSUES.md)
+
+---
+
+### 21. 工单状态历史记录路由不匹配 - 已解决  
+**问题**: 工单状态更新后无法加载历史记录，显示"加载失败"
+```
+Route /api/work-orders/wo005/status-history not found
+```
+
+**根本原因**: 前后端路由路径命名不一致
+- 前端调用: `GET /api/work-orders/:id/status-history`
+- 后端路由: `GET /:id/history`
+- 路径命名规范不统一
+
+**解决方案**: 修改前端调用路径与后端路由匹配
+```typescript
+// apps/web/lib/services/work-order-service.ts  
+// 修复前: `/api/work-orders/${id}/status-history`
+// 修复后: `/api/work-orders/${id}/history`
+```
+
+**影响范围**:
+- 状态更新成功但历史记录加载失败
+- 用户无法查看工单处理历程
+- 影响工单跟踪和审计功能
+
+**修复状态**: ✅ 已修复 (2025-08-30)
+**详细文档**: [API_ROUTE_MISMATCH_ISSUES.md](./API_ROUTE_MISMATCH_ISSUES.md)
+
 ## 修复状态追踪
 
 | 问题 | 状态 | 修复文件 | 备注 |
@@ -451,6 +507,8 @@ INSERT INTO users (name, email, role) VALUES (...);   -- ✅ 正确
 | Nginx容器网络连接问题 | ⚠️ 临时修复 | 重启nginx容器 | 需要重启解决 |
 | Nginx代理不传递查询参数 | ✅ 已修复 | Local/configs/nginx.conf | 添加$is_args$args |
 | 数据库表名格式问题 | ✅ 已修复 | Server/database/manual-init.sh | PascalCase→snake_case |
+| 工单状态更新API方法不匹配 | ✅ 已修复 | apps/web/lib/services/work-order-service.ts | PUT→POST方法修正 |
+| 工单状态历史路由不匹配 | ✅ 已修复 | apps/web/lib/services/work-order-service.ts | status-history→history路径修正 |
 
 ## 预防措施
 

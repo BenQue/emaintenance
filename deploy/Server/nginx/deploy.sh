@@ -154,38 +154,38 @@ http {
         }
 
         # API 路由
-        location /api/auth {
-            proxy_pass http://user_service;
+        location ~ ^/api/auth(.*)$ {
+            proxy_pass http://user_service/api/auth$1$is_args$args;
             include /etc/nginx/proxy_params;
         }
 
-        location /api/users {
-            proxy_pass http://user_service;
+        location ~ ^/api/users(.*)$ {
+            proxy_pass http://user_service/api/users$1$is_args$args;
             include /etc/nginx/proxy_params;
         }
 
-        location /api/settings {
-            proxy_pass http://user_service;
+        location ~ ^/api/settings(.*)$ {
+            proxy_pass http://user_service/api/settings$1$is_args$args;
             include /etc/nginx/proxy_params;
         }
 
-        location /api/work-orders {
-            proxy_pass http://work_order_service;
+        location ~ ^/api/work-orders(.*)$ {
+            proxy_pass http://work_order_service/api/work-orders$1$is_args$args;
             include /etc/nginx/proxy_params;
         }
 
-        location /api/assignment-rules {
-            proxy_pass http://work_order_service;
+        location ~ ^/api/assignment-rules(.*)$ {
+            proxy_pass http://work_order_service/api/assignment-rules$1$is_args$args;
             include /etc/nginx/proxy_params;
         }
 
-        location /api/notifications {
-            proxy_pass http://work_order_service;
+        location ~ ^/api/notifications(.*)$ {
+            proxy_pass http://work_order_service/api/notifications$1$is_args$args;
             include /etc/nginx/proxy_params;
         }
 
-        location /api/assets {
-            proxy_pass http://asset_service;
+        location ~ ^/api/assets(.*)$ {
+            proxy_pass http://asset_service/api/assets$1$is_args$args;
             include /etc/nginx/proxy_params;
         }
 
