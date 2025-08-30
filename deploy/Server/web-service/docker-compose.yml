@@ -20,10 +20,14 @@ services:
       HOSTNAME: 0.0.0.0
       
       # 后端API服务URLs (浏览器端通过Nginx代理访问)
-      NEXT_PUBLIC_API_URL: http://localhost:3030
-      NEXT_PUBLIC_USER_SERVICE_URL: http://localhost:3030
-      NEXT_PUBLIC_WORK_ORDER_SERVICE_URL: http://localhost:3030
-      NEXT_PUBLIC_ASSET_SERVICE_URL: http://localhost:3030
+      # 使用空字符串让前端通过相对路径访问API，避免/api/api/重复
+      NEXT_PUBLIC_API_URL: ""
+      NEXT_PUBLIC_USER_SERVICE_URL: ""
+      NEXT_PUBLIC_WORK_ORDER_SERVICE_URL: ""
+      NEXT_PUBLIC_ASSET_SERVICE_URL: ""
+      
+      # Docker环境标识
+      RUNNING_IN_DOCKER: "true"
       
       # 内部服务通信URLs (用于服务端API调用)
       USER_SERVICE_URL: http://emaintenance-user-service:3001

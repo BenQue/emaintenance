@@ -324,6 +324,46 @@ docker exec emaintenance-nginx ping -c 2 emaintenance-user-service
 **影响服务**: nginx反向代理
 **影响功能**: 所有API路由(/api/auth, /api/users, /api/work-orders, /api/assets)
 
+---
+
+### 18. Nginx代理不传递查询参数导致筛选功能失效
+**问题**: 工单管理页面的筛选功能不起作用，所有筛选条件都返回相同结果
+```
+# 前端发送正确的API请求
+GET /api/work-orders?status=COMPLETED&page=1&limit=20
+
+# 但后端收到的是空参数
+Raw query: {}
+```
+
+**根本原因**: Nginx配置中的正则表达式只捕获路径部分，没有传递查询参数
+```nginx
+# 错误配置
+location ~ ^/api/work-orders(.*)$ {
+    proxy_pass http://work_order_service/api/work-orders$1;  # 缺少查询参数
+}
+```
+
+**解决方案**: 在proxy_pass指令中添加 `$is_args$args` 来传递查询参数
+```nginx
+# 正确配置
+location ~ ^/api/work-orders(.*)$ {
+    proxy_pass http://work_order_service/api/work-orders$1$is_args$args;
+}
+```
+
+**影响范围**: 
+- 所有使用查询参数的API端点
+- 工单筛选功能（状态、优先级、类别等）
+- 分页参数传递
+- 搜索功能
+
+**影响文件**: 
+- `deploy/Local/configs/nginx.conf`
+- `deploy/Server/nginx/deploy.sh` （服务器端配置）
+
+**修复状态**: ✅ 已修复（本地部署），⚠️ 需检查服务器端部署
+
 ## 修复状态追踪
 
 | 问题 | 状态 | 修复文件 | 备注 |
@@ -345,6 +385,7 @@ docker exec emaintenance-nginx ping -c 2 emaintenance-user-service
 | 资产服务健康检查端点路径 | ✅ 已修复 | asset-service/src/index.ts | /health路径修正 |
 | 工单分配API方法不匹配 | ✅ 已修复 | work-order-service/src/routes/workOrders.ts | PUT方法修正 |
 | Nginx容器网络连接问题 | ⚠️ 临时修复 | 重启nginx容器 | 需要重启解决 |
+| Nginx代理不传递查询参数 | ✅ 已修复 | Local/configs/nginx.conf | 添加$is_args$args |
 
 ## 预防措施
 

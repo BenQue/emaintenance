@@ -110,6 +110,10 @@ export class WorkOrderRepository {
   ): Promise<PaginatedWorkOrders> {
     const where: any = this.buildWhereClause(filters);
     const orderBy = this.buildOrderByClause(filters.sortBy, filters.sortOrder);
+    
+    console.log('WorkOrderRepository.findMany - Filters:', filters);
+    console.log('WorkOrderRepository.findMany - Where clause:', JSON.stringify(where, null, 2));
+    console.log('WorkOrderRepository.findMany - OrderBy:', orderBy);
 
     const [workOrders, total] = await Promise.all([
       this.prisma.workOrder.findMany({

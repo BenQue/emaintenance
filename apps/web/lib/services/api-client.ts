@@ -128,13 +128,13 @@ export class ApiClient {
   async get<T>(endpoint: string, params?: Record<string, any>, config?: RequestConfig): Promise<ApiResponse<T>> {
     let finalEndpoint = endpoint;
     if (params) {
-      const url = new URL(`${this.baseUrl}${endpoint}`);
+      const searchParams = new URLSearchParams();
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
-          url.searchParams.append(key, String(value));
+          searchParams.append(key, String(value));
         }
       });
-      finalEndpoint = url.pathname + url.search;
+      finalEndpoint = `${endpoint}?${searchParams.toString()}`;
     }
 
     return this.request(finalEndpoint, { ...config, method: 'GET' });
@@ -188,9 +188,6 @@ export class ApiRequestError extends Error {
   }
 }
 
-// Export default client for user service
-export const apiClient = new ApiClient('user');
-
 export class ApiAuthError extends Error {
   public status: number;
   public code?: string;
@@ -206,17 +203,11 @@ export class ApiAuthError extends Error {
 // Create API client instances for each microservice
 export const apiClient = new ApiClient();
 
-export const userServiceClient = new ApiClient(
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
-);
+export const userServiceClient = new ApiClient('user');
 
-export const workOrderServiceClient = new ApiClient(
-  process.env.NEXT_PUBLIC_WORK_ORDER_SERVICE_URL || 'http://localhost:3002'
-);
+export const workOrderServiceClient = new ApiClient('workOrder');
 
-export const assetServiceClient = new ApiClient(
-  process.env.NEXT_PUBLIC_ASSET_SERVICE_URL || 'http://localhost:3003'
-);
+export const assetServiceClient = new ApiClient('asset');
 
 export default apiClient;
 export type { RequestConfig };

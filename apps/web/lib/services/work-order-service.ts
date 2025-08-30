@@ -42,8 +42,12 @@ class WorkOrderService {
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
+        // 添加cache-control防止缓存问题
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
         ...options.headers,
       },
+      cache: 'no-store', // 防止浏览器缓存
       ...options,
     });
 
@@ -112,9 +116,10 @@ class WorkOrderService {
     queryParams.append('limit', limit.toString());
     
     const url = `/api/work-orders?${queryParams.toString()}`;
-    // Debug URL construction in development
-    if (process.env.NODE_ENV === 'development') {
-    }
+    // Debug URL construction
+    console.log('WorkOrderService.getAllWorkOrders - Input filters:', filters);
+    console.log('WorkOrderService.getAllWorkOrders - Query params:', queryParams.toString());
+    console.log('WorkOrderService.getAllWorkOrders - Final URL:', url);
     
     return this.request<PaginatedWorkOrders>(url);
   }
@@ -154,7 +159,8 @@ class WorkOrderService {
       });
 
       try {
-        const response = await fetch(`${API_BASE_URL}/api/work-orders`, {
+        const url = buildApiUrl('/work-orders', 'workOrder');
+        const response = await fetch(url, {
           method: 'POST',
           headers: {
             ...(token && { Authorization: `Bearer ${token}` }),
@@ -270,8 +276,9 @@ class WorkOrderService {
     });
 
     const token = localStorage.getItem('auth_token');
+    const url = buildApiUrl(`/work-orders/${id}/photos`, 'workOrder');
     
-    const response = await fetch(`${API_BASE_URL}/api/work-orders/${id}/photos`, {
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         ...(token && { Authorization: `Bearer ${token}` }),
@@ -419,8 +426,9 @@ class WorkOrderService {
     );
 
     const token = localStorage.getItem('auth_token');
+    const url = buildApiUrl(`/work-orders/export?${queryParams}`, 'workOrder');
     
-    const response = await fetch(`${API_BASE_URL}/api/work-orders/export?${queryParams}`, {
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         ...(token && { Authorization: `Bearer ${token}` }),
@@ -439,13 +447,13 @@ class WorkOrderService {
       ? contentDisposition.split('filename=')[1]?.replace(/"/g, '')
       : 'work-orders-export.csv';
 
-    const url = window.URL.createObjectURL(blob);
+    const downloadUrl = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url;
+    a.href = downloadUrl;
     a.download = filename;
     document.body.appendChild(a);
     a.click();
-    window.URL.revokeObjectURL(url);
+    window.URL.revokeObjectURL(downloadUrl);
     document.body.removeChild(a);
   }
 
@@ -462,11 +470,11 @@ class WorkOrderService {
   }
 
   getWorkOrderPhotoUrl(workOrderId: string, photoId: string): string {
-    return `${API_BASE_URL}/api/work-orders/${workOrderId}/work-order-photos/${photoId}`;
+    return buildApiUrl(`/work-orders/${workOrderId}/work-order-photos/${photoId}`, 'workOrder');
   }
 
   getWorkOrderPhotoThumbnailUrl(workOrderId: string, photoId: string): string {
-    return `${API_BASE_URL}/api/work-orders/${workOrderId}/work-order-photos/${photoId}/thumbnail`;
+    return buildApiUrl(`/work-orders/${workOrderId}/work-order-photos/${photoId}/thumbnail`, 'workOrder');
   }
 
   async deleteWorkOrder(id: string): Promise<void> {

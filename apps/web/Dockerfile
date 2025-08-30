@@ -31,7 +31,12 @@ RUN cd packages/database && npm run build
 # Generate Prisma client for web app
 RUN cd packages/database && npx prisma generate
 
-# Build Next.js application
+# Build Next.js application with correct environment variables
+ENV NEXT_PUBLIC_API_URL=""
+ENV NEXT_PUBLIC_USER_SERVICE_URL=""
+ENV NEXT_PUBLIC_WORK_ORDER_SERVICE_URL=""
+ENV NEXT_PUBLIC_ASSET_SERVICE_URL=""
+ENV RUNNING_IN_DOCKER="true"
 RUN cd apps/web && npm run build
 
 # Runtime stage

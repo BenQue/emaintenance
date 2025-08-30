@@ -1,185 +1,176 @@
-# E-Maintenance 服务器端部署方案 (v2.0)
+# E-Maintenance 服务端分模块部署工具
 
-本目录实现**模块化、可调试、分步骤**的服务器端部署策略。
+## 概述
 
-## 设计原则
+这套部署工具支持E-Maintenance系统的分模块更新，允许选择性更新特定模块，而不影响稳定运行的服务（如数据库）。
 
-### 🎯 核心理念
-- **分离关注点**: 每个服务独立部署，问题隔离
-- **可调试性**: 每步都可独立验证和调试  
-- **双模式支持**: 自动化脚本 + 手工操作
-- **渐进式部署**: 从基础设施到应用服务逐步构建
+## 🚀 核心特性
 
-### 📁 目录结构
+- **分模块更新**: 支持选择性更新web、微服务、nginx等模块
+- **智能依赖管理**: 自动处理模块间的依赖关系
+- **健康检查**: 自动验证服务更新后的运行状态
+- **一键回滚**: 支持快速回滚到任何历史版本
+- **实时监控**: 提供详细的服务状态监控
+- **安全更新**: 保护数据库等关键服务不被意外更新
+
+## 📁 文件结构
+
 ```
-Server/
-├── README.md                    # 本文件
-├── infrastructure/              # 基础设施服务 (PostgreSQL, Redis)
-│   ├── build.sh                # 构建基础设施镜像
-│   ├── deploy.sh               # 部署基础设施服务
-│   ├── manual-deploy.md        # 手工部署步骤
-│   ├── docker-compose.yml      # 基础设施服务配置
-│   └── health-check.sh         # 健康检查脚本
-├── database/                   # 数据库相关
-│   ├── init.sh                 # 数据库初始化
-│   ├── migrate.sh              # 数据库迁移
-│   ├── seed.sh                 # 数据填充
-│   └── backup.sh               # 数据备份
-├── user-service/               # 用户服务
-│   ├── build.sh                # 构建用户服务镜像
-│   ├── deploy.sh               # 部署用户服务
-│   ├── manual-deploy.md        # 手工部署指南
-│   ├── Dockerfile              # 服务专用 Dockerfile
-│   ├── docker-compose.yml      # 服务配置
-│   └── health-check.sh         # 健康检查
-├── work-order-service/         # 工单服务
-│   └── [同用户服务结构]
-├── asset-service/              # 资产服务  
-│   └── [同用户服务结构]
-├── web-service/                # Web 前端服务
-│   └── [同用户服务结构]
-├── nginx/                      # Nginx 反向代理
-│   ├── build.sh                # 构建 Nginx 配置
-│   ├── deploy.sh               # 部署 Nginx
-│   ├── configs/                # Nginx 配置文件
-│   │   ├── nginx.conf          # 主配置
-│   │   ├── upstream.conf       # 上游配置
-│   │   └── ssl.conf            # SSL 配置 (可选)
-│   └── manual-deploy.md
-├── monitoring/                 # 监控和日志
-│   ├── logs/                   # 日志收集配置
-│   ├── metrics/                # 指标收集
-│   └── health-dashboard.sh     # 健康检查仪表板
-└── scripts/                    # 全局脚本
-    ├── deploy-all.sh           # 全量部署脚本
-    ├── deploy-services.sh      # 仅部署应用服务
-    ├── clean-all.sh            # 清理脚本
-    ├── backup-all.sh           # 全系统备份
-    └── rollback.sh             # 回滚脚本
+deploy/Server/
+├── update-modules.sh      # 主要的分模块更新脚本
+├── quick-update.sh        # 快速更新命令
+├── rollback.sh           # 服务回滚脚本
+├── status.sh             # 服务状态监控
+├── module-config.sh      # 模块配置管理
+└── README.md            # 使用说明（本文件）
 ```
 
-## 🚀 部署流程
+## 🛠️ 使用方法
 
-### 阶段 1: 基础设施部署
+### 1. 分模块更新 (主要工具)
+
 ```bash
-# 自动化部署
-cd infrastructure && ./deploy.sh
+# 交互式选择更新模块
+./update-modules.sh
 
-# 手工部署 (问题调试时)
-cd infrastructure && cat manual-deploy.md
+# 选项说明：
+# a - 更新所有应用模块 (web + 所有微服务)
+# f - 仅更新前端 (web + nginx)  
+# s - 仅更新服务 (所有微服务)
+# c - 自定义选择特定模块
+# q - 退出
 ```
 
-### 阶段 2: 数据库初始化
+### 2. 快速更新 (便捷命令)
+
 ```bash
-cd database && ./init.sh
+# 更新前端相关组件
+./quick-update.sh frontend
+
+# 更新所有后端服务
+./quick-update.sh backend
+
+# 更新所有应用模块
+./quick-update.sh all
+
+# 只更新web应用
+./quick-update.sh web
+
+# 只更新特定微服务
+./quick-update.sh user          # 用户服务
+./quick-update.sh workorder     # 工单服务  
+./quick-update.sh asset         # 资产服务
+./quick-update.sh nginx         # Nginx代理
 ```
 
-### 阶段 3: 微服务部署 (按依赖顺序)
+### 3. 服务回滚
+
 ```bash
-# 1. 用户服务 (基础服务)
-cd user-service && ./deploy.sh
+# 启动回滚向导
+./rollback.sh
 
-# 2. 工单服务 (依赖用户服务)
-cd work-order-service && ./deploy.sh
-
-# 3. 资产服务 (独立服务)
-cd asset-service && ./deploy.sh
+# 回滚选项：
+# 1) 回滚到上一个版本
+# 2) 选择特定历史版本
+# 3) 手动指定版本标签
 ```
 
-### 阶段 4: 前端和代理
+### 4. 状态监控
+
 ```bash
-# Web 服务
-cd web-service && ./deploy.sh
+# 完整状态报告
+./status.sh
 
-# Nginx 代理
-cd nginx && ./deploy.sh
+# 快速健康检查
+./status.sh quick
+
+# 查看特定信息
+./status.sh containers    # 容器状态
+./status.sh health        # 健康检查详情  
+./status.sh resources     # 资源使用情况
+./status.sh network       # 网络状态
+./status.sh logs          # 最近错误日志
+./status.sh version       # 版本信息
 ```
 
-## 🛠 故障排查
+## 📋 可更新模块
 
-### 分层诊断策略
-1. **基础设施层**: 检查 PostgreSQL, Redis 连接
-2. **网络层**: 验证容器间网络通信
-3. **服务层**: 逐个验证微服务健康状态
-4. **代理层**: 检查 Nginx 配置和路由
+### 应用模块（推荐更新）
+- **web**: Next.js前端应用
+- **user-service**: 用户服务（认证/用户管理）
+- **work-order-service**: 工单服务（工单管理）
+- **asset-service**: 资产服务（设备管理）
+- **nginx**: Nginx反向代理
 
-### 常用调试命令
+### 基础设施模块（建议保持稳定）
+- **postgres**: PostgreSQL数据库 ⚠️ 通常不需要更新
+- **redis**: Redis缓存服务 ⚠️ 通常不需要更新
+
+## 🔄 典型更新场景
+
+### 场景1: 前端功能更新
+只修改了前端代码，需要更新web应用和nginx配置：
 ```bash
-# 查看特定服务状态
-cd [service-directory] && ./health-check.sh
-
-# 查看服务日志
-docker-compose logs [service-name]
-
-# 进入服务容器调试
-docker-compose exec [service-name] /bin/bash
+./quick-update.sh frontend
 ```
 
-### 常见问题和解决方案
-
-#### 🔄 Redis配置错误
-**问题**: Redis 7.4.5 启动失败，报错 `Bad directive or wrong number of arguments` at line 6 `keepalive 60`
-
-**解决方案**:
+### 场景2: 后端API更新
+修改了微服务代码，需要更新所有API服务：
 ```bash
-# 1. 检查错误日志
-docker-compose logs redis
-
-# 2. 修复配置文件 (已在最新版本修复)
-sed -i 's/keepalive 60/tcp-keepalive 60/g' redis.conf
-
-# 3. 重启Redis
-docker-compose restart redis
-
-# 4. 验证修复
-docker exec emaintenance-redis redis-cli ping
+./quick-update.sh backend
 ```
 
-#### 🔌 端口冲突处理
-**问题**: 端口 5432, 6379, 3000 被现有服务占用
-
-**解决方案**:
+### 场景3: 全系统更新
+大版本更新，需要更新所有应用模块：
 ```bash
-# 1. 运行安全检查
-cd deploy/Server/scripts/ && ./docker-safety-check.sh
-
-# 2. 使用替代端口 (已在配置中设置)
-# PostgreSQL: 5432 → 5433
-# Redis: 6379 → 6380
-# Web应用: 通过Nginx代理访问，无冲突
-
-# 3. 在.env文件中确认端口配置
-grep -E "(POSTGRES_PORT|REDIS_PORT|NGINX_HTTP_PORT)" .env
+./quick-update.sh all
 ```
 
-## 🔧 手工部署支持
+### 场景4: 单个服务热修复
+紧急修复工单服务的bug：
+```bash
+./quick-update.sh workorder
+```
 
-每个服务目录都包含 `manual-deploy.md` 文件，提供：
-- 详细的手工部署步骤
-- 常见问题的解决方案
-- 配置参数说明
-- 验证检查清单
+## ⚡ 更新流程
 
-## 🎯 优势对比
+1. **检查Git状态**: 确保代码已提交
+2. **模块选择**: 选择需要更新的模块
+3. **构建镜像**: 为选中模块构建新的Docker镜像
+4. **滚动更新**: 逐个重启选中的服务
+5. **健康检查**: 验证服务更新后的运行状态
+6. **完成报告**: 显示更新结果和访问信息
 
-| 特性 | 旧方案 | 新方案 |
-|------|--------|--------|
-| 问题隔离 | ❌ 单体脚本，难以定位 | ✅ 服务级别隔离 |
-| 调试能力 | ❌ 黑盒部署，难以调试 | ✅ 每步可验证 |
-| 回滚机制 | ❌ 全量重新部署 | ✅ 服务级别回滚 |
-| 文档完整性 | ❌ 分散的修复脚本 | ✅ 结构化文档 |
-| 部署速度 | ❌ 失败后全部重来 | ✅ 增量部署和修复 |
+## 🛡️ 安全特性
 
-## 📋 部署前检查清单
+- **自动备份**: 更新前自动备份环境配置
+- **依赖检查**: 验证模块依赖关系
+- **健康验证**: 确保服务更新后正常运行
+- **原子操作**: 更新失败时自动回滚
+- **权限保护**: 防止意外更新关键基础设施
 
-- [ ] 服务器环境准备 (Docker, Docker Compose)
-- [ ] 网络端口开放 (80, 443, 5432, 6380, 3001-3003)
-- [ ] 磁盘空间检查 (至少 20GB 可用)
-- [ ] 环境变量配置完成
-- [ ] SSH 密钥和访问权限确认
+## 🚨 注意事项
 
-使用此新架构，您可以：
-1. **逐步部署**: 从基础设施开始，逐层构建
-2. **精确调试**: 任何环节出问题都可以单独修复
-3. **快速恢复**: 单个服务问题不影响整体系统
-4. **持续改进**: 每个服务独立优化和升级
+1. **数据库更新**: 数据库模块默认被保护，避免意外更新导致数据丢失
+2. **并发更新**: 避免同时运行多个更新脚本
+3. **磁盘空间**: 确保有足够空间存储新的Docker镜像
+4. **网络要求**: 更新过程中需要stable的网络连接
+5. **备份策略**: 重要更新前建议手动备份数据库
+
+## 🎯 快速开始
+
+```bash
+# 1. 检查当前系统状态
+./status.sh quick
+
+# 2. 更新前端应用
+./quick-update.sh frontend
+
+# 3. 验证更新结果
+./status.sh health
+
+# 4. 如有问题，立即回滚
+./rollback.sh
+```
+
+**祝您使用愉快！** 🚀

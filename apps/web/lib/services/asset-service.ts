@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_ASSET_SERVICE_URL || 'http://localhost:3003';
+import { buildApiUrl } from '../config/api-config';
 
 export interface Asset {
   id: string;
@@ -59,8 +59,9 @@ class AssetService {
     options: RequestInit = {}
   ): Promise<T> {
     const token = localStorage.getItem('auth_token');
+    const url = buildApiUrl(endpoint, 'asset');
     
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
         ...(token && { Authorization: `Bearer ${token}` }),
@@ -92,8 +93,9 @@ class AssetService {
   async getAllAssets(filters: AssetFilters = {}): Promise<PaginatedAssets> {
     const queryParams = this.buildQueryParams(filters);
     const token = localStorage.getItem('auth_token');
+    const url = buildApiUrl(`/assets?${queryParams}`, 'asset');
     
-    const response = await fetch(`${API_BASE_URL}/api/assets?${queryParams}`, {
+    const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
         ...(token && { Authorization: `Bearer ${token}` }),
@@ -187,8 +189,9 @@ class AssetService {
 
   async getAssetStats(): Promise<AssetStats> {
     const token = localStorage.getItem('auth_token');
+    const url = buildApiUrl('/assets/stats', 'asset');
     
-    const response = await fetch(`${API_BASE_URL}/api/assets/stats`, {
+    const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
         ...(token && { Authorization: `Bearer ${token}` }),
@@ -206,8 +209,9 @@ class AssetService {
 
   async getLocations(): Promise<{ locations: string[] }> {
     const token = localStorage.getItem('auth_token');
+    const url = buildApiUrl('/assets/locations', 'asset');
     
-    const response = await fetch(`${API_BASE_URL}/api/assets/locations`, {
+    const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
         ...(token && { Authorization: `Bearer ${token}` }),

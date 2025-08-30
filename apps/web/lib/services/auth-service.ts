@@ -1,3 +1,5 @@
+import { buildApiUrl } from '../config/api-config';
+
 interface LoginRequest {
   identifier: string; // Changed from emailOrUsername to match backend
   password: string;
@@ -22,11 +24,11 @@ interface AuthError {
 }
 
 class AuthService {
-  private baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/auth/login`, {
+      const url = buildApiUrl('/auth/login', 'user');
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -103,7 +105,8 @@ class AuthService {
       const token = this.getToken();
       if (!token) return false;
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/auth/validate`, {
+      const url = buildApiUrl('/auth/validate', 'user');
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -141,7 +144,8 @@ class AuthService {
     }
 
     try {
-      const response = await fetch(`${this.baseUrl}/api/auth/profile`, {
+      const url = buildApiUrl('/auth/profile', 'user');
+      const response = await fetch(url, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,

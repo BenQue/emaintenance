@@ -195,6 +195,33 @@ docker-compose -p custom-port -f docker-compose.yml up -d
 
 ## 故障排除
 
+### Web端API路径重复错误（/api/api/）
+
+**症状**：浏览器控制台出现 404 错误，路径包含重复的 `/api/api/` 段
+- `GET http://localhost/api/api/notifications/my/stats 404 (Not Found)`
+- `GET http://localhost/api/api/work-orders/filter-options 404 (Not Found)`
+
+**根本原因**：
+1. `buildApiUrl` 函数在已包含 `/api/` 的路径前重复添加 `/api` 前缀
+2. Docker构建时环境变量配置不正确，导致静态优化使用错误的API配置
+
+**解决方案**：
+```bash
+# 方案1：使用修复后的配置重新构建
+cd deploy/Local
+docker-compose -f docker-compose.local.yml build --no-cache web
+docker-compose -f docker-compose.local.yml up -d web
+
+# 方案2：检查API路径构建逻辑
+# 确认 apps/web/lib/config/api-config.ts 中的 buildApiUrl 函数
+# 包含路径检测逻辑：normalizedPath.startsWith('/api')
+```
+
+**技术修复要点**：
+1. 修改 `buildApiUrl` 函数，检测路径是否已包含 `/api` 前缀
+2. Docker构建时正确设置环境变量：`ENV RUNNING_IN_DOCKER="true"`
+3. 确保nginx代理配置与API路径构建逻辑一致
+
 ### Web端API 404错误
 
 **症状**：工单创建、状态更新等操作返回404
@@ -317,6 +344,32 @@ MOBILE_API_PROTOCOL=https
 - 位置：`apps/web/lib/config/api-config.ts`
 - 功能：统一的API端点管理和动态路由
 - 特性：环境检测、自动代理、错误处理
+
+#### 核心修复：智能路径处理
+```typescript
+// 修复前：总是添加 /api 前缀，导致路径重复
+return `/api${normalizedPath}`;  // 结果：/api/api/notifications
+
+// 修复后：检测路径是否已包含 /api 前缀
+return normalizedPath.startsWith('/api') ? normalizedPath : `/api${normalizedPath}`;
+```
+
+#### buildApiUrl函数优化要点：
+1. **路径标准化**：确保路径以 `/` 开头
+2. **重复检测**：避免 `/api/api/` 路径重复
+3. **环境适配**：Docker vs 本地开发环境的不同处理
+4. **服务识别**：根据路径自动识别目标微服务
+
+#### Docker构建优化：
+```dockerfile
+# 关键修复：构建时设置正确的环境变量
+ENV NEXT_PUBLIC_API_URL=""
+ENV NEXT_PUBLIC_USER_SERVICE_URL=""
+ENV NEXT_PUBLIC_WORK_ORDER_SERVICE_URL=""
+ENV NEXT_PUBLIC_ASSET_SERVICE_URL=""
+ENV RUNNING_IN_DOCKER="true"
+RUN cd apps/web && npm run build
+```
 
 ### 移动端灵活配置
 - 位置：`apps/mobile/lib/shared/config/environment_flexible.dart`

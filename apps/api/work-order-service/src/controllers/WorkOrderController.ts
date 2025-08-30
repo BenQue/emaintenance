@@ -132,6 +132,10 @@ export class WorkOrderController {
   getWorkOrders = asyncHandler(async (req: Request, res: Response) => {
     const queryParams = WorkOrderQuerySchema.parse(req.query);
     
+    // Debug log to see what parameters are received
+    console.log('WorkOrderController.getWorkOrders - Raw query:', req.query);
+    console.log('WorkOrderController.getWorkOrders - Parsed query:', queryParams);
+    
     // Handle backward compatibility for ACTIVE status
     let statusFilter = queryParams.status;
     if (queryParams.status === 'ACTIVE') {
@@ -151,6 +155,8 @@ export class WorkOrderController {
       sortBy: queryParams.sortBy,
       sortOrder: queryParams.sortOrder,
     };
+    
+    console.log('WorkOrderController.getWorkOrders - Applied filters:', filters);
 
     const result = await this.workOrderService.getWorkOrders(
       filters,

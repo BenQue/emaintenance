@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { useWorkOrderStore } from '../../lib/stores/work-order-store';
 import { PhotoViewModal } from './PhotoViewModal';
+import { buildApiUrl } from '../../lib/config/api-config';
 
 interface WorkOrderPhoto {
   id: string;
@@ -151,14 +152,12 @@ export function WorkOrderPhotos({ workOrderId, attachments = [] }: WorkOrderPhot
 
   // Helper functions for managed photos (WorkOrderPhoto table)
   const getManagedPhotoUrl = (photo: WorkOrderPhoto) => {
-    const baseUrl = process.env.NEXT_PUBLIC_WORK_ORDER_SERVICE_URL || 'http://localhost:3002';
-    return `${baseUrl}/api/work-orders/${workOrderId}/work-order-photos/${photo.id}`;
+    return buildApiUrl(`/work-orders/${workOrderId}/work-order-photos/${photo.id}`, 'workOrder');
   };
 
   const getManagedThumbnailUrl = (photo: WorkOrderPhoto) => {
-    const baseUrl = process.env.NEXT_PUBLIC_WORK_ORDER_SERVICE_URL || 'http://localhost:3002';
     return photo.thumbnailPath 
-      ? `${baseUrl}/api/work-orders/${workOrderId}/work-order-photos/${photo.id}/thumbnail`
+      ? buildApiUrl(`/work-orders/${workOrderId}/work-order-photos/${photo.id}/thumbnail`, 'workOrder')
       : getManagedPhotoUrl(photo);
   };
 
@@ -178,9 +177,9 @@ export function WorkOrderPhotos({ workOrderId, attachments = [] }: WorkOrderPhot
       return null; // Return null for invalid paths
     }
     
-    // If it's a relative path, prepend the work order service base URL
-    const baseUrl = process.env.NEXT_PUBLIC_WORK_ORDER_SERVICE_URL || 'http://localhost:3002';
-    return `${baseUrl}${attachmentUrl.startsWith('/') ? '' : '/'}${attachmentUrl}`;
+    // If it's a relative path, build URL using the API configuration
+    const normalizedPath = attachmentUrl.startsWith('/') ? attachmentUrl : `/${attachmentUrl}`;
+    return buildApiUrl(normalizedPath, 'workOrder');
   };
 
   const downloadManagedPhoto = async (photo: WorkOrderPhoto) => {

@@ -1,4 +1,3 @@
-version: '3.8'
 
 networks:
   emaintenance-network:
@@ -49,7 +48,7 @@ services:
   # User Service
   user-service:
     build:
-      context: ..
+      context: ../..
       dockerfile: apps/api/user-service/Dockerfile
       args:
         SERVICE_NAME: user-service
@@ -78,7 +77,7 @@ services:
   # Work Order Service
   work-order-service:
     build:
-      context: ..
+      context: ../..
       dockerfile: apps/api/work-order-service/Dockerfile
       args:
         SERVICE_NAME: work-order-service
@@ -112,7 +111,7 @@ services:
   # Asset Service
   asset-service:
     build:
-      context: ..
+      context: ../..
       dockerfile: apps/api/asset-service/Dockerfile
       args:
         SERVICE_NAME: asset-service
@@ -144,23 +143,22 @@ services:
   # Web Application
   web:
     build:
-      context: ..
+      context: ../..
       dockerfile: apps/web/Dockerfile
     container_name: emaintenance-web
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost
-      NEXT_PUBLIC_USER_SERVICE_URL: http://localhost
-      NEXT_PUBLIC_WORK_ORDER_SERVICE_URL: http://localhost
-      NEXT_PUBLIC_ASSET_SERVICE_URL: http://localhost
+      NEXT_PUBLIC_API_URL: ""
+      NEXT_PUBLIC_USER_SERVICE_URL: ""
+      NEXT_PUBLIC_WORK_ORDER_SERVICE_URL: ""
+      NEXT_PUBLIC_ASSET_SERVICE_URL: ""
       NODE_ENV: development
+      RUNNING_IN_DOCKER: "true"
     ports:
       - "3000:3000"
     depends_on:
       user-service:
         condition: service_healthy
       work-order-service:
-        condition: service_healthy
-      asset-service:
         condition: service_healthy
     networks:
       - emaintenance-network

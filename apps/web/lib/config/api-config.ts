@@ -28,8 +28,33 @@ function detectEnvironment(): {
   isBrowser: boolean;
 } {
   const isBrowser = typeof window !== 'undefined';
-  const isDocker = process.env.RUNNING_IN_DOCKER === 'true';
   const isProduction = process.env.NODE_ENV === 'production';
+  
+  // 多种方式检测Docker环境
+  let isDocker = Boolean(
+    // 1. 显式Docker标识
+    process.env.RUNNING_IN_DOCKER === 'true' ||
+    process.env.NEXT_PUBLIC_IS_DOCKER === 'true' ||
+    // 2. 检查环境变量是否为空（Docker部署的信号）
+    (process.env.NEXT_PUBLIC_API_URL === '' &&
+     process.env.NEXT_PUBLIC_USER_SERVICE_URL === '' &&
+     process.env.NEXT_PUBLIC_WORK_ORDER_SERVICE_URL === '') ||
+    // 3. 检查容器运行环境
+    process.env.DOCKER_CONTAINER === 'true' ||
+    // 4. 检查hostname是否为容器ID格式
+    (typeof process !== 'undefined' && 
+     process.env.HOSTNAME && 
+     /^[0-9a-f]{12}$/.test(process.env.HOSTNAME))
+  );
+  
+  // 5. 浏览器端特殊检测：如果通过localhost访问且端口为80，很可能是Docker+Nginx
+  if (isBrowser && !isDocker) {
+    const currentUrl = window.location;
+    if (currentUrl.hostname === 'localhost' && 
+        (currentUrl.port === '80' || currentUrl.port === '')) {
+      isDocker = true;
+    }
+  }
   
   return { isDocker, isProduction, isBrowser };
 }
@@ -75,9 +100,19 @@ function buildServiceUrl(service: string, port?: number): string {
   const baseUrl = getBaseUrl();
   const { isBrowser, isDocker } = detectEnvironment();
   
-  // 如果使用相对路径或Nginx代理，直接返回API路径
-  if (!baseUrl || baseUrl === 'http://nginx' || isDocker) {
+  // Docker环境下的浏览器端：使用空字符串（通过Nginx相对路径）
+  if (isDocker && isBrowser && (!baseUrl || baseUrl === '')) {
     return '';
+  }
+  
+  // Docker环境下的服务器端：使用Nginx网关
+  if (isDocker && !isBrowser) {
+    return 'http://nginx';
+  }
+  
+  // 本地开发环境：如果没有baseUrl，使用localhost
+  if (!baseUrl) {
+    return port ? `http://localhost:${port}` : 'http://localhost';
   }
   
   // 如果是完整的URL（包含端口），直接使用
@@ -97,7 +132,21 @@ function getServiceUrls(): {
   workOrderService: string;
   assetService: string;
 } {
-  // 优先使用环境变量
+  const { isDocker } = detectEnvironment();
+  
+  // Docker环境中，如果环境变量为空字符串，应该使用空字符串而不是回退到端口URL
+  if (isDocker && 
+      process.env.NEXT_PUBLIC_USER_SERVICE_URL === '' &&
+      process.env.NEXT_PUBLIC_WORK_ORDER_SERVICE_URL === '' &&
+      process.env.NEXT_PUBLIC_ASSET_SERVICE_URL === '') {
+    return {
+      userService: '',
+      workOrderService: '',
+      assetService: '',
+    };
+  }
+  
+  // 否则使用环境变量或构建服务URL
   const userServiceUrl = process.env.NEXT_PUBLIC_USER_SERVICE_URL || 
     buildServiceUrl('user-service', 3001);
   const workOrderServiceUrl = process.env.NEXT_PUBLIC_WORK_ORDER_SERVICE_URL || 
@@ -117,11 +166,12 @@ function getServiceUrls(): {
  */
 export function buildApiUrl(path: string, service?: 'user' | 'workOrder' | 'asset'): string {
   const { userService, workOrderService, assetService } = getServiceUrls();
+  const { isDocker, isBrowser } = detectEnvironment();
   
   // 确保路径以 / 开头
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   
-  // 如果没有基础URL，使用相对路径
+  // 获取对应服务的基础URL
   let baseUrl = '';
   
   switch (service) {
@@ -144,15 +194,33 @@ export function buildApiUrl(path: string, service?: 'user' | 'workOrder' | 'asse
         baseUrl = workOrderService;
       } else if (normalizedPath.includes('/assets')) {
         baseUrl = assetService;
+      } else {
+        // 默认使用用户服务
+        baseUrl = userService;
       }
   }
   
-  // 如果基础URL为空，返回相对路径（将通过Nginx代理）
-  if (!baseUrl) {
-    return `/api${normalizedPath}`;
+  // Docker浏览器环境：使用相对路径通过Nginx代理
+  if (isDocker && isBrowser && (!baseUrl || baseUrl === '')) {
+    // 如果路径已经以/api开头，直接返回，否则添加/api前缀
+    return normalizedPath.startsWith('/api') ? normalizedPath : `/api${normalizedPath}`;
   }
   
-  // 构建完整URL
+  // 如果基础URL为空，使用相对路径
+  if (!baseUrl) {
+    // 如果路径已经以/api开头，直接返回，否则添加/api前缀
+    return normalizedPath.startsWith('/api') ? normalizedPath : `/api${normalizedPath}`;
+  }
+  
+  // 如果baseUrl已经包含/api，不要重复添加
+  if (baseUrl.endsWith('/api')) {
+    return `${baseUrl}${normalizedPath}`;
+  }
+  
+  // 构建完整URL - 如果路径已经以/api开头，不要重复添加
+  if (normalizedPath.startsWith('/api')) {
+    return `${baseUrl}${normalizedPath}`;
+  }
   return `${baseUrl}/api${normalizedPath}`;
 }
 
@@ -193,10 +261,24 @@ export async function apiFetch<T = any>(
     ? localStorage.getItem('token') 
     : null;
   
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options?.headers,
   };
+
+  // 安全地合并headers
+  if (options?.headers) {
+    if (options.headers instanceof Headers) {
+      options.headers.forEach((value, key) => {
+        headers[key] = value;
+      });
+    } else if (typeof options.headers === 'object') {
+      Object.entries(options.headers).forEach(([key, value]) => {
+        if (typeof value === 'string') {
+          headers[key] = value;
+        }
+      });
+    }
+  }
   
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
