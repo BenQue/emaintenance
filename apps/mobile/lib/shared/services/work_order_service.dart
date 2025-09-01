@@ -29,7 +29,7 @@ class WorkOrderService {
       }
       
       final response = await _apiClient!.post<Map<String, dynamic>>(
-        '/api/work-orders',
+        '/work-order-service/api/work-orders',
         data: request.toJson(),
       );
 

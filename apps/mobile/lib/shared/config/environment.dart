@@ -2,8 +2,8 @@ class Environment {
   // 开发环境 - 本机开发服务器  
   static const String _devBaseUrl = 'http://localhost'; // 本机开发环境
   
-  // 生产环境 - 生产服务器地址
-  static const String _prodBaseUrl = 'http://10.163.144.13'; // 生产服务器地址
+  // 生产环境 - 生产服务器地址（Nginx 代理端口 3030）
+  static const String _prodBaseUrl = 'http://10.163.144.13:3030'; // 生产服务器地址
   
   // 自动检测环境：Release构建时自动使用生产环境
   static bool get isDevelopment {

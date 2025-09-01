@@ -21,7 +21,7 @@ class AuthService {
     final loginRequest = LoginRequest(identifier: identifier, password: password);
     
     final response = await _apiClient.post<Map<String, dynamic>>(
-      '/api/auth/login',
+      '/user-service/api/auth/login',
       data: loginRequest.toJson(),
     );
     
@@ -52,7 +52,7 @@ class AuthService {
   
   Future<User?> getCurrentUser() async {
     try {
-      final response = await _apiClient.get<Map<String, dynamic>>('/api/auth/me');
+      final response = await _apiClient.get<Map<String, dynamic>>('/user-service/api/auth/me');
       
       if (response.data == null) {
         return null;
@@ -68,7 +68,7 @@ class AuthService {
   
   Future<bool> refreshToken() async {
     try {
-      final response = await _apiClient.post<Map<String, dynamic>>('/api/auth/refresh');
+      final response = await _apiClient.post<Map<String, dynamic>>('/user-service/api/auth/refresh');
       
       if (response.data == null) {
         return false;

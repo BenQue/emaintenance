@@ -33,9 +33,32 @@ class ApiClient {
         if (token != null) {
           options.headers['Authorization'] = 'Bearer $token';
         }
+        // Debug logging
+        print('🔵 REQUEST: ${options.method} ${options.baseUrl}${options.path}');
+        print('🔵 Headers: ${options.headers}');
+        if (options.data != null) {
+          print('🔵 Data: ${options.data}');
+        }
         handler.next(options);
       },
+      onResponse: (response, handler) async {
+        // Debug logging for responses
+        print('🟢 RESPONSE: ${response.statusCode}');
+        print('🟢 URL: ${response.requestOptions.baseUrl}${response.requestOptions.path}');
+        print('🟢 Data: ${response.data}');
+        handler.next(response);
+      },
       onError: (error, handler) async {
+        // Debug logging
+        print('🔴 ERROR: ${error.type}');
+        print('🔴 Message: ${error.message}');
+        print('🔴 URL: ${error.requestOptions.baseUrl}${error.requestOptions.path}');
+        if (error.response != null) {
+          print('🔴 Status: ${error.response?.statusCode}');
+          print('🔴 Response: ${error.response?.data}');
+        } else {
+          print('🔴 No response received - timeout or connection error');
+        }
         // Handle 401 unauthorized errors
         if (error.response?.statusCode == 401) {
           await clearToken();
@@ -58,20 +81,21 @@ class ApiClient {
   // 为不同服务创建特定的客户端实例（支持灵活配置）
   static Future<ApiClient> getUserServiceClient() async {
     final baseUrl = await FlexibleEnvironment.getBaseUrl();
-    final port = FlexibleEnvironment.isDevelopment ? ':3001' : '/user-service';
-    return await getInstance(baseUrl: '$baseUrl$port');
+    // 在生产环境中，基础 URL 已经包含端口（10.163.144.13:3030）
+    // 所以直接使用基础 URL，不需要额外添加服务路径
+    return await getInstance(baseUrl: baseUrl);
   }
   
   static Future<ApiClient> getWorkOrderServiceClient() async {
     final baseUrl = await FlexibleEnvironment.getBaseUrl();
-    final port = FlexibleEnvironment.isDevelopment ? ':3002' : '/work-order-service';
-    return await getInstance(baseUrl: '$baseUrl$port');
+    // 同上，使用统一的基础 URL
+    return await getInstance(baseUrl: baseUrl);
   }
   
   static Future<ApiClient> getAssetServiceClient() async {
     final baseUrl = await FlexibleEnvironment.getBaseUrl();
-    final port = FlexibleEnvironment.isDevelopment ? ':3003' : '/asset-service';
-    return await getInstance(baseUrl: '$baseUrl$port');
+    // 同上，使用统一的基础 URL
+    return await getInstance(baseUrl: baseUrl);
   }
   
   Future<String?> getToken() async {

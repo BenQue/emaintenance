@@ -120,3 +120,4 @@ docker-data/
 
 # Build metadata
 build-info.json
+*.apk

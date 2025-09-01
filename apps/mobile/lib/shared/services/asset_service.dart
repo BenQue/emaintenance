@@ -208,7 +208,7 @@ class AssetService {
     }
     
     final response = await _apiClient.get<Map<String, dynamic>>(
-      '/api/assets',
+      '/asset-service/api/assets',
       queryParameters: queryParameters,
     );
     
