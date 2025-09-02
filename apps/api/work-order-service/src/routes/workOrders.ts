@@ -163,6 +163,19 @@ export const createWorkOrderRoutes = (prisma: PrismaClient) => {
     workOrderController.uploadWorkOrderPhotos.bind(workOrderController)
   );
 
+  // Individual photo display routes
+  router.get('/:id/work-order-photos/:photoId', 
+    authorize(UserRole.EMPLOYEE, UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
+    checkWorkOrderAccess(prisma),
+    workOrderController.getWorkOrderPhoto.bind(workOrderController)
+  );
+
+  router.get('/:id/work-order-photos/:photoId/thumbnail', 
+    authorize(UserRole.EMPLOYEE, UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
+    checkWorkOrderAccess(prisma),
+    workOrderController.getWorkOrderPhotoThumbnail.bind(workOrderController)
+  );
+
   return router;
 };
 

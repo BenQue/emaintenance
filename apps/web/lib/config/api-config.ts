@@ -202,14 +202,72 @@ export function buildApiUrl(path: string, service?: 'user' | 'workOrder' | 'asse
   
   // Docker浏览器环境：使用相对路径通过Nginx代理
   if (isDocker && isBrowser && (!baseUrl || baseUrl === '')) {
-    // 如果路径已经以/api开头，直接返回，否则添加/api前缀
-    return normalizedPath.startsWith('/api') ? normalizedPath : `/api${normalizedPath}`;
+    // 根据服务类型添加正确的服务前缀
+    let servicePrefix = '';
+    switch (service) {
+      case 'user':
+        servicePrefix = '/user-service';
+        break;
+      case 'workOrder':
+        servicePrefix = '/work-order-service';
+        break;
+      case 'asset':
+        servicePrefix = '/asset-service';
+        break;
+      default:
+        // 根据路径自动判断服务前缀
+        if (normalizedPath.includes('/auth') || normalizedPath.includes('/users')) {
+          servicePrefix = '/user-service';
+        } else if (normalizedPath.includes('/work-orders') || 
+                   normalizedPath.includes('/notifications') || 
+                   normalizedPath.includes('/assignment-rules')) {
+          servicePrefix = '/work-order-service';
+        } else if (normalizedPath.includes('/assets')) {
+          servicePrefix = '/asset-service';
+        } else {
+          servicePrefix = '/user-service'; // 默认用户服务
+        }
+    }
+    
+    // 构建完整路径：服务前缀 + /api + 路径
+    return normalizedPath.startsWith('/api') ? 
+      `${servicePrefix}${normalizedPath}` : 
+      `${servicePrefix}/api${normalizedPath}`;
   }
   
   // 如果基础URL为空，使用相对路径
   if (!baseUrl) {
-    // 如果路径已经以/api开头，直接返回，否则添加/api前缀
-    return normalizedPath.startsWith('/api') ? normalizedPath : `/api${normalizedPath}`;
+    // 根据服务类型添加正确的服务前缀
+    let servicePrefix = '';
+    switch (service) {
+      case 'user':
+        servicePrefix = '/user-service';
+        break;
+      case 'workOrder':
+        servicePrefix = '/work-order-service';
+        break;
+      case 'asset':
+        servicePrefix = '/asset-service';
+        break;
+      default:
+        // 根据路径自动判断服务前缀
+        if (normalizedPath.includes('/auth') || normalizedPath.includes('/users')) {
+          servicePrefix = '/user-service';
+        } else if (normalizedPath.includes('/work-orders') || 
+                   normalizedPath.includes('/notifications') || 
+                   normalizedPath.includes('/assignment-rules')) {
+          servicePrefix = '/work-order-service';
+        } else if (normalizedPath.includes('/assets')) {
+          servicePrefix = '/asset-service';
+        } else {
+          servicePrefix = '/user-service'; // 默认用户服务
+        }
+    }
+    
+    // 构建完整路径：服务前缀 + /api + 路径
+    return normalizedPath.startsWith('/api') ? 
+      `${servicePrefix}${normalizedPath}` : 
+      `${servicePrefix}/api${normalizedPath}`;
   }
   
   // 如果baseUrl已经包含/api，不要重复添加
