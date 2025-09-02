@@ -5,7 +5,7 @@ class FlexibleEnvironment {
   static const Map<String, String> _defaultServers = {
     'docker-local': 'http://192.168.31.53',  // Docker部署（局域网访问）
     'docker-gateway': 'http://localhost',     // Docker部署（网关模式）
-    'development': 'http://localhost',        // 本地开发模式
+    'development': 'http://10.163.144.13:3030',  // 开发模式也使用远程服务器
     'testing': 'http://10.163.144.13:3030',  // 测试服务器
     'production': 'http://10.163.144.13:3030', // 生产服务器
   };

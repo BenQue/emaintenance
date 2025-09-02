@@ -53,7 +53,7 @@ class WorkOrderService {
       }
       
       final response = await _apiClient!.get<Map<String, dynamic>>(
-        '/api/work-orders/$workOrderId',
+        '/work-order-service/api/work-orders/$workOrderId',
       );
 
       if (response.data == null) {
@@ -79,7 +79,7 @@ class WorkOrderService {
       }
       
       final response = await _apiClient!.get<Map<String, dynamic>>(
-        '/api/work-orders/my',
+        '/work-order-service/api/work-orders/my',
         queryParameters: {
           'type': type,
           'page': page.toString(),
@@ -108,7 +108,7 @@ class WorkOrderService {
       }
       
       final response = await _apiClient!.get<Map<String, dynamic>>(
-        '/api/work-orders/assigned',
+        '/work-order-service/api/work-orders/assigned',
         queryParameters: {
           'page': page.toString(),
           'limit': limit.toString(),
@@ -134,7 +134,7 @@ class WorkOrderService {
       
       // 先尝试获取基本工单信息
       final response = await _apiClient!.get<Map<String, dynamic>>(
-        '/api/work-orders/$workOrderId',
+        '/work-order-service/api/work-orders/$workOrderId',
       );
 
       if (response.data == null) {
@@ -189,7 +189,7 @@ class WorkOrderService {
       debugPrint('Updating work order status: $requestData');
       
       final response = await _apiClient!.put<Map<String, dynamic>>(
-        '/api/work-orders/$workOrderId/status',
+        '/work-order-service/api/work-orders/$workOrderId/status',
         data: requestData,
       );
 
@@ -212,7 +212,7 @@ class WorkOrderService {
       }
       
       final response = await _apiClient!.put<Map<String, dynamic>>(
-        '/api/work-orders/$workOrderId',
+        '/work-order-service/api/work-orders/$workOrderId',
         data: updates,
       );
 
@@ -290,7 +290,7 @@ class WorkOrderService {
       
       
       final response = await _apiClient!.post<Map<String, dynamic>>(
-        '/api/work-orders/$workOrderId/photos',  // 修正上传路径
+        '/work-order-service/api/work-orders/$workOrderId/photos',  // 修正上传路径
         data: formData,
         options: Options(
           headers: {
@@ -318,7 +318,7 @@ class WorkOrderService {
       }
       
       final response = await _apiClient!.get<Map<String, dynamic>>(
-        '/api/work-orders/$workOrderId/photos',  // 修正路径
+        '/work-order-service/api/work-orders/$workOrderId/photos',  // 修正路径
       );
 
       if (response.data == null) {
@@ -334,12 +334,12 @@ class WorkOrderService {
 
   /// Get photo URL for display
   String getPhotoUrl(String workOrderId, String photoId) {
-    return '/api/work-orders/$workOrderId/work-order-photos/$photoId';
+    return '/work-order-service/api/work-orders/$workOrderId/work-order-photos/$photoId';
   }
 
   /// Get thumbnail URL for display
   String getThumbnailUrl(String workOrderId, String photoId) {
-    return '/api/work-orders/$workOrderId/work-order-photos/$photoId/thumbnail';
+    return '/work-order-service/api/work-orders/$workOrderId/work-order-photos/$photoId/thumbnail';
   }
 
   /// Complete work order with resolution record
@@ -356,7 +356,7 @@ class WorkOrderService {
       debugPrint('Completing work order: $requestData');
       
       final response = await _apiClient!.post<Map<String, dynamic>>(
-        '/api/work-orders/$workOrderId/complete',
+        '/work-order-service/api/work-orders/$workOrderId/complete',
         data: requestData,
       );
 

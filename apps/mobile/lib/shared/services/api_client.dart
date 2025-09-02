@@ -81,20 +81,19 @@ class ApiClient {
   // 为不同服务创建特定的客户端实例（支持灵活配置）
   static Future<ApiClient> getUserServiceClient() async {
     final baseUrl = await FlexibleEnvironment.getBaseUrl();
-    // 在生产环境中，基础 URL 已经包含端口（10.163.144.13:3030）
-    // 所以直接使用基础 URL，不需要额外添加服务路径
+    // 用户服务使用基础URL，因为auth路径已包含/user-service前缀
     return await getInstance(baseUrl: baseUrl);
   }
   
   static Future<ApiClient> getWorkOrderServiceClient() async {
     final baseUrl = await FlexibleEnvironment.getBaseUrl();
-    // 同上，使用统一的基础 URL
+    // 工单服务使用基础URL，因为路径已包含/work-order-service前缀
     return await getInstance(baseUrl: baseUrl);
   }
   
   static Future<ApiClient> getAssetServiceClient() async {
     final baseUrl = await FlexibleEnvironment.getBaseUrl();
-    // 同上，使用统一的基础 URL
+    // 资产服务使用基础URL，因为路径已包含/asset-service前缀
     return await getInstance(baseUrl: baseUrl);
   }
   

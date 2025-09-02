@@ -131,7 +131,7 @@ export const createWorkOrderRoutes = (prisma: PrismaClient) => {
 
   // Photo upload routes
   router.post('/:id/photos', 
-    authorize(UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
+    authorize(UserRole.EMPLOYEE, UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
     checkWorkOrderAccess(prisma),
     uploadPhotos,  // 添加照片上传中间件
     workOrderController.uploadWorkOrderPhotos.bind(workOrderController)
@@ -151,7 +151,7 @@ export const createWorkOrderRoutes = (prisma: PrismaClient) => {
   );
 
   router.post('/:id/work-order-photos', 
-    authorize(UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
+    authorize(UserRole.EMPLOYEE, UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
     checkWorkOrderAccess(prisma),
     uploadPhotos,  // 添加照片上传中间件
     workOrderController.uploadWorkOrderPhotos.bind(workOrderController)
