@@ -84,10 +84,9 @@ adb install emaintenance-v1.0.2-debug.apk
 
 ### GitHub 仓库
 - **仓库地址**：https://github.com/BenQue/emaintenance
-- **发布路径**：`releases/android/v1.0.2/`
+- **发布路径**：`apps/mobile/releases/android/v1.0.2/`
 - **直接链接**：
-  - [生产版本](https://github.com/BenQue/emaintenance/raw/main/releases/android/v1.0.2/emaintenance-v1.0.2-release.apk)
-  - [调试版本](https://github.com/BenQue/emaintenance/raw/main/releases/android/v1.0.2/emaintenance-v1.0.2-debug.apk)
+  - [生产版本](https://github.com/BenQue/emaintenance/raw/main/apps/mobile/releases/android/v1.0.2/emaintenance-v1.0.2-release.apk)
 
 ## 📝 更新日志
 
