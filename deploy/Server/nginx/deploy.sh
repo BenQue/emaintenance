@@ -153,6 +153,32 @@ http {
             add_header Content-Type text/plain;
         }
 
+        # =============================================================
+        # 移动端 API 路由（Android PDA 使用）
+        # =============================================================
+        
+        # 移动端 - 用户服务路由
+        location ~ ^/user-service/api(.*)$ {
+            proxy_pass http://user_service/api$1$is_args$args;
+            include /etc/nginx/proxy_params;
+        }
+
+        # 移动端 - 工单服务路由
+        location ~ ^/work-order-service/api(.*)$ {
+            proxy_pass http://work_order_service/api$1$is_args$args;
+            include /etc/nginx/proxy_params;
+        }
+
+        # 移动端 - 资产服务路由
+        location ~ ^/asset-service/api(.*)$ {
+            proxy_pass http://asset_service/api$1$is_args$args;
+            include /etc/nginx/proxy_params;
+        }
+
+        # =============================================================
+        # Web端 API 路由（现有的，保持不变）
+        # =============================================================
+
         # API 路由
         location ~ ^/api/auth(.*)$ {
             proxy_pass http://user_service/api/auth$1$is_args$args;
