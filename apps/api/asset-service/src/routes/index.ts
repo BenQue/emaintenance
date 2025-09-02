@@ -43,6 +43,13 @@ router.use(generalRateLimit);
 
 // Health check moved to main app.ts to avoid /api prefix
 
+// Import/Export Routes (CSV Templates)
+router.get(
+  '/import/templates/assets',
+  authenticate, // All authenticated users can download templates
+  assetController.downloadCSVTemplate.bind(assetController)
+);
+
 // Asset CRUD Operations
 router.post(
   '/assets',

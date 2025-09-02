@@ -441,6 +441,90 @@ export class AssetController {
   }
 
   /**
+   * Download CSV template for asset import
+   * GET /api/import/templates/assets
+   */
+  async downloadCSVTemplate(req: Request, res: Response): Promise<void> {
+    try {
+      logger.info('CSV template download requested', {
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+      });
+
+      // CSV headers for asset import template
+      const headers = [
+        'assetCode',        // 设备代码 (required, unique)
+        'name',            // 设备名称 (required)
+        'description',     // 描述
+        'category',        // 类别 (MECHANICAL/ELECTRICAL/SOFTWARE/INFRASTRUCTURE)
+        'status',          // 状态 (ACTIVE/INACTIVE/MAINTENANCE/RETIRED)
+        'priority',        // 优先级 (LOW/MEDIUM/HIGH/CRITICAL)
+        'location',        // 位置
+        'department',      // 部门
+        'manufacturer',    // 制造商
+        'model',           // 型号
+        'serialNumber',    // 序列号
+        'purchaseDate',    // 购买日期 (YYYY-MM-DD)
+        'warrantyExpiry',  // 保修到期日 (YYYY-MM-DD)
+        'purchasePrice',   // 购买价格
+        'currentValue',    // 当前价值
+        'specifications',  // 技术规格 (JSON格式)
+        'maintenanceSchedule', // 维护计划 (JSON格式)
+      ];
+
+      // Sample data row for reference
+      const sampleRow = [
+        'ASSET001',
+        'Sample Equipment',
+        'This is a sample equipment for demonstration',
+        'MECHANICAL',
+        'ACTIVE',
+        'MEDIUM',
+        'Workshop A',
+        'Production',
+        'ABC Manufacturing',
+        'Model-X2024',
+        'SN123456789',
+        '2024-01-15',
+        '2026-01-15',
+        '50000',
+        '45000',
+        '{"power": "220V", "weight": "500kg", "dimensions": "2m x 1m x 1.5m"}',
+        '{"frequency": "monthly", "type": "preventive", "estimatedHours": 2}'
+      ];
+
+      // Create CSV content
+      const csvContent = [
+        headers.join(','),
+        sampleRow.join(','),
+      ].join('\n');
+
+      // Set response headers for file download
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', 'attachment; filename="assets_import_template.csv"');
+      res.setHeader('Content-Length', Buffer.byteLength(csvContent, 'utf8'));
+
+      logger.info('CSV template generated successfully', {
+        filename: 'assets_import_template.csv',
+        size: Buffer.byteLength(csvContent, 'utf8'),
+      });
+
+      res.status(200).send(csvContent);
+    } catch (error) {
+      logger.error('Failed to generate CSV template', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+
+      res.status(500).json({
+        success: false,
+        error: 'Failed to generate CSV template',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  /**
    * Generate QR code for asset
    */
   async generateQRCode(req: Request, res: Response): Promise<void> {

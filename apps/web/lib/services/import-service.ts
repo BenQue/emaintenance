@@ -1,4 +1,6 @@
-import { apiClient } from './api-client';
+import { apiClient, assetServiceClient } from './api-client';
+import { buildApiUrl } from '../config/api-config';
+import { authService } from './auth-service';
 
 export interface ImportPreview {
   headers: string[];
@@ -45,10 +47,27 @@ export class ImportService {
    * 下载资产CSV模板
    */
   async downloadAssetTemplate(): Promise<Blob> {
-    const response = await apiClient.get(`${this.baseUrl}/templates/assets`, {
-      responseType: 'blob'
+    const url = buildApiUrl('/import/templates/assets', 'asset');
+    const token = authService.getToken();
+    
+    if (!token) {
+      throw new Error('未登录，请先登录后再下载模板');
+    }
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'text/csv',
+      },
     });
-    return response.data as Blob;
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`下载模板失败: ${response.status} ${errorText}`);
+    }
+
+    return await response.blob();
   }
 
   /**
