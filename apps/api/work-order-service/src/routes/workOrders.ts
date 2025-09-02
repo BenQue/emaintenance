@@ -109,10 +109,16 @@ export const createWorkOrderRoutes = (prisma: PrismaClient) => {
     workOrderController.assignWorkOrder
   );
 
-  router.post('/:id/status', 
+  router.put('/:id/status', 
     authorize(UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
     checkWorkOrderAccess(prisma),
     workOrderController.updateWorkOrderStatus
+  );
+
+  router.post('/:id/complete', 
+    authorize(UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
+    checkWorkOrderAccess(prisma),
+    workOrderController.completeWorkOrder
   );
 
   // Routes moved above for correct Express routing order
