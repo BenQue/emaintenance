@@ -215,6 +215,12 @@ http {
             include /etc/nginx/proxy_params;
         }
 
+        # Import endpoints for CSV templates and batch operations
+        location ~ ^/api/import(.*)$ {
+            proxy_pass http://asset_service/api/import$1$is_args$args;
+            include /etc/nginx/proxy_params;
+        }
+
         # 静态资源缓存
         location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
             proxy_pass http://web_service;
