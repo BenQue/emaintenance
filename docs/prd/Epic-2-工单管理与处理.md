@@ -6,7 +6,7 @@
 
 **史诗类型**: Core Business Process Epic (核心业务流程史诗)
 
-**估计工作量**: 5 个故事
+**估计工作量**: 6 个故事
 
 ## 业务价值
 
@@ -17,10 +17,11 @@
 2. **状态跟踪困难**: 工单处理进度不透明，难以监控
 3. **记录不完整**: 维修解决方案和历史记录缺失
 4. **跨平台协作差**: 移动端和PC端数据不同步
+5. **工单标识不友好**: 缺少业务友好的工单号码，用户引用和沟通困难
 
 ### 解决方案
 
-通过建立完整的工单管理流程，实现从工单分配到完成归档的全生命周期管理，包括智能分配、实时状态跟踪、完整记录归档和跨平台照片管理。
+通过建立完整的工单管理流程，实现从工单分配到完成归档的全生命周期管理，包括智能分配、实时状态跟踪、完整记录归档、跨平台照片管理和业务友好的工单号码系统。
 
 ### 预期收益
 
@@ -28,6 +29,7 @@
 - **增强过程透明度**: 实时状态跟踪提升工单处理可见性
 - **完善维修档案**: 完整的解决方案记录为设备维护提供历史参考
 - **优化跨平台协作**: 移动端和PC端无缝数据同步
+- **提升沟通效率**: 业务友好的工单号码便于引用和查找
 
 ## 功能需求
 
@@ -62,6 +64,12 @@
    - 状态变更记录
    - 处理效率统计
    - 多维度分析报告
+
+6. **工单号码管理**
+   - 自动生成业务友好的工单号码
+   - 格式规范: MO + 年份(4位) + 流水号(5位)
+   - 年度流水号自动重置，每年支持99999个工单
+   - 支持号码查询和引用
 
 ## 技术规范
 
@@ -122,6 +130,23 @@ Table WorkOrderPhoto {
 }
 ```
 
+**工单号码序列表**:
+```sql
+Table WorkOrderSequence {
+  year: Int (primary key)
+  sequence: Int
+  lastUpdated: DateTime
+  createdAt: DateTime
+}
+```
+
+**工单表扩展**:
+```sql
+-- 在现有WorkOrder表中添加
+ALTER TABLE WorkOrder ADD COLUMN workOrderNumber VARCHAR(11) UNIQUE;
+CREATE INDEX idx_work_order_number ON WorkOrder(workOrderNumber);
+```
+
 ### API设计扩展
 
 **工单分配端点**:
@@ -137,6 +162,11 @@ Table WorkOrderPhoto {
 - `POST /api/work-orders/:id/photos` - 上传工单照片
 - `GET /api/work-orders/:id/photos` - 获取工单照片列表
 - `GET /api/photos/:id` - 获取照片文件
+
+**工单号码端点**:
+- `GET /api/work-orders/MO202500001` - 通过工单号码查询
+- `GET /api/work-orders?workOrderNumber=MO202500001` - 工单号码搜索
+- `POST /api/work-orders` - 创建工单时自动生成工单号码
 
 ## 故事分解
 

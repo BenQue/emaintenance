@@ -34,9 +34,25 @@ export function WorkOrderCard({ workOrder }: WorkOrderCardProps) {
         <CardHeader className="pb-2">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <h3 className="font-semibold text-lg text-gray-900 line-clamp-1">
+              <div className="flex items-center gap-2 mb-1">
+                {workOrder.workOrderNumber ? (
+                  <>
+                    <h3 className="font-semibold text-lg text-blue-600">
+                      {workOrder.workOrderNumber}
+                    </h3>
+                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                      工单号
+                    </span>
+                  </>
+                ) : (
+                  <h3 className="font-semibold text-lg text-gray-900">
+                    ID: {workOrder.id.slice(0, 8)}...
+                  </h3>
+                )}
+              </div>
+              <p className="text-sm font-medium text-gray-900 line-clamp-1">
                 {workOrder.title}
-              </h3>
+              </p>
               <p className="text-sm text-gray-600 mt-1 line-clamp-2">
                 {workOrder.description}
               </p>

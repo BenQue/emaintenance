@@ -30,6 +30,7 @@ export interface UpdateWorkOrderRequest {
 
 export interface WorkOrderWithRelations {
   id: string;
+  workOrderNumber?: string | null; // New field for business-friendly work order number
   title: string;
   description: string;
   category: string | null;

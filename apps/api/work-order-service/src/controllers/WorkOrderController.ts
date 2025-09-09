@@ -105,16 +105,25 @@ export class WorkOrderController {
   getWorkOrder = asyncHandler(async (req: Request, res: Response) => {
     const { id } = IdParamSchema.parse(req.params);
 
-    console.log(`[DEBUG] WorkOrderController.getWorkOrder: Fetching work order ID: ${id}`);
+    console.log(`[DEBUG] WorkOrderController.getWorkOrder: Fetching work order identifier: ${id}`);
     
-    const workOrder = await this.workOrderService.getWorkOrderById(id);
+    let workOrder;
+    
+    // Check if identifier is a work order number (starts with 'MO' and has 11 characters)
+    if (id.startsWith('MO') && id.length === 11 && /^MO\d{9}$/.test(id)) {
+      console.log(`[DEBUG] WorkOrderController.getWorkOrder: Identified as work order number: ${id}`);
+      workOrder = await this.workOrderService.findByWorkOrderNumber(id);
+    } else {
+      console.log(`[DEBUG] WorkOrderController.getWorkOrder: Identified as CUID: ${id}`);
+      workOrder = await this.workOrderService.getWorkOrderById(id);
+    }
 
     if (!workOrder) {
-      console.log(`[WARNING] WorkOrderController.getWorkOrder: Work order not found for ID: ${id}`);
+      console.log(`[WARNING] WorkOrderController.getWorkOrder: Work order not found for identifier: ${id}`);
       throw new AppError('工单不存在', 404);
     }
 
-    console.log(`[DEBUG] WorkOrderController.getWorkOrder: Successfully retrieved work order "${workOrder.title}" with asset data:`, {
+    console.log(`[DEBUG] WorkOrderController.getWorkOrder: Successfully retrieved work order "${workOrder.title}" (${workOrder.workOrderNumber || 'No number'}) with asset data:`, {
       assetId: workOrder.asset?.id,
       assetName: workOrder.asset?.name,
       assetCode: workOrder.asset?.assetCode,

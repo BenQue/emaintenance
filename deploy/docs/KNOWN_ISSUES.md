@@ -2,12 +2,12 @@
 
 ## 问题汇总 (2025年8月)
 
-**总计**: 21个已识别问题
-- ✅ **已完全修复**: 19个问题
+**总计**: 22个已识别问题
+- ✅ **已完全修复**: 20个问题
 - ⚠️ **临时修复**: 1个问题 (Nginx网络连接)
 - 📊 **影响最大**: 前后端API路由不匹配问题
 
-**最新更新**: 2025-08-30 - 发现并修复前后端API路由不匹配问题
+**最新更新**: 2025-09-09 - 修复Android设备报修照片上传Docker卷挂载权限问题
 
 ### 0. 系统设置API 404错误(本地开发环境) - 已解决
 **问题**: 系统设置页面功能完全无法使用
@@ -484,6 +484,68 @@ Route /api/work-orders/wo005/status-history not found
 **修复状态**: ✅ 已修复 (2025-08-30)
 **详细文档**: [API_ROUTE_MISMATCH_ISSUES.md](./API_ROUTE_MISMATCH_ISSUES.md)
 
+---
+
+### 22. Android设备报修照片上传Docker卷挂载权限问题 - 已解决
+**问题**: Android设备报修可以提交订单，但照片上传立即返回500错误
+```
+照片上传失败: 500 Internal Server Error
+```
+
+**症状表现**:
+- 工单创建成功，但照片无法上传
+- 错误立即返回（非超时问题）
+- 照片文件很小，排除大小限制问题
+- 测试环境正常，生产环境失败
+
+**根本原因**: Docker卷挂载覆盖容器内预创建的目录权限和结构
+```bash
+# Docker配置冲突
+# Dockerfile预创建: /app/uploads/work-orders/{year}/{month}/thumbnails (权限: 1001:1001)
+# 卷挂载覆盖: /opt/emaintenance/data/work-order-uploads:/app/uploads
+# 如果宿主机目录缺少年月子目录或权限不正确，PhotoStorageService.savePhoto()失败
+```
+
+**技术细节**: 
+- `PhotoStorageService.ts:33-46` 中的`fs.mkdir(yearMonthDir, {recursive: true})`操作失败
+- 容器以`apiuser(1001:1001)`身份运行，但宿主机目录权限不匹配
+- Docker卷挂载覆盖了容器内预设的目录结构和权限
+
+**解决方案**: 修复宿主机Docker卷挂载目录权限
+```bash
+# 1. 检查当前目录权限
+ls -la /opt/emaintenance/data/work-order-uploads/
+
+# 2. 创建当前年月目录结构（需根据实际年月调整）
+sudo mkdir -p /opt/emaintenance/data/work-order-uploads/work-orders/2025/09/thumbnails
+
+# 3. 修复权限（1001:1001对应容器内apiuser:nodejs）
+sudo chown -R 1001:1001 /opt/emaintenance/data/work-order-uploads/
+sudo chmod -R 755 /opt/emaintenance/data/work-order-uploads/
+
+# 4. 重启工单服务使权限生效
+docker-compose restart emaintenance-work-order-service
+```
+
+**预防措施**:
+```bash
+# 在工单服务部署脚本中添加完整的目录结构创建
+# deploy/Server/work-order-service/deploy.sh 已包含基础结构，但需确保当前年月目录存在
+CURRENT_YEAR=$(date +%Y)
+CURRENT_MONTH=$(date +%m)
+sudo mkdir -p /opt/emaintenance/data/work-order-uploads/work-orders/$CURRENT_YEAR/$CURRENT_MONTH/thumbnails
+```
+
+**影响服务**: work-order-service
+**影响功能**: Android移动端照片上传（Web端使用不同的上传路径，可能不受影响）
+**影响文件**: 
+- `apps/api/work-order-service/src/services/PhotoStorageService.ts`
+- `deploy/Server/work-order-service/deploy.sh`
+- `deploy/Server/work-order-service/docker-compose.yml`
+
+**修复状态**: ✅ 已修复 (2025-09-09)
+**验证方法**: 使用Android设备创建工单并上传照片，确认照片上传成功
+
 ## 修复状态追踪
 
 | 问题 | 状态 | 修复文件 | 备注 |
@@ -509,6 +571,7 @@ Route /api/work-orders/wo005/status-history not found
 | 数据库表名格式问题 | ✅ 已修复 | Server/database/manual-init.sh | PascalCase→snake_case |
 | 工单状态更新API方法不匹配 | ✅ 已修复 | apps/web/lib/services/work-order-service.ts | PUT→POST方法修正 |
 | 工单状态历史路由不匹配 | ✅ 已修复 | apps/web/lib/services/work-order-service.ts | status-history→history路径修正 |
+| Android设备报修照片上传权限问题 | ✅ 已修复 | 服务器端目录权限配置 | Docker卷挂载权限修复 |
 
 ## 预防措施
 
@@ -525,3 +588,4 @@ Route /api/work-orders/wo005/status-history not found
 3. 验证网络访问（NPM、Docker Hub镜像源）
 4. 运行完整的依赖检查清单
 5. 按服务依赖顺序部署：infrastructure → database → services → web → nginx
+6. **Docker卷挂载权限检查**: 确保所有卷挂载目录具有正确的用户权限(1001:1001)和目录结构

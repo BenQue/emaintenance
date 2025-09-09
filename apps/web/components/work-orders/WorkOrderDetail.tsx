@@ -175,9 +175,27 @@ export function WorkOrderDetail({ workOrderId }: WorkOrderDetailProps) {
         
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            {/* Work Order Number Display */}
+            {currentWorkOrder.workOrderNumber ? (
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-3xl font-bold text-blue-600">
+                  {currentWorkOrder.workOrderNumber}
+                </h1>
+                <span className="text-sm text-gray-500 bg-blue-50 border border-blue-200 px-3 py-1 rounded-full">
+                  工单号
+                </span>
+              </div>
+            ) : (
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                ID: {currentWorkOrder.id.slice(0, 12)}...
+              </h1>
+            )}
+            
+            {/* Work Order Title */}
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
               {currentWorkOrder.title}
-            </h1>
+            </h2>
+            
             <div className="flex items-center space-x-4">
               <Badge className={cn('text-sm', StatusColors[currentWorkOrder.status])}>
                 {WorkOrderStatusLabels[currentWorkOrder.status]}

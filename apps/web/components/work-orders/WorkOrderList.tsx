@@ -31,7 +31,8 @@ export function WorkOrderList() {
     const matchesSearch = !searchTerm || 
       workOrder.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       workOrder.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      workOrder.asset.name.toLowerCase().includes(searchTerm.toLowerCase());
+      workOrder.asset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (workOrder.workOrderNumber && workOrder.workOrderNumber.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesStatus = statusFilter === 'ALL' || workOrder.status === statusFilter;
     const matchesPriority = priorityFilter === 'ALL' || workOrder.priority === priorityFilter;
@@ -96,7 +97,7 @@ export function WorkOrderList() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
-                placeholder="搜索工单标题、描述或设备..."
+                placeholder="搜索工单号、标题、描述或设备..."
                 value={searchTerm}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
                 className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"

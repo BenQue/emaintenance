@@ -3,6 +3,7 @@ import { WorkOrderStatus, Priority } from '@emaintenance/database';
 import { WorkOrderRepository } from '../repositories/WorkOrderRepository';
 // import { AssignmentRuleService } from './AssignmentRuleService';
 import { NotificationService } from './NotificationService';
+import { WorkOrderNumberService } from './WorkOrderNumberService';
 import { CreateWorkOrderRequest, UpdateWorkOrderRequest, WorkOrderWithRelations, WorkOrderFilters, PaginatedWorkOrders, UpdateWorkOrderStatusRequest, WorkOrderStatusHistoryItem, WorkOrderWithStatusHistory, CreateResolutionRecordRequest, ResolutionRecordResponse, WorkOrderWithResolution, MaintenanceHistoryResponse, AssetMaintenanceHistory, MTTRStatistics, WorkOrderTrends, KPIFilters, FilterOptionsResponse, WorkOrderForCSV, WorkOrderPhoto } from '../types/work-order';
 import { CSVGenerator } from '../utils/csv-generator';
 
@@ -10,11 +11,13 @@ export class WorkOrderService {
   private workOrderRepository: WorkOrderRepository;
   // private assignmentRuleService: AssignmentRuleService;
   private notificationService: NotificationService;
+  private workOrderNumberService: WorkOrderNumberService;
 
   constructor(private prisma: PrismaClient) {
     this.workOrderRepository = new WorkOrderRepository(prisma);
     // this.assignmentRuleService = new AssignmentRuleService(prisma);
     this.notificationService = new NotificationService(prisma);
+    this.workOrderNumberService = new WorkOrderNumberService(prisma);
   }
 
   async getWorkOrders(
@@ -77,9 +80,13 @@ export class WorkOrderService {
     // Ensure assetId is set
     workOrderData.assetId = assetId;
 
-    // Create the work order first
+    // Generate work order number
+    const workOrderNumber = await this.workOrderNumberService.generateWorkOrderNumber();
+
+    // Create the work order with generated number
     const workOrder = await this.workOrderRepository.create({
       ...workOrderData,
+      workOrderNumber,
       createdById,
     });
 
@@ -92,6 +99,10 @@ export class WorkOrderService {
 
   async getWorkOrderById(id: string): Promise<WorkOrderWithRelations | null> {
     return await this.workOrderRepository.findById(id);
+  }
+
+  async findByWorkOrderNumber(workOrderNumber: string): Promise<WorkOrderWithRelations | null> {
+    return await this.workOrderRepository.findByWorkOrderNumber(workOrderNumber);
   }
 
   async updateWorkOrder(

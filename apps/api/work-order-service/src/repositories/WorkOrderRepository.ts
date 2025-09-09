@@ -4,7 +4,7 @@ import { CreateWorkOrderRequest, UpdateWorkOrderRequest, WorkOrderWithRelations,
 export class WorkOrderRepository {
   constructor(private prisma: PrismaClient) {}
 
-  async create(data: CreateWorkOrderRequest & { createdById: string }): Promise<WorkOrderWithRelations> {
+  async create(data: CreateWorkOrderRequest & { createdById: string; workOrderNumber?: string }): Promise<WorkOrderWithRelations> {
     const workOrder = await this.prisma.workOrder.create({
       data: {
         title: data.title,
@@ -16,6 +16,7 @@ export class WorkOrderRepository {
         assetId: data.assetId!,  // assetId is guaranteed to be set by service layer
         createdById: data.createdById,
         attachments: data.attachments || [],
+        workOrderNumber: data.workOrderNumber, // New field for work order number
         // Include new ID fields for database relationships
         categoryId: data.categoryId,
         reasonId: data.reasonId,
@@ -99,6 +100,58 @@ export class WorkOrderRepository {
       return workOrder as WorkOrderWithRelations | null;
     } catch (error) {
       console.error(`[ERROR] WorkOrderRepository.findById: Database query failed for ID ${id}:`, error);
+      throw error;
+    }
+  }
+
+  async findByWorkOrderNumber(workOrderNumber: string): Promise<WorkOrderWithRelations | null> {
+    try {
+      console.log(`[DEBUG] WorkOrderRepository.findByWorkOrderNumber: Searching for work order number: ${workOrderNumber}`);
+      
+      const workOrder = await this.prisma.workOrder.findUnique({
+        where: { workOrderNumber },
+        include: {
+          asset: {
+            select: {
+              id: true,
+              assetCode: true,
+              name: true,
+              location: true,
+              description: true,
+              model: true,
+              manufacturer: true,
+              serialNumber: true,
+              isActive: true,
+            },
+          },
+          createdBy: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+          assignedTo: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+      if (workOrder) {
+        console.log(`[DEBUG] WorkOrderRepository.findByWorkOrderNumber: Found work order "${workOrder.title}" with asset "${workOrder.asset.name}"`);
+      } else {
+        console.log(`[DEBUG] WorkOrderRepository.findByWorkOrderNumber: No work order found with number: ${workOrderNumber}`);
+      }
+
+      return workOrder as WorkOrderWithRelations | null;
+    } catch (error) {
+      console.error(`[ERROR] WorkOrderRepository.findByWorkOrderNumber: Database query failed for number ${workOrderNumber}:`, error);
       throw error;
     }
   }
@@ -490,6 +543,11 @@ export class WorkOrderRepository {
       where.category = { contains: filters.category, mode: 'insensitive' };
     }
 
+    // Support exact work order number filtering
+    if ((filters as any).workOrderNumber) {
+      where.workOrderNumber = (filters as any).workOrderNumber;
+    }
+
     if (filters.startDate || filters.endDate) {
       where.reportedAt = {};
       if (filters.startDate) {
@@ -541,6 +599,7 @@ export class WorkOrderRepository {
       { category: containsCondition },
       { reason: containsCondition },
       { solution: containsCondition },
+      { workOrderNumber: containsCondition }, // Support work order number search
       
       // Related asset fields
       { 

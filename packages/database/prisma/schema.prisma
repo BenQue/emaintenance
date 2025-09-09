@@ -209,6 +209,7 @@ model Asset {
 
 model WorkOrder {
   id              String          @id @default(cuid())
+  workOrderNumber String?         @unique // New field for business-friendly work order number
   title           String
   description     String
   category        String? // Keep for backward compatibility during migration
@@ -258,7 +259,17 @@ model WorkOrder {
   @@index([reasonId])
   @@index([locationId])
   @@index([priorityId])
+  @@index([workOrderNumber])
   @@map("work_orders")
+}
+
+model WorkOrderSequence {
+  year        Int      @id
+  sequence    Int      @default(0)
+  lastUpdated DateTime @default(now()) @updatedAt
+  createdAt   DateTime @default(now())
+
+  @@map("work_order_sequences")
 }
 
 model WorkOrderStatusHistory {
