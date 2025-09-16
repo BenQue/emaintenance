@@ -8,6 +8,7 @@ export class WorkOrderNumberService {
    * @returns Promise<string> Work order number
    */
   async generateWorkOrderNumber(): Promise<string> {
+    console.log('[DEBUG] WorkOrderNumberService.generateWorkOrderNumber: Starting...');
     // Use Asia/Shanghai timezone for consistent year determination
     const now = new Date();
     const shanghaiTime = new Intl.DateTimeFormat('en-CA', {
@@ -15,8 +16,10 @@ export class WorkOrderNumberService {
       year: 'numeric'
     }).format(now);
     const year = parseInt(shanghaiTime);
-    
+    console.log(`[DEBUG] WorkOrderNumberService.generateWorkOrderNumber: Using year: ${year}`);
+
     return await this.prisma.$transaction(async (tx) => {
+      console.log(`[DEBUG] WorkOrderNumberService.generateWorkOrderNumber: Starting transaction for year: ${year}`);
       // Use upsert to handle race condition in sequence creation
       const sequence = await tx.workOrderSequence.upsert({
         where: { year },
@@ -40,7 +43,9 @@ export class WorkOrderNumberService {
       
       // Generate work order number with 5-digit padded sequence
       const paddedSequence = updatedSequence.sequence.toString().padStart(5, '0');
-      return `MO${year}${paddedSequence}`;
+      const workOrderNumber = `MO${year}${paddedSequence}`;
+      console.log(`[DEBUG] WorkOrderNumberService.generateWorkOrderNumber: Generated number: ${workOrderNumber} (sequence: ${updatedSequence.sequence})`);
+      return workOrderNumber;
     });
   }
 

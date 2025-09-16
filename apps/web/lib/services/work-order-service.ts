@@ -125,7 +125,7 @@ class WorkOrderService {
   }
 
   async getWorkOrderById(id: string): Promise<WorkOrder> {
-    return this.request<WorkOrder>(`/api/work-orders/${id}`);
+    return this.request<WorkOrder>(`/work-orders/${id}`);
   }
 
   async createWorkOrder(workOrderData: CreateWorkOrderData): Promise<WorkOrder> {
@@ -180,7 +180,7 @@ class WorkOrderService {
       }
     } else {
       // Handle JSON request when no photos
-      return this.request<WorkOrder>('/api/work-orders', {
+      return this.request<WorkOrder>('/work-orders', {
         method: 'POST',
         body: JSON.stringify(formData),
       });
@@ -189,7 +189,7 @@ class WorkOrderService {
 
   async getWorkOrderWithHistory(id: string): Promise<WorkOrderWithStatusHistory> {
     // Debug work order history retrieval in development
-    const result = await this.request<{workOrder: WorkOrderWithStatusHistory}>(`/api/work-orders/${id}/history`);
+    const result = await this.request<{workOrder: WorkOrderWithStatusHistory}>(`/work-orders/${id}/history`);
     const workOrder = result.workOrder;
     return workOrder;
   }
@@ -205,8 +205,8 @@ class WorkOrderService {
     id: string,
     statusUpdate: UpdateWorkOrderStatusRequest
   ): Promise<WorkOrder> {
-    return this.request<WorkOrder>(`/api/work-orders/${id}/status`, {
-      method: 'POST',
+    return this.request<WorkOrder>(`/work-orders/${id}/status`, {
+      method: 'PUT',
       body: JSON.stringify(statusUpdate),
     });
   }
@@ -255,14 +255,14 @@ class WorkOrderService {
     id: string,
     resolutionData: CreateResolutionRequest
   ): Promise<WorkOrderWithResolution> {
-    return this.request<WorkOrderWithResolution>(`/api/work-orders/${id}/complete`, {
+    return this.request<WorkOrderWithResolution>(`/work-orders/${id}/complete`, {
       method: 'POST',
       body: JSON.stringify(resolutionData),
     });
   }
 
   async getWorkOrderWithResolution(id: string): Promise<WorkOrderWithResolution> {
-    const result = await this.request<{workOrder: WorkOrderWithResolution}>(`/api/work-orders/${id}/resolution`);
+    const result = await this.request<{workOrder: WorkOrderWithResolution}>(`/work-orders/${id}/resolution`);
     return result.workOrder;
   }
 
@@ -317,7 +317,7 @@ class WorkOrderService {
       if (value) params.append(key, value);
     });
     
-    return this.request<any>(`/api/work-orders/statistics/overview?${params.toString()}`);
+    return this.request<any>(`/work-orders/statistics/overview?${params.toString()}`);
   }
 
   // KPI Methods
@@ -332,7 +332,7 @@ class WorkOrderService {
       if (value) params.append(key, value);
     });
     
-    return this.request<any>(`/api/work-orders/kpi/mttr?${params.toString()}`);
+    return this.request<any>(`/work-orders/kpi/mttr?${params.toString()}`);
   }
 
   async getWorkOrderTrends(filters: {
@@ -346,7 +346,7 @@ class WorkOrderService {
       if (value) params.append(key, value);
     });
     
-    return this.request<any>(`/api/work-orders/kpi/completion-rate?${params.toString()}`);
+    return this.request<any>(`/work-orders/kpi/completion-rate?${params.toString()}`);
   }
 
   // Advanced Filtering Methods
@@ -358,7 +358,7 @@ class WorkOrderService {
     users: { id: string; name: string; role: string }[];
   }> {
     try {
-      return this.request('/api/work-orders/filter-options');
+      return this.request('/work-orders/filter-options');
     } catch (error) {
       // Add specific error context for debugging
       const message = error instanceof Error ? error.message : 'Unknown error';
@@ -478,7 +478,7 @@ class WorkOrderService {
   }
 
   async deleteWorkOrder(id: string): Promise<void> {
-    await this.request<void>(`/api/work-orders/${id}`, {
+    await this.request<void>(`/work-orders/${id}`, {
       method: 'DELETE',
     });
   }
@@ -487,7 +487,7 @@ class WorkOrderService {
     id: string,
     updateData: Partial<CreateWorkOrderData>
   ): Promise<WorkOrder> {
-    return this.request<WorkOrder>(`/api/work-orders/${id}`, {
+    return this.request<WorkOrder>(`/work-orders/${id}`, {
       method: 'PUT',
       body: JSON.stringify(updateData),
     });

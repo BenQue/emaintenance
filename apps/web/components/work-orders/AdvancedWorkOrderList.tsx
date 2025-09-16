@@ -306,6 +306,16 @@ export function AdvancedWorkOrderList({
   // Define table columns
   const columns: ColumnDef<WorkOrder>[] = useMemo(() => [
     {
+      id: 'workOrderNumber',
+      header: '工单号',
+      cell: (workOrder) => (
+        <div className="font-medium text-blue-600">
+          {workOrder.workOrderNumber || workOrder.id.slice(0, 8)}
+        </div>
+      ),
+      sortable: true,
+    },
+    {
       id: 'title',
       header: '标题',
       cell: (workOrder) => (

@@ -65,6 +65,7 @@ export function WorkOrderTable({ workOrders, loading, onRefresh }: WorkOrderTabl
           <table className="w-full">
             <thead>
               <tr className="border-b border-gray-200">
+                <th className="text-left py-3 px-4 font-medium text-gray-900">工单号</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">工单标题</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">状态</th>
                 <th className="text-left py-3 px-4 font-medium text-gray-900">优先级</th>
@@ -78,6 +79,11 @@ export function WorkOrderTable({ workOrders, loading, onRefresh }: WorkOrderTabl
             <tbody>
               {workOrders.map((workOrder) => (
                 <tr key={workOrder.id} className="border-b border-gray-100 hover:bg-gray-50">
+                  <td className="py-3 px-4">
+                    <div className="font-medium text-blue-600">
+                      {workOrder.workOrderNumber || workOrder.id.slice(0, 8)}
+                    </div>
+                  </td>
                   <td className="py-3 px-4">
                     <div>
                       <div className="font-medium text-gray-900 line-clamp-1">

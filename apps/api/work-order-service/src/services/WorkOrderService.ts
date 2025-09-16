@@ -81,14 +81,18 @@ export class WorkOrderService {
     workOrderData.assetId = assetId;
 
     // Generate work order number
+    console.log('[DEBUG] WorkOrderService.createWorkOrder: Starting work order number generation...');
     const workOrderNumber = await this.workOrderNumberService.generateWorkOrderNumber();
+    console.log(`[DEBUG] WorkOrderService.createWorkOrder: Generated work order number: ${workOrderNumber}`);
 
     // Create the work order with generated number
+    console.log(`[DEBUG] WorkOrderService.createWorkOrder: Creating work order with number: ${workOrderNumber}`);
     const workOrder = await this.workOrderRepository.create({
       ...workOrderData,
       workOrderNumber,
       createdById,
     });
+    console.log(`[DEBUG] WorkOrderService.createWorkOrder: Created work order ID: ${workOrder.id} with number: ${workOrder.workOrderNumber}`);
 
     // TODO: Implement automatic assignment based on rules when AssignmentRuleService is available
     // For now, work orders are created without automatic assignment

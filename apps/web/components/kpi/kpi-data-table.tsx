@@ -218,8 +218,8 @@ export function KPIDataTable() {
 
     return workOrders.map((workOrder) => (
       <TableRow key={workOrder.id}>
-        <TableCell className="font-medium">
-          {workOrder.id}
+        <TableCell className="font-medium text-blue-600">
+          {workOrder.workOrderNumber || workOrder.id.slice(0, 8)}
         </TableCell>
         <TableCell>
           <div className="font-medium">

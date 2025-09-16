@@ -176,20 +176,14 @@ export function WorkOrderDetail({ workOrderId }: WorkOrderDetailProps) {
         <div className="flex items-start justify-between">
           <div>
             {/* Work Order Number Display */}
-            {currentWorkOrder.workOrderNumber ? (
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-3xl font-bold text-blue-600">
-                  {currentWorkOrder.workOrderNumber}
-                </h1>
-                <span className="text-sm text-gray-500 bg-blue-50 border border-blue-200 px-3 py-1 rounded-full">
-                  工单号
-                </span>
-              </div>
-            ) : (
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                ID: {currentWorkOrder.id.slice(0, 12)}...
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-3xl font-bold text-blue-600">
+                {currentWorkOrder.workOrderNumber || currentWorkOrder.id.slice(0, 8)}
               </h1>
-            )}
+              <span className="text-sm text-gray-500 bg-blue-50 border border-blue-200 px-3 py-1 rounded-full">
+                {currentWorkOrder.workOrderNumber ? '工单号' : 'ID'}
+              </span>
+            </div>
             
             {/* Work Order Title */}
             <h2 className="text-xl font-semibold text-gray-900 mb-2">
