@@ -291,6 +291,32 @@ class WorkOrderService {
     }
   }
 
+  /// 关闭已完成的工单（员工确认）
+  Future<WorkOrderWithRelations> closeWorkOrder(String workOrderId) async {
+    try {
+      if (_apiClient == null) {
+        throw Exception('API client not initialized');
+      }
+
+      if (kDebugMode) {
+        print('Closing work order: $workOrderId');
+      }
+
+      final response = await _apiClient!.post<Map<String, dynamic>>(
+        '/api/work-orders/$workOrderId/close',
+      );
+
+      if (response.data == null) {
+        throw Exception('Empty response from server');
+      }
+
+      final workOrderData = response.data!['data']['workOrder'] as Map<String, dynamic>;
+      return WorkOrderWithRelations.fromJson(workOrderData);
+    } catch (e) {
+      throw Exception('Failed to close work order: $e');
+    }
+  }
+
   /// 获取用户的工单列表
   Future<List<WorkOrder>> getUserWorkOrders({
     String type = 'assigned',

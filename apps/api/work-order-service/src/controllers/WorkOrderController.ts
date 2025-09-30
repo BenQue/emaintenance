@@ -463,7 +463,7 @@ export class WorkOrderController {
     }
 
     const { id } = IdParamSchema.parse(req.params);
-    
+
     // Validate resolution data using schema
     const resolutionData = CreateResolutionRecordSchema.parse(req.body);
 
@@ -476,6 +476,28 @@ export class WorkOrderController {
     res.json({
       status: 'success',
       message: '工单完成成功',
+      data: {
+        workOrder,
+      },
+    });
+  });
+
+  // Close completed work order (employee confirmation)
+  closeWorkOrder = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new AppError('用户未认证', 401);
+    }
+
+    const { id } = IdParamSchema.parse(req.params);
+
+    const workOrder = await this.workOrderService.closeWorkOrder(
+      id,
+      req.user.id
+    );
+
+    res.json({
+      status: 'success',
+      message: '工单关闭成功',
       data: {
         workOrder,
       },

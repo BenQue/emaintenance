@@ -22,9 +22,10 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context, authProvider, child) {
         final user = authProvider.user;
         final isTechnician = user?.role == UserRole.technician;
-        
-        if (isTechnician) {
-          return _buildTechnicianView(context, authProvider);
+        final isEmployee = user?.role == UserRole.employee;
+
+        if (isTechnician || isEmployee) {
+          return _buildTaskView(context, authProvider);
         } else {
           return _buildGeneralUserView(context, authProvider);
         }
@@ -32,16 +33,19 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildTechnicianView(BuildContext context, AuthProvider authProvider) {
+  Widget _buildTaskView(BuildContext context, AuthProvider authProvider) {
+    final user = authProvider.user;
+    final isTechnician = user?.role == UserRole.technician;
+
     final List<Widget> pages = [
       const TaskListScreen(),
       _buildHomeContent(),
     ];
 
     final List<BottomNavigationBarItem> bottomNavItems = [
-      const BottomNavigationBarItem(
-        icon: Icon(Icons.assignment),
-        label: '我的任务',
+      BottomNavigationBarItem(
+        icon: const Icon(Icons.assignment),
+        label: isTechnician ? '我的任务' : '我的工单',
       ),
       const BottomNavigationBarItem(
         icon: Icon(Icons.home),

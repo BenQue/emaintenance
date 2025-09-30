@@ -24,6 +24,7 @@ enum WorkOrderStatus {
   WAITING_PARTS   // 等待备件
   WAITING_EXTERNAL // 等待外部
   COMPLETED       // 已完成
+  CLOSED          // 已关闭
   CANCELLED       // 已取消
 }
 

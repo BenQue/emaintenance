@@ -174,6 +174,8 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
       case WorkOrderStatus.waitingExternal:
         return [WorkOrderStatus.inProgress, WorkOrderStatus.cancelled];
       case WorkOrderStatus.completed:
+        return [WorkOrderStatus.closed]; // Employee can close completed work order
+      case WorkOrderStatus.closed:
       case WorkOrderStatus.cancelled:
         return [];
     }
@@ -193,15 +195,94 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
 
   bool _canCompleteWorkOrder() {
     if (_workOrder == null) return false;
-    
+
     final authProvider = context.read<AuthProvider>();
     final currentUser = authProvider.user;
-    
+
     if (currentUser == null) return false;
-    
+
     // Only assigned technician can complete work order and it must be in progress
     return _workOrder!.assignedToId == currentUser.id &&
            _workOrder!.status == WorkOrderStatus.inProgress;
+  }
+
+  bool _canCloseWorkOrder() {
+    if (_workOrder == null) return false;
+
+    final authProvider = context.read<AuthProvider>();
+    final currentUser = authProvider.user;
+
+    if (currentUser == null) return false;
+
+    // Only the creator can close a completed work order
+    return _workOrder!.createdById == currentUser.id &&
+           _workOrder!.status == WorkOrderStatus.completed;
+  }
+
+  Future<void> _closeWorkOrder() async {
+    if (_workOrder == null) return;
+
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('确认关闭工单'),
+        content: const Text('确认设备已修复并关闭此工单？关闭后工单将无法再次打开。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('取消'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('确认关闭'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() {
+      _isUpdatingStatus = true;
+    });
+
+    try {
+      final workOrderService = await WorkOrderService.getInstance();
+      await workOrderService.closeWorkOrder(widget.workOrderId);
+
+      if (!mounted) return;
+
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('工单已成功关闭'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      // Reload work order detail
+      await _loadWorkOrderDetail();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('关闭工单失败: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUpdatingStatus = false;
+        });
+      }
+    }
   }
 
   Future<void> _navigateToCompletion() async {
@@ -604,6 +685,9 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
       case WorkOrderStatus.completed:
         backgroundColor = Colors.green;
         break;
+      case WorkOrderStatus.closed:
+        backgroundColor = Colors.grey;
+        break;
       case WorkOrderStatus.cancelled:
         backgroundColor = Colors.red;
         break;
@@ -667,13 +751,43 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
 
     final canUpdate = _canUpdateStatus();
     final canComplete = _canCompleteWorkOrder();
-    
-    if (!canUpdate && !canComplete) {
+    final canClose = _canCloseWorkOrder();
+
+    if (!canUpdate && !canComplete && !canClose) {
       return const SizedBox.shrink();
     }
 
     final availableTransitions = _getAvailableStatusTransitions(_workOrder!.status);
-    
+
+    // Show close button if work order can be closed (completed and user is creator)
+    if (canClose) {
+      return Container(
+        padding: const EdgeInsets.all(16.0),
+        child: SizedBox(
+          height: 50,
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: _isUpdatingStatus ? null : _closeWorkOrder,
+            icon: _isUpdatingStatus
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                  )
+                : const Icon(Icons.check_circle_outline),
+            label: Text(
+              _isUpdatingStatus ? '关闭中...' : '确认关闭工单',
+              style: const TextStyle(fontSize: 14),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ),
+      );
+    }
+
     // Show completion button if work order can be completed
     if (canComplete) {
       return Container(
@@ -772,6 +886,8 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
         return '等待外部';
       case WorkOrderStatus.completed:
         return '已完成';
+      case WorkOrderStatus.closed:
+        return '已关闭';
       case WorkOrderStatus.cancelled:
         return '已取消';
     }
@@ -1005,6 +1121,7 @@ class _StatusUpdateDialogState extends State<_StatusUpdateDialog> {
       case WorkOrderStatus.waitingExternal:
         return [WorkOrderStatus.inProgress, WorkOrderStatus.cancelled];
       case WorkOrderStatus.completed:
+      case WorkOrderStatus.closed:
       case WorkOrderStatus.cancelled:
         return [];
     }
@@ -1085,6 +1202,8 @@ class _StatusUpdateDialogState extends State<_StatusUpdateDialog> {
         return '等待外部';
       case WorkOrderStatus.completed:
         return '已完成';
+      case WorkOrderStatus.closed:
+        return '已关闭';
       case WorkOrderStatus.cancelled:
         return '已取消';
     }

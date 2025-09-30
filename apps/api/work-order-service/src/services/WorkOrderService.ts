@@ -625,6 +625,92 @@ export class WorkOrderService {
     });
   }
 
+  /**
+   * Close a completed work order (employee confirmation)
+   */
+  async closeWorkOrder(
+    workOrderId: string,
+    userId: string
+  ): Promise<WorkOrderWithRelations> {
+    // Get existing work order
+    const existingWorkOrder = await this.workOrderRepository.findById(workOrderId);
+
+    if (!existingWorkOrder) {
+      throw new Error('Work order not found');
+    }
+
+    // Verify work order is completed
+    if (existingWorkOrder.status !== 'COMPLETED') {
+      throw new Error('Work order must be completed before it can be closed');
+    }
+
+    // Verify user is the creator of the work order
+    if (existingWorkOrder.createdById !== userId) {
+      throw new Error('Permission denied: only the work order creator can close it');
+    }
+
+    // Update work order status to CLOSED
+    return await this.prisma.$transaction(async (tx) => {
+      const closedWorkOrder = await tx.workOrder.update({
+        where: { id: workOrderId },
+        data: {
+          status: 'CLOSED',
+        },
+        include: {
+          asset: {
+            select: {
+              id: true,
+              assetCode: true,
+              name: true,
+              location: true,
+            }
+          },
+          createdBy: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            }
+          },
+          assignedTo: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            }
+          },
+          statusHistory: {
+            orderBy: { createdAt: 'desc' },
+            include: {
+              changedBy: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                }
+              }
+            }
+          },
+        },
+      });
+
+      // Create status history record
+      await tx.workOrderStatusHistory.create({
+        data: {
+          workOrderId,
+          fromStatus: 'COMPLETED',
+          toStatus: 'CLOSED',
+          changedById: userId,
+          notes: 'Work order closed by creator (employee confirmation)',
+        }
+      });
+
+      return closedWorkOrder as WorkOrderWithRelations;
+    });
+  }
+
   async getWorkOrderWithResolution(workOrderId: string): Promise<WorkOrderWithResolution | null> {
     const workOrder = await this.prisma.workOrder.findUnique({
       where: { id: workOrderId },
@@ -845,7 +931,8 @@ export class WorkOrderService {
       'IN_PROGRESS': ['WAITING_PARTS', 'WAITING_EXTERNAL', 'COMPLETED', 'CANCELLED'],
       'WAITING_PARTS': ['IN_PROGRESS', 'CANCELLED'],
       'WAITING_EXTERNAL': ['IN_PROGRESS', 'CANCELLED'],
-      'COMPLETED': [], // Cannot transition from completed
+      'COMPLETED': ['CLOSED'], // Can transition to closed (employee confirmation)
+      'CLOSED': [], // Cannot transition from closed
       'CANCELLED': [], // Cannot transition from cancelled
     };
 

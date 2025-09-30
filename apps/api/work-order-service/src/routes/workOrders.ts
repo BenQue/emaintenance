@@ -115,10 +115,16 @@ export const createWorkOrderRoutes = (prisma: PrismaClient) => {
     workOrderController.updateWorkOrderStatus
   );
 
-  router.post('/:id/complete', 
-    authorize(UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
+  router.post('/:id/complete',
+    authorize(UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN),
     checkWorkOrderAccess(prisma),
     workOrderController.completeWorkOrder
+  );
+
+  router.post('/:id/close',
+    authorize(UserRole.EMPLOYEE, UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN),
+    checkWorkOrderAccess(prisma),
+    workOrderController.closeWorkOrder
   );
 
   // Routes moved above for correct Express routing order

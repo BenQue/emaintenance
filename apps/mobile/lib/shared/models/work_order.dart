@@ -91,6 +91,7 @@ enum WorkOrderStatus {
   waitingParts('WAITING_PARTS'),
   waitingExternal('WAITING_EXTERNAL'),
   completed('COMPLETED'),
+  closed('CLOSED'),
   cancelled('CANCELLED');
 
   const WorkOrderStatus(this.value);

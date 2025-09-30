@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../shared/models/work_order.dart';
+import '../../shared/models/user.dart';
 import '../../shared/services/work_order_service.dart';
 import '../../shared/providers/auth_provider.dart';
 import '../work_orders/work_order_detail_screen.dart';
@@ -17,6 +18,7 @@ class TaskListScreen extends StatefulWidget {
 enum TaskViewMode {
   myIncomplete, // 我的未完成任务（默认）
   myAll,        // 我的所有任务
+  myCreated,    // 我创建的工单（员工）
   allIncomplete, // 所有未完成任务
   allTasks      // 所有任务
 }
@@ -31,7 +33,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
   int _totalPages = 1;
 
   // View mode and filter states
-  TaskViewMode _viewMode = TaskViewMode.myIncomplete; // 默认显示我的未完成任务
+  TaskViewMode? _viewMode; // Will be set based on user role
   WorkOrderStatus? _statusFilter;
   Priority? _priorityFilter;
   String _searchQuery = '';
@@ -40,8 +42,22 @@ class _TaskListScreenState extends State<TaskListScreen> {
   @override
   void initState() {
     super.initState();
-    _loadWorkOrders();
+    _initializeViewMode();
     _scrollController.addListener(_onScroll);
+  }
+
+  void _initializeViewMode() {
+    final authProvider = context.read<AuthProvider>();
+    final user = authProvider.user;
+
+    // Set default view mode based on user role
+    if (user?.role == UserRole.employee) {
+      _viewMode = TaskViewMode.myCreated; // 员工默认查看自己创建的工单
+    } else {
+      _viewMode = TaskViewMode.myIncomplete; // 技术员/主管/管理员默认查看未完成任务
+    }
+
+    _loadWorkOrders();
   }
 
   @override
@@ -80,7 +96,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
 
       // 根据查看模式选择不同的API调用
       print('🔍 Loading work orders with mode: $_viewMode, page: $_currentPage');
-      switch (_viewMode) {
+      switch (_viewMode!) {
         case TaskViewMode.myIncomplete:
           print('📞 Calling getAssignedWorkOrders (myIncomplete)');
           result = await workOrderService.getAssignedWorkOrders(
@@ -93,6 +109,21 @@ class _TaskListScreenState extends State<TaskListScreen> {
           result = await workOrderService.getAssignedWorkOrders(
             page: _currentPage,
             limit: 20,
+          );
+          break;
+        case TaskViewMode.myCreated:
+          print('📞 Calling getUserWorkOrders with type=created');
+          final createdWorkOrders = await workOrderService.getUserWorkOrders(
+            type: 'created',
+            page: _currentPage,
+            limit: 20,
+          );
+          // Convert List<WorkOrder> to PaginatedWorkOrders format
+          result = PaginatedWorkOrders(
+            workOrders: createdWorkOrders.map((wo) => WorkOrderWithRelations.fromJson(wo.toJson())).toList(),
+            total: createdWorkOrders.length,
+            currentPage: _currentPage,
+            totalPages: 1,
           );
           break;
         case TaskViewMode.allIncomplete:
@@ -142,12 +173,25 @@ class _TaskListScreenState extends State<TaskListScreen> {
       PaginatedWorkOrders result;
 
       // 根据查看模式选择不同的API调用
-      switch (_viewMode) {
+      switch (_viewMode!) {
         case TaskViewMode.myIncomplete:
         case TaskViewMode.myAll:
           result = await workOrderService.getAssignedWorkOrders(
             page: _currentPage,
             limit: 20,
+          );
+          break;
+        case TaskViewMode.myCreated:
+          final createdWorkOrders = await workOrderService.getUserWorkOrders(
+            type: 'created',
+            page: _currentPage,
+            limit: 20,
+          );
+          result = PaginatedWorkOrders(
+            workOrders: createdWorkOrders.map((wo) => WorkOrderWithRelations.fromJson(wo.toJson())).toList(),
+            total: createdWorkOrders.length,
+            currentPage: _currentPage,
+            totalPages: 1,
           );
           break;
         case TaskViewMode.allIncomplete:
@@ -191,22 +235,35 @@ class _TaskListScreenState extends State<TaskListScreen> {
   List<WorkOrderWithRelations> get _filteredWorkOrders {
     return _workOrders.where((workOrder) {
       // 根据查看模式进行基础过滤
-      switch (_viewMode) {
+      switch (_viewMode!) {
         case TaskViewMode.myIncomplete:
           // 只显示未完成的状态
           if (workOrder.status == WorkOrderStatus.completed ||
+              workOrder.status == WorkOrderStatus.closed ||
               workOrder.status == WorkOrderStatus.cancelled) {
             return false;
           }
           break;
         case TaskViewMode.myAll:
-          // 显示所有状态
+          // 显示所有状态，但默认隐藏已关闭
+          if (workOrder.status == WorkOrderStatus.closed) {
+            return false;
+          }
+          break;
+        case TaskViewMode.myCreated:
+          // 员工查看自己创建的工单，默认隐藏已关闭
+          if (workOrder.status == WorkOrderStatus.closed) {
+            return false;
+          }
           break;
         case TaskViewMode.allIncomplete:
           // 只显示未完成的状态（已在API层面过滤）
           break;
         case TaskViewMode.allTasks:
-          // 显示所有状态
+          // 显示所有状态，但默认隐藏已关闭
+          if (workOrder.status == WorkOrderStatus.closed) {
+            return false;
+          }
           break;
       }
 
@@ -256,11 +313,13 @@ class _TaskListScreenState extends State<TaskListScreen> {
   }
 
   String get _getViewModeTitle {
-    switch (_viewMode) {
+    switch (_viewMode!) {
       case TaskViewMode.myIncomplete:
         return '我的任务';
       case TaskViewMode.myAll:
         return '我的所有任务';
+      case TaskViewMode.myCreated:
+        return '我的工单';
       case TaskViewMode.allIncomplete:
         return '所有未完成';
       case TaskViewMode.allTasks:
@@ -268,24 +327,62 @@ class _TaskListScreenState extends State<TaskListScreen> {
     }
   }
 
+  List<TaskViewMode> _getAvailableViewModes() {
+    final authProvider = context.read<AuthProvider>();
+    final user = authProvider.user;
+
+    if (user?.role == UserRole.employee) {
+      // 员工只能查看自己创建的工单
+      return [TaskViewMode.myCreated];
+    } else if (user?.role == UserRole.technician) {
+      // 技术员可以查看分配给自己的任务和所有任务
+      return [
+        TaskViewMode.myIncomplete,
+        TaskViewMode.myAll,
+        TaskViewMode.allIncomplete,
+        TaskViewMode.allTasks,
+      ];
+    } else {
+      // 主管和管理员可以查看所有模式
+      return TaskViewMode.values;
+    }
+  }
+
   void _showViewModeDialog() {
+    final availableModes = _getAvailableViewModes();
+
+    // 如果只有一个选项,不显示对话框
+    if (availableModes.length <= 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('您当前只有一个查看模式可用'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('选择查看模式'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
-          children: TaskViewMode.values.map((mode) {
+          children: availableModes.map((mode) {
             String title;
             String subtitle;
             switch (mode) {
               case TaskViewMode.myIncomplete:
                 title = '我的未完成任务';
-                subtitle = '只显示分配给我的未完成工单（默认）';
+                subtitle = '只显示分配给我的未完成工单';
                 break;
               case TaskViewMode.myAll:
                 title = '我的所有任务';
                 subtitle = '显示分配给我的所有工单（包含已完成）';
+                break;
+              case TaskViewMode.myCreated:
+                title = '我创建的工单';
+                subtitle = '显示我创建的所有报修工单';
                 break;
               case TaskViewMode.allIncomplete:
                 title = '所有未完成任务';
@@ -585,6 +682,9 @@ class _TaskListScreenState extends State<TaskListScreen> {
       case WorkOrderStatus.completed:
         backgroundColor = Colors.green;
         break;
+      case WorkOrderStatus.closed:
+        backgroundColor = Colors.grey;
+        break;
       case WorkOrderStatus.cancelled:
         backgroundColor = Colors.red;
         break;
@@ -653,6 +753,8 @@ class _TaskListScreenState extends State<TaskListScreen> {
         return '等待外部';
       case WorkOrderStatus.completed:
         return '已完成';
+      case WorkOrderStatus.closed:
+        return '已关闭';
       case WorkOrderStatus.cancelled:
         return '已取消';
     }
@@ -830,6 +932,8 @@ class _FilterDialogState extends State<_FilterDialog> {
         return '等待外部';
       case WorkOrderStatus.completed:
         return '已完成';
+      case WorkOrderStatus.closed:
+        return '已关闭';
       case WorkOrderStatus.cancelled:
         return '已取消';
     }
