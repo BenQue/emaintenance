@@ -348,8 +348,7 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
             ),
             const SizedBox(height: 12),
             _buildInfoRow('工单ID', workOrder.id),
-            _buildInfoRow('类别', workOrder.category),
-            _buildInfoRow('原因', workOrder.reason),
+            _buildFaultSymptomsRow(workOrder.faultSymptoms),
             if (workOrder.location != null)
               _buildInfoRow('位置', workOrder.location!),
             _buildInfoRow('报修时间', _formatDateTime(workOrder.reportedAt)),
@@ -530,6 +529,47 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
           Expanded(
             child: Text(value),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFaultSymptomsRow(List<FaultSymptom> faultSymptoms) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            '故障表现:',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+            ),
+          ),
+          const SizedBox(height: 4),
+          if (faultSymptoms.isEmpty)
+            const Text('无', style: TextStyle(color: Colors.grey))
+          else
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: faultSymptoms.map((symptom) {
+                return Chip(
+                  avatar: Icon(
+                    symptom.icon,
+                    size: 16,
+                    color: Colors.blue,
+                  ),
+                  label: Text(
+                    symptom.label,
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                  backgroundColor: Colors.blue.shade50,
+                  side: BorderSide(color: Colors.blue.shade200),
+                );
+              }).toList(),
+            ),
         ],
       ),
     );

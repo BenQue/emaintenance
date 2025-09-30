@@ -80,21 +80,18 @@ class ApiClient {
   
   // 为不同服务创建特定的客户端实例（支持灵活配置）
   static Future<ApiClient> getUserServiceClient() async {
-    final baseUrl = await FlexibleEnvironment.getBaseUrl();
-    // 用户服务使用基础URL，因为auth路径已包含/user-service前缀
-    return await getInstance(baseUrl: baseUrl);
+    // 直接使用Environment配置的用户服务URL
+    return await getInstance(baseUrl: Environment.userServiceUrl);
   }
-  
+
   static Future<ApiClient> getWorkOrderServiceClient() async {
-    final baseUrl = await FlexibleEnvironment.getBaseUrl();
-    // 工单服务使用基础URL，因为路径已包含/work-order-service前缀
-    return await getInstance(baseUrl: baseUrl);
+    // 直接使用Environment配置的工单服务URL
+    return await getInstance(baseUrl: Environment.workOrderServiceUrl);
   }
-  
+
   static Future<ApiClient> getAssetServiceClient() async {
-    final baseUrl = await FlexibleEnvironment.getBaseUrl();
-    // 资产服务使用基础URL，因为路径已包含/asset-service前缀
-    return await getInstance(baseUrl: baseUrl);
+    // 直接使用Environment配置的资产服务URL
+    return await getInstance(baseUrl: Environment.assetServiceUrl);
   }
   
   Future<String?> getToken() async {

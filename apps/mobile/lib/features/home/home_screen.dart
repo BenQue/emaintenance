@@ -4,7 +4,7 @@ import '../../shared/providers/auth_provider.dart';
 import '../../shared/models/user.dart';
 import '../scanner/qr_scanner_screen.dart';
 import '../work_orders/work_order_form_screen.dart';
-import '../tasks/task_list_screen.dart';
+// import '../tasks/task_list_screen.dart'; // 临时注释，测试故障表现功能
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -34,7 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildTechnicianView(BuildContext context, AuthProvider authProvider) {
     final List<Widget> pages = [
-      const TaskListScreen(),
+      const Center(child: Text('任务列表功能临时不可用')), // 临时替换，测试故障表现功能
       _buildHomeContent(),
     ];
 

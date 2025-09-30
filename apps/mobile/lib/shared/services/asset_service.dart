@@ -39,7 +39,7 @@ class AssetService {
     
     try {
       final response = await _apiClient.get<Map<String, dynamic>>(
-        '/asset-service/api/assets/code/$assetCode',
+        '/api/assets/code/$assetCode',
       );
       
       
@@ -89,7 +89,7 @@ class AssetService {
     
     try {
       final response = await _assetServiceClient.get<Map<String, dynamic>>(
-        '/asset-service/api/assets/search-by-code',
+        '/api/assets/search-by-code',
         queryParameters: queryParameters,
       );
       
@@ -112,7 +112,7 @@ class AssetService {
     
     try {
       final response = await _assetServiceClient.get<Map<String, dynamic>>(
-        '/asset-service/api/assets/validate',
+        '/api/assets/validate',
         queryParameters: {'code': assetCode},
       );
       
@@ -157,7 +157,7 @@ class AssetService {
     
     try {
       final response = await _assetServiceClient.get<Map<String, dynamic>>(
-        '/asset-service/api/assets/suggest',
+        '/api/assets/suggest',
         queryParameters: queryParameters,
       );
       
@@ -178,7 +178,7 @@ class AssetService {
   
   Future<Asset> getAssetById(String id) async {
     final response = await _apiClient.get<Map<String, dynamic>>(
-      '/asset-service/api/assets/$id',
+      '/api/assets/$id',
     );
     
     if (response.data == null) {
@@ -208,7 +208,7 @@ class AssetService {
     }
     
     final response = await _apiClient.get<Map<String, dynamic>>(
-      '/asset-service/api/assets',
+      '/api/assets',
       queryParameters: queryParameters,
     );
     

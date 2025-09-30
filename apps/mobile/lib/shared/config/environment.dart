@@ -1,6 +1,6 @@
 class Environment {
-  // 开发环境 - 本机开发服务器  
-  static const String _devBaseUrl = 'http://localhost'; // 本机开发环境
+  // 开发环境 - 本机开发服务器
+  static const String _devBaseUrl = 'http://10.0.2.2'; // Android模拟器访问宿主机
   
   // 生产环境 - 生产服务器地址（Nginx 代理端口 3030）
   static const String _prodBaseUrl = 'http://10.163.144.13:3030'; // 生产服务器地址
@@ -16,20 +16,20 @@ class Environment {
   
   // 微服务URL配置 - 根据环境自动调整
   static String get userServiceUrl {
-    return isDevelopment 
-        ? '$baseUrl:3001'  // 开发环境使用端口
+    return isDevelopment
+        ? '$baseUrl:3001'  // 开发环境直接访问微服务端口
         : '$baseUrl/user-service';  // 生产环境使用路径
   }
-  
+
   static String get workOrderServiceUrl {
-    return isDevelopment 
-        ? '$baseUrl:3002' 
+    return isDevelopment
+        ? '$baseUrl:3002'
         : '$baseUrl/work-order-service';
   }
-  
+
   static String get assetServiceUrl {
-    return isDevelopment 
-        ? '$baseUrl:3003' 
+    return isDevelopment
+        ? '$baseUrl:3003'
         : '$baseUrl/asset-service';
   }
   
