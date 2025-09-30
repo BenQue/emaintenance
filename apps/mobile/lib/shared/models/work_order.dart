@@ -344,3 +344,256 @@ class OfflineResolutionRecord {
     );
   }
 }
+
+// 工单与关系数据的扩展模型
+class WorkOrderWithRelations extends WorkOrder {
+  final Map<String, dynamic>? asset;
+  final Map<String, dynamic>? createdBy;
+  final Map<String, dynamic>? assignedTo;
+  final List<WorkOrderStatusHistory>? statusHistory;
+
+  const WorkOrderWithRelations({
+    required super.id,
+    required super.title,
+    required super.description,
+    required super.faultSymptoms,
+    required super.location,
+    super.additionalLocation,
+    required super.productionInterrupted,
+    required super.priority,
+    required super.status,
+    required super.reportedAt,
+    super.startedAt,
+    super.completedAt,
+    super.solution,
+    super.faultCode,
+    required super.attachments,
+    required super.createdAt,
+    required super.updatedAt,
+    super.assetId,
+    super.createdById,
+    super.assignedToId,
+    this.asset,
+    this.createdBy,
+    this.assignedTo,
+    this.statusHistory,
+  });
+
+  factory WorkOrderWithRelations.fromJson(Map<String, dynamic> json) {
+    return WorkOrderWithRelations(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      description: json['description'] as String? ?? '',
+      faultSymptoms: (json['faultSymptoms'] as List<dynamic>?)
+          ?.map((symptom) => FaultSymptom.fromString(symptom as String))
+          .toList() ?? [],
+      location: json['location'] as String? ?? '',
+      additionalLocation: json['additionalLocation'] as String?,
+      productionInterrupted: json['productionInterrupted'] as bool? ?? false,
+      priority: Priority.fromString(json['priority'] as String),
+      status: WorkOrderStatus.fromString(json['status'] as String),
+      reportedAt: DateTime.parse(json['reportedAt'] as String),
+      startedAt: json['startedAt'] != null
+          ? DateTime.parse(json['startedAt'] as String)
+          : null,
+      completedAt: json['completedAt'] != null
+          ? DateTime.parse(json['completedAt'] as String)
+          : null,
+      solution: json['solution'] as String?,
+      faultCode: json['faultCode'] != null
+          ? FaultCode.fromString(json['faultCode'] as String)
+          : null,
+      attachments: List<String>.from(json['attachments'] as List? ?? []),
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      assetId: json['assetId'] as String?,
+      createdById: json['createdById'] as String?,
+      assignedToId: json['assignedToId'] as String?,
+      asset: json['asset'] as Map<String, dynamic>?,
+      createdBy: json['createdBy'] as Map<String, dynamic>?,
+      assignedTo: json['assignedTo'] as Map<String, dynamic>?,
+      statusHistory: (json['statusHistory'] as List<dynamic>?)
+          ?.map((item) => WorkOrderStatusHistory.fromJson(item as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}
+
+// 分页工单数据模型
+class PaginatedWorkOrders {
+  final List<WorkOrderWithRelations> workOrders;
+  final int total;
+  final int currentPage;
+  final int totalPages;
+
+  const PaginatedWorkOrders({
+    required this.workOrders,
+    required this.total,
+    required this.currentPage,
+    required this.totalPages,
+  });
+
+  factory PaginatedWorkOrders.fromJson(Map<String, dynamic> json) {
+    return PaginatedWorkOrders(
+      workOrders: (json['workOrders'] as List<dynamic>)
+          .map((item) => WorkOrderWithRelations.fromJson(item as Map<String, dynamic>))
+          .toList(),
+      total: json['total'] as int,
+      currentPage: json['currentPage'] as int,
+      totalPages: json['totalPages'] as int,
+    );
+  }
+}
+
+// 工单状态历史记录
+class WorkOrderStatusHistory {
+  final String id;
+  final String workOrderId;
+  final WorkOrderStatus fromStatus;
+  final WorkOrderStatus toStatus;
+  final String? comment;
+  final String changedById;
+  final Map<String, dynamic>? changedBy;
+  final DateTime createdAt;
+
+  const WorkOrderStatusHistory({
+    required this.id,
+    required this.workOrderId,
+    required this.fromStatus,
+    required this.toStatus,
+    this.comment,
+    required this.changedById,
+    this.changedBy,
+    required this.createdAt,
+  });
+
+  factory WorkOrderStatusHistory.fromJson(Map<String, dynamic> json) {
+    return WorkOrderStatusHistory(
+      id: json['id'] as String,
+      workOrderId: json['workOrderId'] as String,
+      fromStatus: WorkOrderStatus.fromString(json['fromStatus'] as String),
+      toStatus: WorkOrderStatus.fromString(json['toStatus'] as String),
+      comment: json['comment'] as String?,
+      changedById: json['changedById'] as String,
+      changedBy: json['changedBy'] as Map<String, dynamic>?,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+    );
+  }
+}
+
+// 更新工单状态请求
+class UpdateWorkOrderStatusRequest {
+  final WorkOrderStatus status;
+  final String? comment;
+
+  const UpdateWorkOrderStatusRequest({
+    required this.status,
+    this.comment,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'status': status.value,
+      if (comment != null) 'comment': comment,
+    };
+  }
+}
+
+// 工单与解决方案记录
+class WorkOrderWithResolution extends WorkOrderWithRelations {
+  final Map<String, dynamic>? resolution;
+
+  const WorkOrderWithResolution({
+    required super.id,
+    required super.title,
+    required super.description,
+    required super.faultSymptoms,
+    required super.location,
+    super.additionalLocation,
+    required super.productionInterrupted,
+    required super.priority,
+    required super.status,
+    required super.reportedAt,
+    super.startedAt,
+    super.completedAt,
+    super.solution,
+    super.faultCode,
+    required super.attachments,
+    required super.createdAt,
+    required super.updatedAt,
+    super.assetId,
+    super.createdById,
+    super.assignedToId,
+    super.asset,
+    super.createdBy,
+    super.assignedTo,
+    super.statusHistory,
+    this.resolution,
+  });
+
+  factory WorkOrderWithResolution.fromJson(Map<String, dynamic> json) {
+    final base = WorkOrderWithRelations.fromJson(json);
+    return WorkOrderWithResolution(
+      id: base.id,
+      title: base.title,
+      description: base.description,
+      faultSymptoms: base.faultSymptoms,
+      location: base.location,
+      additionalLocation: base.additionalLocation,
+      productionInterrupted: base.productionInterrupted,
+      priority: base.priority,
+      status: base.status,
+      reportedAt: base.reportedAt,
+      startedAt: base.startedAt,
+      completedAt: base.completedAt,
+      solution: base.solution,
+      faultCode: base.faultCode,
+      attachments: base.attachments,
+      createdAt: base.createdAt,
+      updatedAt: base.updatedAt,
+      assetId: base.assetId,
+      createdById: base.createdById,
+      assignedToId: base.assignedToId,
+      asset: base.asset,
+      createdBy: base.createdBy,
+      assignedTo: base.assignedTo,
+      statusHistory: base.statusHistory,
+      resolution: json['resolution'] as Map<String, dynamic>?,
+    );
+  }
+}
+
+// 解决方案记录
+class ResolutionRecord {
+  final String id;
+  final String workOrderId;
+  final String solutionDescription;
+  final FaultCode? faultCode;
+  final List<String> photos;
+  final DateTime createdAt;
+  final String technician;
+
+  const ResolutionRecord({
+    required this.id,
+    required this.workOrderId,
+    required this.solutionDescription,
+    this.faultCode,
+    required this.photos,
+    required this.createdAt,
+    required this.technician,
+  });
+
+  factory ResolutionRecord.fromJson(Map<String, dynamic> json) {
+    return ResolutionRecord(
+      id: json['id'] as String,
+      workOrderId: json['workOrderId'] as String,
+      solutionDescription: json['solutionDescription'] as String,
+      faultCode: json['faultCode'] != null
+          ? FaultCode.fromString(json['faultCode'] as String)
+          : null,
+      photos: List<String>.from(json['photos'] as List? ?? []),
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      technician: json['technician'] as String,
+    );
+  }
+}
