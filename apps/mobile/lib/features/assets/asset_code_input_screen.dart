@@ -75,18 +75,20 @@ class _AssetCodeInputScreenState extends State<AssetCodeInputScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // QR Code Scanner Option
+                  // Manual Input Section (Primary)
+                  _buildManualInputSection(),
+                  
+                  const SizedBox(height: 24),
+                  
+                  // QR Code Scanner Option (Backup)
                   if (widget.showQROption) ...[
-                    _buildQRScannerSection(),
-                    const SizedBox(height: 24),
-                    
                     const Row(
                       children: [
                         Expanded(child: Divider()),
                         Padding(
                           padding: EdgeInsets.symmetric(horizontal: 16),
                           child: Text(
-                            '或',
+                            '或使用备用方式',
                             style: TextStyle(
                               color: Colors.grey,
                               fontWeight: FontWeight.w500,
@@ -98,10 +100,9 @@ class _AssetCodeInputScreenState extends State<AssetCodeInputScreen> {
                     ),
                     
                     const SizedBox(height: 24),
+                    
+                    _buildCameraQRScannerSection(),
                   ],
-                  
-                  // Manual Input Section
-                  _buildManualInputSection(),
                   
                   const SizedBox(height: 24),
                   
@@ -110,7 +111,7 @@ class _AssetCodeInputScreenState extends State<AssetCodeInputScreen> {
                     AssetValidationWidget(
                       asset: selectedAsset!,
                       onAssetTap: _onAssetSelected,
-                      showConfirmButton: true,
+                      showConfirmButton: false,
                     ),
                     const SizedBox(height: 16),
                   ],
@@ -187,49 +188,50 @@ class _AssetCodeInputScreenState extends State<AssetCodeInputScreen> {
     );
   }
 
-  Widget _buildQRScannerSection() {
+  Widget _buildCameraQRScannerSection() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!, width: 2),
+        color: Colors.grey[50],
+        border: Border.all(color: Colors.grey[300]!, width: 1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
         children: [
           Icon(
-            Icons.qr_code_scanner,
-            size: 48,
-            color: Colors.blue[600],
+            Icons.camera_alt,
+            size: 40,
+            color: Colors.grey[600],
           ),
           const SizedBox(height: 12),
           const Text(
-            '扫描二维码',
+            '摄像头拍照识别',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.w600,
+              color: Colors.black87,
             ),
           ),
           const SizedBox(height: 8),
           const Text(
-            '使用摄像头扫描资产上的二维码来快速识别',
+            '使用摄像头拍照识别资产二维码（备用方式）',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.grey,
-              fontSize: 14,
+              fontSize: 13,
             ),
           ),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton.icon(
+            child: OutlinedButton.icon(
               onPressed: _openQRScanner,
-              icon: const Icon(Icons.qr_code_scanner),
-              label: const Text('扫描二维码'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue[600],
-                foregroundColor: Colors.white,
+              icon: const Icon(Icons.camera_alt),
+              label: const Text('打开摄像头'),
+              style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 12),
+                side: BorderSide(color: Colors.grey[400]!),
               ),
             ),
           ),
@@ -242,18 +244,41 @@ class _AssetCodeInputScreenState extends State<AssetCodeInputScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Icon(Icons.edit, color: Colors.grey[600], size: 20),
-            const SizedBox(width: 8),
-            const Text(
-              '手工输入资产代码',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.blue[50],
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.keyboard, color: Colors.blue[700], size: 24),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '扫码或手工输入资产代码',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      '使用PDA扫码头或手工输入',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         const SizedBox(height: 16),
         AssetSearchWidget(

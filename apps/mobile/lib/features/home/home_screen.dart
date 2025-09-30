@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../shared/providers/auth_provider.dart';
 import '../../shared/models/user.dart';
-import '../scanner/qr_scanner_screen.dart';
+import '../assets/asset_code_input_screen.dart';
 import '../work_orders/work_order_form_screen.dart';
 import '../tasks/task_list_screen.dart';
 
@@ -48,8 +48,8 @@ class _HomeScreenState extends State<HomeScreen> {
         label: isTechnician ? '我的任务' : '我的工单',
       ),
       const BottomNavigationBarItem(
-        icon: Icon(Icons.home),
-        label: '首页',
+        icon: Icon(Icons.build_circle),
+        label: '报修',
       ),
     ];
 
@@ -190,15 +190,22 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildFloatingActionButton() {
     return FloatingActionButton.extended(
       onPressed: () async {
-        // Navigate to QR scanner
+        // Navigate to Asset Code Input Screen
         final result = await Navigator.of(context).push<dynamic>(
           MaterialPageRoute(
-            builder: (context) => const QRScannerScreen(),
+            builder: (context) => AssetCodeInputScreen(
+              title: '选择资产',
+              subtitle: '扫描或输入资产代码以创建工单',
+              showQROption: true,
+              onAssetSelected: (asset) {
+                Navigator.of(context).pop(asset);
+              },
+            ),
           ),
         );
         
         if (result != null) {
-          // Navigate to work order form with scanned asset
+          // Navigate to work order form with selected asset
           if (context.mounted) {
             Navigator.of(context).push(
               MaterialPageRoute(
