@@ -370,8 +370,8 @@ class WorkOrderWithRelations extends WorkOrder {
     required super.attachments,
     required super.createdAt,
     required super.updatedAt,
-    super.assetId,
-    super.createdById,
+    required super.assetId,
+    required super.createdById,
     super.assignedToId,
     this.asset,
     this.createdBy,
@@ -400,14 +400,12 @@ class WorkOrderWithRelations extends WorkOrder {
           ? DateTime.parse(json['completedAt'] as String)
           : null,
       solution: json['solution'] as String?,
-      faultCode: json['faultCode'] != null
-          ? FaultCode.fromString(json['faultCode'] as String)
-          : null,
+      faultCode: null, // TODO: 修复 FaultCode 类型问题
       attachments: List<String>.from(json['attachments'] as List? ?? []),
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
-      assetId: json['assetId'] as String?,
-      createdById: json['createdById'] as String?,
+      assetId: json['assetId'] as String? ?? '',
+      createdById: json['createdById'] as String? ?? '',
       assignedToId: json['assignedToId'] as String?,
       asset: json['asset'] as Map<String, dynamic>?,
       createdBy: json['createdBy'] as Map<String, dynamic>?,
@@ -439,7 +437,7 @@ class PaginatedWorkOrders {
           .map((item) => WorkOrderWithRelations.fromJson(item as Map<String, dynamic>))
           .toList(),
       total: json['total'] as int,
-      currentPage: json['currentPage'] as int,
+      currentPage: json['page'] as int, // API 返回的字段名是 'page'，不是 'currentPage'
       totalPages: json['totalPages'] as int,
     );
   }
@@ -452,6 +450,7 @@ class WorkOrderStatusHistory {
   final WorkOrderStatus fromStatus;
   final WorkOrderStatus toStatus;
   final String? comment;
+  final String? notes;
   final String changedById;
   final Map<String, dynamic>? changedBy;
   final DateTime createdAt;
@@ -462,6 +461,7 @@ class WorkOrderStatusHistory {
     required this.fromStatus,
     required this.toStatus,
     this.comment,
+    this.notes,
     required this.changedById,
     this.changedBy,
     required this.createdAt,
@@ -474,6 +474,7 @@ class WorkOrderStatusHistory {
       fromStatus: WorkOrderStatus.fromString(json['fromStatus'] as String),
       toStatus: WorkOrderStatus.fromString(json['toStatus'] as String),
       comment: json['comment'] as String?,
+      notes: json['notes'] as String?,
       changedById: json['changedById'] as String,
       changedBy: json['changedBy'] as Map<String, dynamic>?,
       createdAt: DateTime.parse(json['createdAt'] as String),
@@ -485,16 +486,19 @@ class WorkOrderStatusHistory {
 class UpdateWorkOrderStatusRequest {
   final WorkOrderStatus status;
   final String? comment;
+  final String? notes;
 
   const UpdateWorkOrderStatusRequest({
     required this.status,
     this.comment,
+    this.notes,
   });
 
   Map<String, dynamic> toJson() {
     return {
       'status': status.value,
       if (comment != null) 'comment': comment,
+      if (notes != null) 'notes': notes,
     };
   }
 }
@@ -521,8 +525,8 @@ class WorkOrderWithResolution extends WorkOrderWithRelations {
     required super.attachments,
     required super.createdAt,
     required super.updatedAt,
-    super.assetId,
-    super.createdById,
+    required super.assetId,
+    required super.createdById,
     super.assignedToId,
     super.asset,
     super.createdBy,

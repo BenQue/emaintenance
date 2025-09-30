@@ -104,13 +104,13 @@ export const checkWorkOrderAccess = (prisma: PrismaClient) => asyncHandler(async
   const userId = req.user.id;
   const userRole = req.user.role;
 
-  // Admins and supervisors have access to all work orders
-  if (['ADMIN', 'SUPERVISOR'].includes(userRole)) {
+  // Admins, supervisors, and technicians have access to all work orders
+  if (['ADMIN', 'SUPERVISOR', 'TECHNICIAN'].includes(userRole)) {
     next();
     return;
   }
 
-  // For other roles, check if they created or are assigned to the work order
+  // For employees and other roles, check if they created or are assigned to the work order
   const workOrder = await prisma.workOrder.findUnique({
     where: { id },
     select: {
@@ -123,8 +123,8 @@ export const checkWorkOrderAccess = (prisma: PrismaClient) => asyncHandler(async
     throw new AppError('工单不存在', 404);
   }
 
-  const hasAccess = 
-    workOrder.createdById === userId || 
+  const hasAccess =
+    workOrder.createdById === userId ||
     workOrder.assignedToId === userId;
 
   if (!hasAccess) {

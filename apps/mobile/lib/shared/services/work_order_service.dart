@@ -157,7 +157,7 @@ class WorkOrderService {
   }
 
   /// 获取分配给当前技术员的工单
-  Future<List<WorkOrder>> getAssignedWorkOrders({
+  Future<PaginatedWorkOrders> getAssignedWorkOrders({
     int page = 1,
     int limit = 20,
   }) async {
@@ -178,28 +178,66 @@ class WorkOrderService {
         throw Exception('Empty response from server');
       }
 
-      final workOrdersData = response.data!['data']['workOrders'] as List<dynamic>;
-      return workOrdersData.map((json) => WorkOrder.fromJson(json as Map<String, dynamic>)).toList();
+      return PaginatedWorkOrders.fromJson(response.data!['data']);
     } catch (e) {
       throw Exception('Failed to get assigned work orders: $e');
     }
   }
 
+  /// 获取所有工单
+  Future<PaginatedWorkOrders> getAllWorkOrders({
+    int page = 1,
+    int limit = 20,
+    String? status,
+    String? priority,
+  }) async {
+    try {
+      if (_apiClient == null) {
+        throw Exception('API client not initialized');
+      }
+
+      final queryParameters = <String, String>{
+        'page': page.toString(),
+        'limit': limit.toString(),
+      };
+
+      if (status != null && status.isNotEmpty) {
+        queryParameters['status'] = status;
+      }
+      if (priority != null && priority.isNotEmpty) {
+        queryParameters['priority'] = priority;
+      }
+
+      if (kDebugMode) {
+        print('🔍 getAllWorkOrders query params: $queryParameters');
+      }
+
+      final response = await _apiClient!.get<Map<String, dynamic>>(
+        '/api/work-orders',
+        queryParameters: queryParameters,
+      );
+
+      if (response.data == null) {
+        throw Exception('Empty response from server');
+      }
+
+      return PaginatedWorkOrders.fromJson(response.data!['data']);
+    } catch (e) {
+      throw Exception('Failed to get all work orders: $e');
+    }
+  }
+
   /// 更新工单状态
-  Future<WorkOrder> updateWorkOrderStatus(
+  Future<WorkOrderWithRelations> updateWorkOrderStatus(
     String workOrderId,
-    String status,
-    {String? comment}
+    UpdateWorkOrderStatusRequest request,
   ) async {
     try {
       if (_apiClient == null) {
         throw Exception('API client not initialized');
       }
 
-      final requestData = {
-        'status': status,
-        if (comment != null) 'comment': comment,
-      };
+      final requestData = request.toJson();
 
       if (kDebugMode) {
         print('Updating work order status: $requestData');
@@ -215,7 +253,7 @@ class WorkOrderService {
       }
 
       final workOrderData = response.data!['data']['workOrder'] as Map<String, dynamic>;
-      return WorkOrder.fromJson(workOrderData);
+      return WorkOrderWithRelations.fromJson(workOrderData);
     } catch (e) {
       throw Exception('Failed to update work order status: $e');
     }
@@ -224,20 +262,22 @@ class WorkOrderService {
   /// 完成工单并记录解决方案
   Future<WorkOrder> completeWorkOrder(
     String workOrderId,
-    Map<String, dynamic> completionData,
+    CreateResolutionRequest request,
   ) async {
     try {
       if (_apiClient == null) {
         throw Exception('API client not initialized');
       }
 
+      final requestData = request.toJson();
+
       if (kDebugMode) {
-        print('Completing work order: $completionData');
+        print('Completing work order: $requestData');
       }
 
       final response = await _apiClient!.post<Map<String, dynamic>>(
         '/api/work-orders/$workOrderId/complete',
-        data: completionData,
+        data: requestData,
       );
 
       if (response.data == null) {
@@ -279,6 +319,57 @@ class WorkOrderService {
       return workOrdersData.map((json) => WorkOrder.fromJson(json as Map<String, dynamic>)).toList();
     } catch (e) {
       throw Exception('Failed to get user work orders: $e');
+    }
+  }
+
+  /// 获取工单与历史记录
+  Future<WorkOrderWithRelations> getWorkOrderWithHistory(String workOrderId) async {
+    try {
+      if (_apiClient == null) {
+        throw Exception('API client not initialized');
+      }
+
+      final response = await _apiClient!.get<Map<String, dynamic>>(
+        '/api/work-orders/$workOrderId',
+      );
+
+      if (response.data == null) {
+        throw Exception('Empty response from server');
+      }
+
+      final workOrderData = response.data!['data']['workOrder'] as Map<String, dynamic>;
+      return WorkOrderWithRelations.fromJson(workOrderData);
+    } catch (e) {
+      throw Exception('Failed to get work order with history: $e');
+    }
+  }
+
+  /// 获取工单状态历史
+  Future<List<WorkOrderStatusHistory>> getWorkOrderStatusHistory(String workOrderId) async {
+    try {
+      if (_apiClient == null) {
+        throw Exception('API client not initialized');
+      }
+
+      // 暂时返回空列表，因为后端可能没有实现此端点
+      return [];
+
+      // 实际实现代码（当后端准备好时启用）：
+      // final response = await _apiClient!.get<Map<String, dynamic>>(
+      //   '/api/work-orders/$workOrderId/status-history',
+      // );
+      // if (response.data == null) {
+      //   return [];
+      // }
+      // final historyData = response.data!['data']['statusHistory'] as List;
+      // return historyData
+      //     .map((item) => WorkOrderStatusHistory.fromJson(item as Map<String, dynamic>))
+      //     .toList();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to get work order status history: $e');
+      }
+      return [];
     }
   }
 

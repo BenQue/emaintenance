@@ -5,11 +5,20 @@ import '../../shared/services/work_order_service.dart';
 import '../../shared/providers/auth_provider.dart';
 import '../work_orders/work_order_detail_screen.dart';
 
+// 任务列表页面 - 支持多种查看模式 (调试模式)
+
 class TaskListScreen extends StatefulWidget {
   const TaskListScreen({super.key});
 
   @override
   State<TaskListScreen> createState() => _TaskListScreenState();
+}
+
+enum TaskViewMode {
+  myIncomplete, // 我的未完成任务（默认）
+  myAll,        // 我的所有任务
+  allIncomplete, // 所有未完成任务
+  allTasks      // 所有任务
 }
 
 class _TaskListScreenState extends State<TaskListScreen> {
@@ -20,8 +29,9 @@ class _TaskListScreenState extends State<TaskListScreen> {
   String? _error;
   int _currentPage = 1;
   int _totalPages = 1;
-  
-  // Filter states
+
+  // View mode and filter states
+  TaskViewMode _viewMode = TaskViewMode.myIncomplete; // 默认显示我的未完成任务
   WorkOrderStatus? _statusFilter;
   Priority? _priorityFilter;
   String _searchQuery = '';
@@ -66,10 +76,41 @@ class _TaskListScreenState extends State<TaskListScreen> {
       }
 
       final workOrderService = await WorkOrderService.getInstance();
-      final result = await workOrderService.getAssignedWorkOrders(
-        page: _currentPage,
-        limit: 20,
-      );
+      PaginatedWorkOrders result;
+
+      // 根据查看模式选择不同的API调用
+      print('🔍 Loading work orders with mode: $_viewMode, page: $_currentPage');
+      switch (_viewMode) {
+        case TaskViewMode.myIncomplete:
+          print('📞 Calling getAssignedWorkOrders (myIncomplete)');
+          result = await workOrderService.getAssignedWorkOrders(
+            page: _currentPage,
+            limit: 20,
+          );
+          break;
+        case TaskViewMode.myAll:
+          print('📞 Calling getAssignedWorkOrders (myAll)');
+          result = await workOrderService.getAssignedWorkOrders(
+            page: _currentPage,
+            limit: 20,
+          );
+          break;
+        case TaskViewMode.allIncomplete:
+          print('📞 Calling getAllWorkOrders with NOT_COMPLETED status');
+          result = await workOrderService.getAllWorkOrders(
+            page: _currentPage,
+            limit: 20,
+            status: 'NOT_COMPLETED', // 使用后端支持的特殊过滤状态
+          );
+          break;
+        case TaskViewMode.allTasks:
+          print('📞 Calling getAllWorkOrders without status filter');
+          result = await workOrderService.getAllWorkOrders(
+            page: _currentPage,
+            limit: 20,
+          );
+          break;
+      }
 
       setState(() {
         if (refresh) {
@@ -98,10 +139,33 @@ class _TaskListScreenState extends State<TaskListScreen> {
     try {
       _currentPage++;
       final workOrderService = await WorkOrderService.getInstance();
-      final result = await workOrderService.getAssignedWorkOrders(
-        page: _currentPage,
-        limit: 20,
-      );
+      PaginatedWorkOrders result;
+
+      // 根据查看模式选择不同的API调用
+      switch (_viewMode) {
+        case TaskViewMode.myIncomplete:
+        case TaskViewMode.myAll:
+          result = await workOrderService.getAssignedWorkOrders(
+            page: _currentPage,
+            limit: 20,
+          );
+          break;
+        case TaskViewMode.allIncomplete:
+          print('📞 Calling getAllWorkOrders with NOT_COMPLETED status (loadMore)');
+          result = await workOrderService.getAllWorkOrders(
+            page: _currentPage,
+            limit: 20,
+            status: 'NOT_COMPLETED', // 使用后端支持的特殊过滤状态
+          );
+          break;
+        case TaskViewMode.allTasks:
+          print('📞 Calling getAllWorkOrders without status filter (loadMore)');
+          result = await workOrderService.getAllWorkOrders(
+            page: _currentPage,
+            limit: 20,
+          );
+          break;
+      }
 
       setState(() {
         _workOrders.addAll(result.workOrders);
@@ -112,7 +176,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
         _currentPage--;
         _isLoadingMore = false;
       });
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -126,29 +190,49 @@ class _TaskListScreenState extends State<TaskListScreen> {
 
   List<WorkOrderWithRelations> get _filteredWorkOrders {
     return _workOrders.where((workOrder) {
-      // Hide completed tasks filter (default behavior)
+      // 根据查看模式进行基础过滤
+      switch (_viewMode) {
+        case TaskViewMode.myIncomplete:
+          // 只显示未完成的状态
+          if (workOrder.status == WorkOrderStatus.completed ||
+              workOrder.status == WorkOrderStatus.cancelled) {
+            return false;
+          }
+          break;
+        case TaskViewMode.myAll:
+          // 显示所有状态
+          break;
+        case TaskViewMode.allIncomplete:
+          // 只显示未完成的状态（已在API层面过滤）
+          break;
+        case TaskViewMode.allTasks:
+          // 显示所有状态
+          break;
+      }
+
+      // Hide completed tasks filter (可选的额外过滤)
       if (_hideCompleted && workOrder.status == WorkOrderStatus.completed) {
         return false;
       }
-      
+
       // Status filter
       if (_statusFilter != null && workOrder.status != _statusFilter) {
         return false;
       }
-      
+
       // Priority filter
       if (_priorityFilter != null && workOrder.priority != _priorityFilter) {
         return false;
       }
-      
+
       // Search filter
       if (_searchQuery.isNotEmpty) {
         final query = _searchQuery.toLowerCase();
         return workOrder.title.toLowerCase().contains(query) ||
                workOrder.description.toLowerCase().contains(query) ||
-               workOrder.asset.name.toLowerCase().contains(query);
+               (workOrder.asset?['name'] as String? ?? '').toLowerCase().contains(query);
       }
-      
+
       return true;
     }).toList();
   }
@@ -171,14 +255,83 @@ class _TaskListScreenState extends State<TaskListScreen> {
     );
   }
 
+  String get _getViewModeTitle {
+    switch (_viewMode) {
+      case TaskViewMode.myIncomplete:
+        return '我的任务';
+      case TaskViewMode.myAll:
+        return '我的所有任务';
+      case TaskViewMode.allIncomplete:
+        return '所有未完成';
+      case TaskViewMode.allTasks:
+        return '所有工单';
+    }
+  }
+
+  void _showViewModeDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('选择查看模式'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: TaskViewMode.values.map((mode) {
+            String title;
+            String subtitle;
+            switch (mode) {
+              case TaskViewMode.myIncomplete:
+                title = '我的未完成任务';
+                subtitle = '只显示分配给我的未完成工单（默认）';
+                break;
+              case TaskViewMode.myAll:
+                title = '我的所有任务';
+                subtitle = '显示分配给我的所有工单（包含已完成）';
+                break;
+              case TaskViewMode.allIncomplete:
+                title = '所有未完成任务';
+                subtitle = '显示系统中所有未完成的工单';
+                break;
+              case TaskViewMode.allTasks:
+                title = '所有工单';
+                subtitle = '显示系统中的所有工单';
+                break;
+            }
+
+            return RadioListTile<TaskViewMode>(
+              title: Text(title),
+              subtitle: Text(subtitle, style: const TextStyle(fontSize: 12)),
+              value: mode,
+              groupValue: _viewMode,
+              onChanged: (TaskViewMode? value) {
+                if (value != null) {
+                  setState(() {
+                    _viewMode = value;
+                  });
+                  Navigator.of(context).pop();
+                  _loadWorkOrders(refresh: true);
+                }
+              },
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('我的任务'),
+        title: Text(_getViewModeTitle),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         actions: [
+          // View mode selector
+          IconButton(
+            icon: const Icon(Icons.view_list),
+            tooltip: '选择查看模式',
+            onPressed: _showViewModeDialog,
+          ),
           // Quick toggle for hide completed
           IconButton(
             icon: Icon(_hideCompleted ? Icons.visibility_off : Icons.visibility),
@@ -375,7 +528,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
-                      '${workOrder.asset.assetCode} - ${workOrder.asset.name}',
+                      '${workOrder.asset?['assetCode'] ?? ''} - ${workOrder.asset?['name'] ?? ''}',
                       style: const TextStyle(fontSize: 12, color: Colors.grey),
                       overflow: TextOverflow.ellipsis,
                     ),

@@ -55,7 +55,12 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
       _loadWorkOrderPhotos();
     } catch (e) {
       setState(() {
-        _error = e.toString();
+        // 检查是否是权限错误
+        if (e.toString().contains('无权访问此工单') || e.toString().contains('403')) {
+          _error = '您没有权限查看此工单';
+        } else {
+          _error = e.toString();
+        }
         _isLoading = false;
       });
     }
@@ -73,7 +78,7 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
       final photos = await workOrderService.getWorkOrderPhotos(widget.workOrderId);
 
       setState(() {
-        _workOrderPhotos = photos;
+        _workOrderPhotos = photos.map((url) => {'url': url} as Map<String, dynamic>).toList();
         _isLoadingPhotos = false;
       });
     } catch (e) {
@@ -280,16 +285,23 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
   }
 
   Widget _buildErrorWidget() {
+    // 检查是否是权限错误
+    final isPermissionError = _error?.contains('您没有权限查看此工单') ?? false;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error, size: 64, color: Colors.red),
+            Icon(
+              isPermissionError ? Icons.lock : Icons.error,
+              size: 64,
+              color: isPermissionError ? Colors.orange : Colors.red,
+            ),
             const SizedBox(height: 16),
             Text(
-              '加载失败',
+              isPermissionError ? '访问受限' : '加载失败',
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),
@@ -299,10 +311,11 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
               style: const TextStyle(color: Colors.grey),
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _loadWorkOrderDetail,
-              child: const Text('重试'),
-            ),
+            if (!isPermissionError)
+              ElevatedButton(
+                onPressed: _loadWorkOrderDetail,
+                child: const Text('重试'),
+              ),
           ],
         ),
       ),
@@ -382,9 +395,9 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            _buildInfoRow('设备名称', asset.name),
-            _buildInfoRow('设备编号', asset.assetCode),
-            _buildInfoRow('设备位置', asset.location),
+            _buildInfoRow('设备名称', asset?['name'] as String? ?? ''),
+            _buildInfoRow('设备编号', asset?['assetCode'] as String? ?? ''),
+            _buildInfoRow('设备位置', asset?['location'] as String? ?? ''),
           ],
         ),
       ),
@@ -411,9 +424,9 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            _buildInfoRow('报修人', workOrder.createdBy.fullName),
+            _buildInfoRow('报修人', workOrder.createdBy?['fullName'] as String? ?? ''),
             if (workOrder.assignedTo != null)
-              _buildInfoRow('指派技术员', workOrder.assignedTo!.fullName),
+              _buildInfoRow('指派技术员', workOrder.assignedTo?['fullName'] as String? ?? ''),
             if (workOrder.solution != null)
               _buildInfoRow('解决方案', workOrder.solution!),
             if (workOrder.faultCode != null)
@@ -492,7 +505,7 @@ class _WorkOrderDetailScreenState extends State<WorkOrderDetailScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${history.changedBy.fullName} • ${_formatDateTime(history.createdAt)}',
+                  '${history.changedBy?['fullName'] ?? 'Unknown'} • ${_formatDateTime(history.createdAt)}',
                   style: const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
                 if (history.notes != null) ...[

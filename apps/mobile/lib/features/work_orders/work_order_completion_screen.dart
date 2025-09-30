@@ -445,7 +445,7 @@ class _WorkOrderCompletionScreenState extends State<WorkOrderCompletionScreen> {
             Row(
               children: [
                 const Text('设备: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                Text(widget.workOrder.asset.name),
+                Text(widget.workOrder.asset?['name'] as String? ?? ''),
               ],
             ),
           ],
