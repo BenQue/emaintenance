@@ -34,8 +34,11 @@ export interface JWTPayload {
   email: string;
   username: string;
   role: UserRole;
+  firstName: string;
+  lastName: string;
   iat?: number;
   exp?: number;
+  iss?: string;
 }
 
 export interface ApiResponse<T = any> {

@@ -53,6 +53,8 @@ export class AuthService {
       email: user.email,
       username: user.username,
       role: user.role,
+      firstName: user.firstName,
+      lastName: user.lastName,
     });
 
     return {
@@ -98,6 +100,8 @@ export class AuthService {
       email: user.email,
       username: user.username,
       role: user.role,
+      firstName: user.firstName,
+      lastName: user.lastName,
     });
 
     return {
