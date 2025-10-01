@@ -485,10 +485,10 @@ export class WorkOrderService {
 
     return await this.workOrderRepository.findMany({
       assignedToId: technicianId,
-      status: filters?.status,
-      priority: filters?.priority,
-      sortBy: filters?.sortBy || 'reportedAt',
-      sortOrder: filters?.sortOrder || 'asc',
+      status: filters?.status as any,
+      priority: filters?.priority as any,
+      sortBy: (filters?.sortBy || 'reportedAt') as any,
+      sortOrder: (filters?.sortOrder || 'asc') as any,
     }, page, limit);
   }
 

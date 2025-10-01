@@ -19,8 +19,10 @@ import { PhotoStorageService } from '../services/PhotoStorageService';
 export class WorkOrderController {
   private workOrderService: WorkOrderService;
   private photoStorageService: PhotoStorageService;
+  private prisma: PrismaClient;
 
   constructor(prisma: PrismaClient) {
+    this.prisma = prisma;
     this.workOrderService = new WorkOrderService(prisma);
     this.photoStorageService = new PhotoStorageService();
   }
@@ -99,7 +101,7 @@ export class WorkOrderController {
       });
 
       faultSymptomIds = faultSymptoms.map(fs => fs.id);
-      console.log(`[DEBUG] WorkOrderController.createWorkOrder: Converted ${faultSymptomCodes.length} codes to ${faultSymptomIds.length} IDs`);
+      console.log(`[DEBUG] WorkOrderController.createWorkOrder: Converted ${faultSymptomCodes.length} codes to ${faultSymptomIds?.length || 0} IDs`);
     }
 
     // Create work order with validated data and attachments
