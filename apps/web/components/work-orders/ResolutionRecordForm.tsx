@@ -109,8 +109,6 @@ export function ResolutionRecordForm({
     try {
       // Submit completion data without photos first, then upload photos separately
       await onSubmit({
-        category: data.category.trim(),
-        reason: data.reason.trim(),
         solutionDescription: data.solutionDescription.trim(),
         faultCode: data.faultCode && data.faultCode !== 'NONE' ? data.faultCode : undefined,
         // Don't include photos in completion request anymore
