@@ -42,6 +42,7 @@ export function AssetManagement() {
 
   useEffect(() => {
     loadAssets();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, selectedLocation, selectedStatus, currentPage, pageSize]);
 
   const loadInitialData = async () => {
