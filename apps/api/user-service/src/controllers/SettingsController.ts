@@ -739,7 +739,7 @@ export class SettingsController {
 
   createFaultSymptom = async (req: Request, res: Response) => {
     try {
-      const validationResult = MasterDataCreateSchema.safeParse(req.body);
+      const validationResult = masterDataCreateSchema.safeParse(req.body);
 
       if (!validationResult.success) {
         const errorMessage = `Validation failed: ${formatValidationErrors(validationResult.error)}`;
@@ -764,7 +764,7 @@ export class SettingsController {
   updateFaultSymptom = async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const validationResult = MasterDataUpdateSchema.safeParse(req.body);
+      const validationResult = masterDataUpdateSchema.safeParse(req.body);
 
       if (!validationResult.success) {
         const errorMessage = `Validation failed: ${formatValidationErrors(validationResult.error)}`;

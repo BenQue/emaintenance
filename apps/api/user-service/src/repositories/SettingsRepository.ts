@@ -494,7 +494,7 @@ export class SettingsRepository {
     });
   }
 
-  async updateFaultSymptom(id: string, data: Partial<FaultSymptomCreateInput>): Promise<FaultSymptom> {
+  async updateFaultSymptom(id: string, data: MasterDataUpdateInput & { code?: string; icon?: string | null }): Promise<FaultSymptom> {
     return prisma.faultSymptom.update({
       where: { id },
       data: {

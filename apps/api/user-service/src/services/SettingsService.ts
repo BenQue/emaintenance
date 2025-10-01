@@ -302,7 +302,7 @@ export class SettingsService {
     return this.settingsRepository.createFaultSymptom(data);
   }
 
-  async updateFaultSymptom(id: string, data: Partial<FaultSymptomCreateInput>): Promise<FaultSymptom> {
+  async updateFaultSymptom(id: string, data: MasterDataUpdateInput & { code?: string; icon?: string | null }): Promise<FaultSymptom> {
     return this.settingsRepository.updateFaultSymptom(id, data);
   }
 
