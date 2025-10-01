@@ -9,14 +9,15 @@ import {
   ResolutionRecord,
   AssetMaintenanceHistory,
   Priority,
+  FaultSymptom,
 } from '../types/work-order';
 import { buildApiUrl, apiFetch } from '../config/api-config';
 
 export interface CreateWorkOrderData {
   assetId: string;
   title: string;
-  category: string;
-  reason: string;
+  category: string; // Kept for backward compatibility
+  reason: string; // Kept for backward compatibility
   location?: string;
   priority: Priority;
   description?: string;
@@ -24,6 +25,10 @@ export interface CreateWorkOrderData {
   // New fields for integrated categories and reasons
   categoryId?: string;
   reasonId?: string;
+  // New fields from Story 2.4a (matching mobile implementation)
+  faultSymptoms?: FaultSymptom[];
+  additionalLocation?: string;
+  productionInterrupted?: boolean;
 }
 
 class WorkOrderService {
@@ -133,26 +138,39 @@ class WorkOrderService {
     if (process.env.NODE_ENV === 'development') {
     }
     const token = localStorage.getItem('auth_token');
-    
+
     const { photos, ...formData } = workOrderData;
-    
+
     if (photos && photos.length > 0) {
       // Handle multipart form data when photos are included
       const formDataObj = new FormData();
-      
+
       // Add form fields
       formDataObj.append('assetId', formData.assetId);
       formDataObj.append('title', formData.title);
       formDataObj.append('category', formData.category);
       formDataObj.append('reason', formData.reason);
       formDataObj.append('priority', formData.priority);
+
+      // Add new fields from Story 2.4a
+      if (formData.faultSymptoms && formData.faultSymptoms.length > 0) {
+        formDataObj.append('faultSymptoms', JSON.stringify(formData.faultSymptoms));
+      }
+      if (formData.productionInterrupted !== undefined) {
+        formDataObj.append('productionInterrupted', formData.productionInterrupted.toString());
+      }
+      if (formData.additionalLocation) {
+        formDataObj.append('additionalLocation', formData.additionalLocation);
+      }
+
+      // Existing fields
       if (formData.location) {
         formDataObj.append('location', formData.location);
       }
       if (formData.description) {
         formDataObj.append('description', formData.description);
       }
-      
+
       // Add photos
       photos.forEach((photo) => {
         formDataObj.append('attachments', photo);
@@ -167,7 +185,7 @@ class WorkOrderService {
           },
           body: formDataObj,
         });
-        
+
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ message: 'Network error' }));
           throw new Error(errorData.message || `HTTP error! status: ${response.status}`);

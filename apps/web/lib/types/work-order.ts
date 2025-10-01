@@ -25,6 +25,20 @@ export enum FaultCode {
   OTHER = 'OTHER',
 }
 
+export enum FaultSymptom {
+  EQUIPMENT_SHUTDOWN = 'EQUIPMENT_SHUTDOWN',
+  POWER_OUTAGE = 'POWER_OUTAGE',
+  ABNORMAL_NOISE = 'ABNORMAL_NOISE',
+  LEAKAGE = 'LEAKAGE',
+  OVERHEATING = 'OVERHEATING',
+  ABNORMAL_VIBRATION = 'ABNORMAL_VIBRATION',
+  SPEED_ABNORMALITY = 'SPEED_ABNORMALITY',
+  DISPLAY_ERROR = 'DISPLAY_ERROR',
+  CANNOT_START = 'CANNOT_START',
+  FUNCTION_FAILURE = 'FUNCTION_FAILURE',
+  OTHER = 'OTHER',
+}
+
 export interface Asset {
   id: string;
   assetCode: string;
@@ -188,4 +202,32 @@ export const FaultCodeLabels = {
   [FaultCode.PREVENTIVE_MAINTENANCE]: '预防性维护',
   [FaultCode.EXTERNAL_FACTOR]: '外部因素',
   [FaultCode.OTHER]: '其他',
+};
+
+export const FaultSymptomLabels = {
+  [FaultSymptom.EQUIPMENT_SHUTDOWN]: '设备停机',
+  [FaultSymptom.POWER_OUTAGE]: '断电',
+  [FaultSymptom.ABNORMAL_NOISE]: '异常噪音',
+  [FaultSymptom.LEAKAGE]: '漏油/漏液',
+  [FaultSymptom.OVERHEATING]: '过热',
+  [FaultSymptom.ABNORMAL_VIBRATION]: '振动异常',
+  [FaultSymptom.SPEED_ABNORMALITY]: '速度异常',
+  [FaultSymptom.DISPLAY_ERROR]: '显示异常',
+  [FaultSymptom.CANNOT_START]: '无法启动',
+  [FaultSymptom.FUNCTION_FAILURE]: '功能失效',
+  [FaultSymptom.OTHER]: '其他',
+};
+
+export const FaultSymptomDescriptions = {
+  [FaultSymptom.EQUIPMENT_SHUTDOWN]: '设备完全停止运行',
+  [FaultSymptom.POWER_OUTAGE]: '设备失去电力供应',
+  [FaultSymptom.ABNORMAL_NOISE]: '设备运行时出现异常声音',
+  [FaultSymptom.LEAKAGE]: '设备出现油液泄漏',
+  [FaultSymptom.OVERHEATING]: '设备温度异常升高',
+  [FaultSymptom.ABNORMAL_VIBRATION]: '设备震动幅度异常',
+  [FaultSymptom.SPEED_ABNORMALITY]: '设备运行速度不正常',
+  [FaultSymptom.DISPLAY_ERROR]: '显示屏或指示灯异常',
+  [FaultSymptom.CANNOT_START]: '设备无法正常启动',
+  [FaultSymptom.FUNCTION_FAILURE]: '某项功能无法正常使用',
+  [FaultSymptom.OTHER]: '其他未列出的故障表现',
 };

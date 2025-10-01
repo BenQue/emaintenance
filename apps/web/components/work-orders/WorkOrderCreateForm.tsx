@@ -2,25 +2,19 @@
 
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Priority, PriorityLabels } from '../../lib/types/work-order';
-import { workOrderService } from '../../lib/services/work-order-service';
+import { Priority, PriorityLabels, FaultSymptom } from '../../lib/types/work-order';
 import { useWorkOrderStore } from '../../lib/stores/work-order-store';
 import { assetService, Asset } from '../../lib/services/asset-service';
 import { FormWrapper } from '../forms/unified/FormWrapper';
 import { UnifiedFormField } from '../forms/unified/FormField';
-import { workOrderValidationRules } from '../forms/unified/FormValidation';
-import { CascadingCategoryReasonSelector } from '../forms/CascadingCategoryReasonSelector';
+import { FaultSymptomsSelector } from './FaultSymptomsSelector';
 import { Alert } from '../ui/alert';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
-
-// Constants for fallback data - improves maintainability
-const DEFAULT_CATEGORIES = ['设备故障', '预防性维护', '常规检查', '清洁维护'];
-const DEFAULT_REASONS = ['机械故障', '电气故障', '软件问题', '磨损老化', '操作错误', '外部因素'];
-const DEFAULT_LOCATIONS = ['生产车间A', '生产车间B', '仓库区域', '办公区域', '设备机房'];
-
+import { Checkbox } from '../ui/checkbox';
+import { MapPin, AlertTriangle } from 'lucide-react';
 
 interface WorkOrderCreateFormProps {
   onCancel: () => void;
@@ -30,18 +24,11 @@ interface WorkOrderCreateFormProps {
 interface FormData {
   assetId: string;
   title: string;
-  categoryId: string;
-  reasonId: string;
   location: string;
+  additionalLocation: string;
   priority: Priority;
   description: string;
   photos: FileList | null;
-}
-
-// To store the names for submission
-interface FormDataWithNames extends FormData {
-  categoryName?: string;
-  reasonName?: string;
 }
 
 export function WorkOrderCreateForm({
@@ -49,38 +36,56 @@ export function WorkOrderCreateForm({
   onSuccess,
 }: WorkOrderCreateFormProps) {
   const { createWorkOrder, creating, createError, clearCreateError } = useWorkOrderStore();
-  
-  // React Hook Form setup with validation
+
+  // React Hook Form setup
   const form = useForm<FormData>({
     defaultValues: {
       assetId: '',
       title: '',
-      categoryId: '',
-      reasonId: '',
       location: '',
+      additionalLocation: '',
       priority: Priority.MEDIUM,
       description: '',
       photos: null,
     },
-    mode: 'onChange', // Enable real-time validation
+    mode: 'onChange',
   });
 
-  // Store category and reason names for submission
-  const [categoryName, setCategoryName] = useState<string>('');
-  const [reasonName, setReasonName] = useState<string>('');
+  // New state for fault symptoms and production interrupted
+  const [selectedFaultSymptoms, setSelectedFaultSymptoms] = useState<FaultSymptom[]>([]);
+  const [productionInterrupted, setProductionInterrupted] = useState(false);
+  const [faultSymptomError, setFaultSymptomError] = useState('');
 
   // Form options loaded from API
   const [assets, setAssets] = useState<Asset[]>([]);
-  const [commonLocations, setCommonLocations] = useState<string[]>([]);
+  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadFormData();
   }, []);
 
+  // Auto-fill location when asset is selected
+  useEffect(() => {
+    const assetId = form.watch('assetId');
+    if (assetId) {
+      const asset = assets.find(a => a.id === assetId);
+      if (asset) {
+        setSelectedAsset(asset);
+        form.setValue('location', asset.location);
+      }
+    }
+  }, [form.watch('assetId'), assets, form]);
+
+  // Auto-downgrade priority when production interrupted is unchecked
+  useEffect(() => {
+    if (!productionInterrupted && form.watch('priority') === Priority.URGENT) {
+      form.setValue('priority', Priority.HIGH);
+    }
+  }, [productionInterrupted, form]);
+
   const loadFormData = async () => {
     try {
-      // Check if user is authenticated
       const token = localStorage.getItem('auth_token');
       if (!token) {
         console.warn('No auth token found, redirecting to login');
@@ -88,74 +93,55 @@ export function WorkOrderCreateForm({
         return;
       }
 
-      // Load assets and form options in parallel
-      const [assetsResponse, formOptions] = await Promise.all([
-        assetService.getAllAssets({ isActive: true, limit: 100 }), // Get all active assets
-        workOrderService.getFormOptions()
-      ]);
-      
+      const assetsResponse = await assetService.getAllAssets({ isActive: true, limit: 100 });
       setAssets(assetsResponse.assets);
-      setCommonLocations(formOptions.commonLocations);
       setIsLoading(false);
     } catch (error) {
-      // Log the error for debugging
       console.error('Failed to load form data:', error);
-      
-      // If it's an auth error, redirect to login
+
       if (error instanceof Error && error.message.includes('401')) {
         window.location.href = '/login';
         return;
       }
-      
-      // For other errors, still set empty arrays
+
       setAssets([]);
-      setCommonLocations(DEFAULT_LOCATIONS);
       setIsLoading(false);
     }
   };
 
   const onSubmit = async (data: FormData) => {
-    // Clear any previous errors
+    // Validate fault symptoms
+    if (selectedFaultSymptoms.length === 0) {
+      setFaultSymptomError('请至少选择一个故障表现');
+      return;
+    }
+
+    setFaultSymptomError('');
     clearCreateError();
-    
+
     try {
-      // Convert FileList to File[] for the API
       const photos = data.photos ? Array.from(data.photos) : [];
-      
-      console.log('[DEBUG] Submitting work order data:', {
-        assetId: data.assetId,
-        title: data.title.trim(),
-        category: categoryName,
-        reason: reasonName,
-        categoryId: data.categoryId,
-        reasonId: data.reasonId,
-      });
-      
+
       await createWorkOrder({
         assetId: data.assetId,
         title: data.title.trim(),
-        category: categoryName, // Use the name for backwards compatibility
-        reason: reasonName, // Use the name for backwards compatibility
+        faultSymptoms: selectedFaultSymptoms,
         location: data.location.trim() || undefined,
+        additionalLocation: data.additionalLocation.trim() || undefined,
+        productionInterrupted,
         priority: data.priority,
         description: data.description.trim() || undefined,
         photos,
-        // Include IDs for new database relationships
-        categoryId: data.categoryId,
-        reasonId: data.reasonId,
+        // Keep backward compatibility with old category/reason fields
+        category: '设备维修',
+        reason: '设备故障',
       });
-      
-      console.log('[DEBUG] Work order created successfully, calling onSuccess()');
+
       onSuccess();
     } catch (error) {
       console.error('[DEBUG] Error creating work order:', error);
-      // Error handling is managed by the store, but we should re-throw to prevent onSuccess
       throw error;
     }
-  };
-
-  const handleLocationSuggestionClick = (location: string) => {
-    form.setValue('location', location);
   };
 
   if (isLoading) {
@@ -166,6 +152,10 @@ export function WorkOrderCreateForm({
       </div>
     );
   }
+
+  const availablePriorities = productionInterrupted
+    ? [Priority.LOW, Priority.MEDIUM, Priority.HIGH, Priority.URGENT]
+    : [Priority.LOW, Priority.MEDIUM, Priority.HIGH];
 
   return (
     <div className="p-6 space-y-6">
@@ -195,19 +185,20 @@ export function WorkOrderCreateForm({
         showProgress={creating}
         submitProgress={creating ? 75 : 0}
       >
-        {/* Device Selection Field - MANDATORY */}
-        <UnifiedFormField
-          control={form.control}
-          name="assetId"
-          label="选择设备"
-          type="select"
-          placeholder="请选择需要维修的设备"
-          options={assets.map(asset => ({
-            value: asset.id,
-            label: `${asset.assetCode} - ${asset.name} (${asset.location})`
-          }))}
-        />
-
+        {/* Device Selection Field */}
+        <div className="space-y-2">
+          <UnifiedFormField
+            control={form.control}
+            name="assetId"
+            label="选择设备"
+            type="select"
+            placeholder="请选择需要维修的设备"
+            options={assets.map(asset => ({
+              value: asset.id,
+              label: `${asset.assetCode} - ${asset.name} (${asset.location})`
+            }))}
+          />
+        </div>
 
         {/* Title Field */}
         <UnifiedFormField
@@ -219,50 +210,70 @@ export function WorkOrderCreateForm({
           description="请简要描述需要维修的问题"
         />
 
-        {/* Category and Reason Selection */}
-        <CascadingCategoryReasonSelector
-          control={form.control}
-          categoryName="categoryId"
-          reasonName="reasonId"
-          onCategoryChange={(categoryId, categoryName) => {
-            setCategoryName(categoryName);
-          }}
-          onReasonChange={(reasonId, reasonName) => {
-            setReasonName(reasonName);
-          }}
+        {/* Fault Symptoms Selection - NEW */}
+        <FaultSymptomsSelector
+          selectedSymptoms={selectedFaultSymptoms}
+          onChange={setSelectedFaultSymptoms}
           disabled={creating}
+          error={faultSymptomError}
         />
 
-        {/* Location Field */}
-        <div className="space-y-2">
+        {/* Location Information - Auto-filled from Asset */}
+        <div className="space-y-3">
+          <div className="flex items-center space-x-2">
+            <MapPin className="h-4 w-4 text-blue-600" />
+            <Label className="text-bizlink-700 font-medium">位置信息</Label>
+          </div>
+
+          {/* Auto-filled location (read-only) */}
+          <div className="bg-gray-50 border border-gray-300 rounded-md p-3">
+            <Label className="text-xs text-gray-500">设备位置（自动获取）</Label>
+            <p className="mt-1 text-sm text-gray-900">
+              {form.watch('location') || '未知位置'}
+            </p>
+          </div>
+
+          {/* Additional location (optional) */}
           <UnifiedFormField
             control={form.control}
-            name="location"
-            label="具体位置"
+            name="additionalLocation"
+            label=""
             type="text"
-            placeholder="请输入或选择具体位置"
-            description="可以从下方常用位置中选择"
+            placeholder="如有特殊位置说明，请在此填写（可选）"
           />
-          
-          {commonLocations.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {commonLocations.map(location => (
-                <Button
-                  key={location}
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleLocationSuggestionClick(location)}
-                  className="text-xs"
-                >
-                  {location}
-                </Button>
-              ))}
-            </div>
-          )}
         </div>
 
-        {/* Priority Field */}
+        {/* Production Interrupted Checkbox - NEW */}
+        <div className="space-y-3">
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+            <div className="flex items-start space-x-2">
+              <AlertTriangle className="h-4 w-4 text-orange-600 mt-0.5 flex-shrink-0" />
+              <div className="text-xs text-orange-700">
+                <p className="font-semibold mb-1">生产中断判断</p>
+                <p>如果设备故障导致生产线停止或严重影响生产进度，请勾选此项。</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="productionInterrupted"
+              checked={productionInterrupted}
+              onCheckedChange={(checked: boolean) => setProductionInterrupted(checked)}
+            />
+            <div>
+              <Label
+                htmlFor="productionInterrupted"
+                className="text-sm font-medium cursor-pointer"
+              >
+                造成生产中断
+              </Label>
+              <p className="text-xs text-gray-500">勾选此项可选择紧急优先级</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Priority Field with Conditional Urgent Option */}
         <div className="space-y-3">
           <Label className="text-bizlink-700 font-medium">优先级</Label>
           <RadioGroup
@@ -270,7 +281,7 @@ export function WorkOrderCreateForm({
             onValueChange={(value: string) => form.setValue('priority', value as Priority)}
             className="grid grid-cols-2 gap-2"
           >
-            {Object.values(Priority).map(priority => (
+            {availablePriorities.map(priority => (
               <div key={priority} className="flex items-center space-x-2 border rounded-md p-3 hover:bg-muted">
                 <RadioGroupItem value={priority} id={priority} />
                 <Label htmlFor={priority} className="cursor-pointer">
@@ -326,7 +337,7 @@ export function WorkOrderCreateForm({
           )}
         </div>
 
-        {/* Cancel Button - Added to the form actions */}
+        {/* Cancel Button */}
         <div className="flex justify-start">
           <Button
             type="button"
