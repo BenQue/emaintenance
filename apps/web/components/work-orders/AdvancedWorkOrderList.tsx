@@ -254,14 +254,14 @@ export function AdvancedWorkOrderList({
     const statusActions: TableAction<WorkOrder>[] = [];
 
     if (hasRole(UserRole.TECHNICIAN)) {
-      // Self-assign action - technicians can assign unassigned work orders to themselves
+      // Self-assign action - technicians can assign work orders to themselves
       statusActions.push({
         label: '指派给我',
         icon: <UserPlus className="h-4 w-4" />,
         onClick: handleAssignToMe,
         disabled: (workOrder) =>
-          // Disable if already assigned to someone or if completed/cancelled
-          !!workOrder.assignedToId ||
+          // Disable if already assigned to current user or if completed/cancelled
+          workOrder.assignedToId === user?.id ||
           workOrder.status === WorkOrderStatus.COMPLETED ||
           workOrder.status === WorkOrderStatus.CANCELLED,
       });

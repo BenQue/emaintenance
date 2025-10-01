@@ -50,7 +50,7 @@ export const createWorkOrderRoutes = (prisma: PrismaClient) => {
 
   // Specific routes must come BEFORE parameter routes
   router.get('/filter-options', 
-    authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
+    authorize(UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN), 
     workOrderController.getFilterOptions
   );
 
