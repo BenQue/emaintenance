@@ -779,9 +779,9 @@ export class WorkOrderController {
       throw new AppError('用户未认证', 401);
     }
 
-    // Check if user is supervisor/admin
-    if (!['SUPERVISOR', 'ADMIN'].includes(req.user.role)) {
-      throw new AppError('权限不足：只有主管和管理员可以访问筛选选项', 403);
+    // Check if user has access to filter options
+    if (!['TECHNICIAN', 'SUPERVISOR', 'ADMIN'].includes(req.user.role)) {
+      throw new AppError('权限不足：您没有权限访问筛选选项', 403);
     }
 
     try {
