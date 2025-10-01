@@ -510,6 +510,16 @@ class WorkOrderService {
       body: JSON.stringify(updateData),
     });
   }
+
+  async assignToMe(id: string): Promise<WorkOrder> {
+    const response = await this.request<{ status: string; message: string; data: { workOrder: WorkOrder } }>(
+      `/work-orders/${id}/assign-to-me`,
+      {
+        method: 'PUT',
+      }
+    );
+    return response.data.workOrder;
+  }
 }
 
 export const workOrderService = new WorkOrderService();

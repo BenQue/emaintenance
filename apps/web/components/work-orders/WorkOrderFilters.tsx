@@ -111,7 +111,9 @@ export function WorkOrderFilters({ onFiltersChange, onExport }: WorkOrderFilters
       PENDING: '待处理',
       IN_PROGRESS: '进行中',
       WAITING_PARTS: '等待配件',
+      WAITING_EXTERNAL: '等待外部',
       COMPLETED: '已完成',
+      CLOSED: '已关闭',
       CANCELLED: '已取消',
     };
     return labels[status] || status;
@@ -203,6 +205,14 @@ export function WorkOrderFilters({ onFiltersChange, onExport }: WorkOrderFilters
           className="flex items-center gap-1"
         >
           已完成工单
+        </Button>
+        <Button
+          variant={filters.status === 'CLOSED' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setFilter('status', 'CLOSED')}
+          className="flex items-center gap-1"
+        >
+          已关闭工单
         </Button>
         <Button
           variant={!filters.status || filters.status === '' || filters.status === undefined ? 'default' : 'outline'}

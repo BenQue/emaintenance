@@ -514,10 +514,10 @@ export class WorkOrderRepository {
     const where: any = {};
 
     if (filters.status) {
-      // Handle special "NOT_COMPLETED" status to exclude completed work orders
+      // Handle special "NOT_COMPLETED" status to exclude completed, closed, and cancelled work orders
       if (filters.status === 'NOT_COMPLETED') {
         where.status = {
-          not: WorkOrderStatus.COMPLETED
+          notIn: [WorkOrderStatus.COMPLETED, WorkOrderStatus.CLOSED, WorkOrderStatus.CANCELLED]
         };
       } else {
         where.status = filters.status;

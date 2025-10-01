@@ -104,9 +104,15 @@ export const createWorkOrderRoutes = (prisma: PrismaClient) => {
   );
 
   // Work order assignment routes
-  router.put('/:id/assign', 
-    authorize(UserRole.SUPERVISOR, UserRole.ADMIN), 
+  router.put('/:id/assign',
+    authorize(UserRole.SUPERVISOR, UserRole.ADMIN),
     workOrderController.assignWorkOrder
+  );
+
+  // Self-assignment route for technicians
+  router.put('/:id/assign-to-me',
+    authorize(UserRole.TECHNICIAN, UserRole.SUPERVISOR, UserRole.ADMIN),
+    workOrderController.assignWorkOrderToSelf
   );
 
   router.put('/:id/status', 

@@ -6,7 +6,7 @@ import { Card } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { DataTable } from '../interactive/tables/DataTable';
 import { ColumnDef, TableAction } from '../interactive/tables/types';
-import { Eye, Edit, Trash2, X, CheckCircle, RotateCcw } from 'lucide-react';
+import { Eye, Edit, Trash2, X, CheckCircle, RotateCcw, UserPlus } from 'lucide-react';
 import { ConfirmDialog } from '../interactive/dialogs/ConfirmDialog';
 import { WorkOrder, PaginatedWorkOrders, WorkOrderStatus } from '../../lib/types/work-order';
 import { workOrderService } from '../../lib/services/work-order-service';
@@ -78,11 +78,9 @@ export function AdvancedWorkOrderList({
 
   // Load work orders when filters or pagination changes
   useEffect(() => {
-    // Only load if filters are initialized (has sortBy means store is ready)
-    if (filters.sortBy) {
-      loadWorkOrders();
-    }
-  }, [loadWorkOrders, filters.sortBy]);
+    // Load work orders immediately on mount or when dependencies change
+    loadWorkOrders();
+  }, [loadWorkOrders]);
 
   const getPriorityBadgeVariant = (priority: string) => {
     switch (priority) {
@@ -220,6 +218,16 @@ export function AdvancedWorkOrderList({
     handleStatusChange(workOrder, WorkOrderStatus.PENDING);
   }, [handleStatusChange]);
 
+  const handleAssignToMe = useCallback(async (workOrder: WorkOrder) => {
+    try {
+      await workOrderService.assignToMe(workOrder.id);
+      await loadWorkOrders(); // Refresh data
+    } catch (error) {
+      console.error('Failed to assign work order to self:', error);
+      setError(`自我指派失败: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }, [loadWorkOrders, setError]);
+
   // Define table actions based on user permissions
   const actions: TableAction<WorkOrder>[] = useMemo(() => {
     const baseActions: TableAction<WorkOrder>[] = [
@@ -244,14 +252,26 @@ export function AdvancedWorkOrderList({
 
     // Status change actions based on current status and role
     const statusActions: TableAction<WorkOrder>[] = [];
-    
+
     if (hasRole(UserRole.TECHNICIAN)) {
+      // Self-assign action - technicians can assign unassigned work orders to themselves
+      statusActions.push({
+        label: '指派给我',
+        icon: <UserPlus className="h-4 w-4" />,
+        onClick: handleAssignToMe,
+        disabled: (workOrder) =>
+          // Disable if already assigned to someone or if completed/cancelled
+          !!workOrder.assignedToId ||
+          workOrder.status === WorkOrderStatus.COMPLETED ||
+          workOrder.status === WorkOrderStatus.CANCELLED,
+      });
+
       // Complete action - for technicians and above
       statusActions.push({
         label: '标记完成',
         icon: <CheckCircle className="h-4 w-4" />,
         onClick: handleComplete,
-        disabled: (workOrder) => 
+        disabled: (workOrder) =>
           workOrder.status === WorkOrderStatus.COMPLETED ||
           workOrder.status === WorkOrderStatus.CANCELLED,
       });
@@ -293,10 +313,11 @@ export function AdvancedWorkOrderList({
 
     return [...baseActions, ...statusActions];
   }, [
-    hasRole, 
+    hasRole,
     isAdmin,
-    handleViewDetail, 
-    handleEdit, 
+    handleViewDetail,
+    handleEdit,
+    handleAssignToMe,
     handleComplete,
     handleCancel,
     handleReopen,

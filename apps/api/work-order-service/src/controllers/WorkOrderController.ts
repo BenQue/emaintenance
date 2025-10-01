@@ -255,6 +255,33 @@ export class WorkOrderController {
     });
   });
 
+  // Self-assign work order (technicians can assign unassigned work orders to themselves)
+  assignWorkOrderToSelf = asyncHandler(async (req: Request, res: Response) => {
+    if (!req.user) {
+      throw new AppError('用户未认证', 401);
+    }
+
+    const { id } = IdParamSchema.parse(req.params);
+
+    const workOrder = await this.workOrderService.assignWorkOrder(
+      id,
+      req.user.id, // Assign to current user
+      req.user.id  // Assigned by current user
+    );
+
+    if (!workOrder) {
+      throw new AppError('工单自我指派失败', 400);
+    }
+
+    res.json({
+      status: 'success',
+      message: '工单已成功指派给您',
+      data: {
+        workOrder,
+      },
+    });
+  });
+
   // Get work orders for current user
   getMyWorkOrders = asyncHandler(async (req: Request, res: Response) => {
     if (!req.user) {
