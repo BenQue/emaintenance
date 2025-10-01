@@ -1,6 +1,7 @@
 'use client';
 
-import { FaultSymptom, FaultSymptomLabels, FaultSymptomDescriptions } from '../../lib/types/work-order';
+import { useState, useEffect } from 'react';
+import { SettingsService, FaultSymptom } from '../../lib/services/settings-service';
 import { Badge } from '../ui/badge';
 import {
   Power,
@@ -17,44 +18,82 @@ import {
 } from 'lucide-react';
 
 interface FaultSymptomsSelectorProps {
-  selectedSymptoms: FaultSymptom[];
-  onChange: (symptoms: FaultSymptom[]) => void;
+  selectedSymptomIds: string[];
+  onChange: (symptomIds: string[]) => void;
   disabled?: boolean;
   error?: string;
 }
 
-// Map fault symptoms to lucide-react icons
-const symptomIcons: Record<FaultSymptom, React.ElementType> = {
-  [FaultSymptom.EQUIPMENT_SHUTDOWN]: Power,
-  [FaultSymptom.POWER_OUTAGE]: Zap,
-  [FaultSymptom.ABNORMAL_NOISE]: Volume2,
-  [FaultSymptom.LEAKAGE]: Droplet,
-  [FaultSymptom.OVERHEATING]: Flame,
-  [FaultSymptom.ABNORMAL_VIBRATION]: Waves,
-  [FaultSymptom.SPEED_ABNORMALITY]: Gauge,
-  [FaultSymptom.DISPLAY_ERROR]: AlertCircle,
-  [FaultSymptom.CANNOT_START]: PlayCircle,
-  [FaultSymptom.FUNCTION_FAILURE]: XCircle,
-  [FaultSymptom.OTHER]: MoreHorizontal,
+// Map fault symptom codes to lucide-react icons
+const iconMap: Record<string, React.ElementType> = {
+  'EQUIPMENT_SHUTDOWN': Power,
+  'POWER_OUTAGE': Zap,
+  'ABNORMAL_NOISE': Volume2,
+  'LEAKAGE': Droplet,
+  'OVERHEATING': Flame,
+  'ABNORMAL_VIBRATION': Waves,
+  'SPEED_ABNORMALITY': Gauge,
+  'DISPLAY_ERROR': AlertCircle,
+  'CANNOT_START': PlayCircle,
+  'FUNCTION_FAILURE': XCircle,
+  'OTHER': MoreHorizontal,
 };
 
 export function FaultSymptomsSelector({
-  selectedSymptoms,
+  selectedSymptomIds,
   onChange,
   disabled = false,
   error,
 }: FaultSymptomsSelectorProps) {
-  const handleToggle = (symptom: FaultSymptom) => {
+  const [faultSymptoms, setFaultSymptoms] = useState<FaultSymptom[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadFaultSymptoms = async () => {
+      try {
+        console.log('[FaultSymptomsSelector] Starting to load fault symptoms...');
+        const response = await SettingsService.getFaultSymptoms({ isActive: true, limit: 100 });
+        console.log('[FaultSymptomsSelector] API Response:', response);
+        console.log('[FaultSymptomsSelector] Fault symptoms count:', response.items?.length || 0);
+        setFaultSymptoms(response.items);
+      } catch (error) {
+        console.error('[FaultSymptomsSelector] Failed to load fault symptoms:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadFaultSymptoms();
+  }, []);
+
+  const handleToggle = (symptomId: string) => {
     if (disabled) return;
 
-    const isSelected = selectedSymptoms.includes(symptom);
+    const isSelected = selectedSymptomIds.includes(symptomId);
 
     if (isSelected) {
-      onChange(selectedSymptoms.filter(s => s !== symptom));
+      onChange(selectedSymptomIds.filter(id => id !== symptomId));
     } else {
-      onChange([...selectedSymptoms, symptom]);
+      onChange([...selectedSymptomIds, symptomId]);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center space-x-2">
+          <AlertCircle className="h-4 w-4 text-blue-600" />
+          <label className="text-sm font-medium text-bizlink-700">
+            故障表现 <span className="text-red-500">*</span>
+          </label>
+        </div>
+        <div className="flex items-center justify-center p-4">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+          <span className="ml-2 text-sm text-gray-600">加载故障表现...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
@@ -78,15 +117,15 @@ export function FaultSymptomsSelector({
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {Object.values(FaultSymptom).map((symptom) => {
-          const isSelected = selectedSymptoms.includes(symptom);
-          const Icon = symptomIcons[symptom];
+        {faultSymptoms.map((symptom) => {
+          const isSelected = selectedSymptomIds.includes(symptom.id);
+          const Icon = iconMap[symptom.code] || AlertCircle;
 
           return (
             <button
-              key={symptom}
+              key={symptom.id}
               type="button"
-              onClick={() => handleToggle(symptom)}
+              onClick={() => handleToggle(symptom.id)}
               disabled={disabled}
               className={`
                 inline-flex items-center space-x-2 px-4 py-2.5 rounded-lg border-2 transition-all
@@ -97,11 +136,11 @@ export function FaultSymptomsSelector({
                 ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1
               `}
-              title={FaultSymptomDescriptions[symptom]}
+              title={symptom.description || symptom.name}
             >
               <Icon className={`h-4 w-4 ${isSelected ? 'text-white' : 'text-blue-600'}`} />
               <span className="text-sm font-medium">
-                {FaultSymptomLabels[symptom]}
+                {symptom.name}
               </span>
             </button>
           );
@@ -115,15 +154,18 @@ export function FaultSymptomsSelector({
         </p>
       )}
 
-      {selectedSymptoms.length > 0 && !error && (
+      {selectedSymptomIds.length > 0 && !error && (
         <div className="flex items-center space-x-2">
           <span className="text-sm text-gray-600">已选择:</span>
           <div className="flex flex-wrap gap-1">
-            {selectedSymptoms.map((symptom) => (
-              <Badge key={symptom} variant="secondary" className="text-xs">
-                {FaultSymptomLabels[symptom]}
-              </Badge>
-            ))}
+            {selectedSymptomIds.map((symptomId) => {
+              const symptom = faultSymptoms.find(s => s.id === symptomId);
+              return symptom ? (
+                <Badge key={symptomId} variant="secondary" className="text-xs">
+                  {symptom.name}
+                </Badge>
+              ) : null;
+            })}
           </div>
         </div>
       )}

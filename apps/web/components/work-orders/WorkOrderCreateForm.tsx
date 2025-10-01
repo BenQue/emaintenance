@@ -52,7 +52,8 @@ export function WorkOrderCreateForm({
   });
 
   // New state for fault symptoms and production interrupted
-  const [selectedFaultSymptoms, setSelectedFaultSymptoms] = useState<FaultSymptom[]>([]);
+  // Changed to store IDs instead of enum values for API compatibility
+  const [selectedFaultSymptomIds, setSelectedFaultSymptomIds] = useState<string[]>([]);
   const [productionInterrupted, setProductionInterrupted] = useState(false);
   const [faultSymptomError, setFaultSymptomError] = useState('');
 
@@ -77,9 +78,13 @@ export function WorkOrderCreateForm({
     }
   }, [form.watch('assetId'), assets, form]);
 
-  // Auto-downgrade priority when production interrupted is unchecked
+  // Auto-set priority when production interrupted changes
   useEffect(() => {
-    if (!productionInterrupted && form.watch('priority') === Priority.URGENT) {
+    if (productionInterrupted) {
+      // Auto-upgrade to URGENT when production interrupted is checked
+      form.setValue('priority', Priority.URGENT);
+    } else if (form.watch('priority') === Priority.URGENT) {
+      // Auto-downgrade from URGENT when production interrupted is unchecked
       form.setValue('priority', Priority.HIGH);
     }
   }, [productionInterrupted, form]);
@@ -111,7 +116,7 @@ export function WorkOrderCreateForm({
 
   const onSubmit = async (data: FormData) => {
     // Validate fault symptoms
-    if (selectedFaultSymptoms.length === 0) {
+    if (selectedFaultSymptomIds.length === 0) {
       setFaultSymptomError('请至少选择一个故障表现');
       return;
     }
@@ -125,7 +130,7 @@ export function WorkOrderCreateForm({
       await createWorkOrder({
         assetId: data.assetId,
         title: data.title.trim(),
-        faultSymptoms: selectedFaultSymptoms,
+        faultSymptomIds: selectedFaultSymptomIds,
         location: data.location.trim() || undefined,
         additionalLocation: data.additionalLocation.trim() || undefined,
         productionInterrupted,
@@ -212,8 +217,8 @@ export function WorkOrderCreateForm({
 
         {/* Fault Symptoms Selection - NEW */}
         <FaultSymptomsSelector
-          selectedSymptoms={selectedFaultSymptoms}
-          onChange={setSelectedFaultSymptoms}
+          selectedSymptomIds={selectedFaultSymptomIds}
+          onChange={setSelectedFaultSymptomIds}
           disabled={creating}
           error={faultSymptomError}
         />

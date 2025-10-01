@@ -20,6 +20,14 @@ export class WorkOrderRepository {
         // Include new ID fields for database relationships
         categoryId: data.categoryId,
         reasonId: data.reasonId,
+        // Connect fault symptoms if provided
+        ...(data.faultSymptomIds && data.faultSymptomIds.length > 0 && {
+          faultSymptoms: {
+            create: data.faultSymptomIds.map(faultSymptomId => ({
+              faultSymptomId,
+            })),
+          },
+        }),
       },
       include: {
         asset: {
@@ -44,6 +52,19 @@ export class WorkOrderRepository {
             firstName: true,
             lastName: true,
             email: true,
+          },
+        },
+        faultSymptoms: {
+          include: {
+            faultSymptom: {
+              select: {
+                id: true,
+                code: true,
+                name: true,
+                description: true,
+                icon: true,
+              },
+            },
           },
         },
       },
@@ -88,11 +109,28 @@ export class WorkOrderRepository {
               email: true,
             },
           },
+          faultSymptoms: {
+            include: {
+              faultSymptom: {
+                select: {
+                  id: true,
+                  code: true,
+                  name: true,
+                  description: true,
+                  icon: true,
+                },
+              },
+            },
+          },
         },
       });
 
       if (workOrder) {
         console.log(`[DEBUG] WorkOrderRepository.findById: Found work order "${workOrder.title}" with asset "${workOrder.asset.name}"`);
+        console.log(`[DEBUG] WorkOrderRepository.findById: Fault symptoms count: ${workOrder.faultSymptoms?.length || 0}`);
+        if (workOrder.faultSymptoms && workOrder.faultSymptoms.length > 0) {
+          console.log(`[DEBUG] WorkOrderRepository.findById: Fault symptoms:`, workOrder.faultSymptoms.map(fs => fs.faultSymptom.name));
+        }
       } else {
         console.log(`[DEBUG] WorkOrderRepository.findById: No work order found with ID: ${id}`);
       }
@@ -138,6 +176,19 @@ export class WorkOrderRepository {
               firstName: true,
               lastName: true,
               email: true,
+            },
+          },
+          faultSymptoms: {
+            include: {
+              faultSymptom: {
+                select: {
+                  id: true,
+                  code: true,
+                  name: true,
+                  description: true,
+                  icon: true,
+                },
+              },
             },
           },
         },
@@ -197,6 +248,19 @@ export class WorkOrderRepository {
               firstName: true,
               lastName: true,
               email: true,
+            },
+          },
+          faultSymptoms: {
+            include: {
+              faultSymptom: {
+                select: {
+                  id: true,
+                  code: true,
+                  name: true,
+                  description: true,
+                  icon: true,
+                },
+              },
             },
           },
         },
@@ -514,10 +578,16 @@ export class WorkOrderRepository {
     const where: any = {};
 
     if (filters.status) {
-      // Handle special "NOT_COMPLETED" status to exclude completed, closed, and cancelled work orders
+      // Handle special status filters
       if (filters.status === 'NOT_COMPLETED') {
+        // Exclude completed, closed, and cancelled work orders
         where.status = {
           notIn: [WorkOrderStatus.COMPLETED, WorkOrderStatus.CLOSED, WorkOrderStatus.CANCELLED]
+        };
+      } else if (filters.status === 'ACTIVE') {
+        // Only show active work orders (exclude completed, cancelled, and closed)
+        where.status = {
+          notIn: [WorkOrderStatus.COMPLETED, WorkOrderStatus.CANCELLED, WorkOrderStatus.CLOSED]
         };
       } else {
         where.status = filters.status;
@@ -569,19 +639,35 @@ export class WorkOrderRepository {
 
   private buildOrderByClause(sortBy?: string, sortOrder?: string): any {
     const order = sortOrder === 'asc' ? 'asc' : 'desc';
-    
+
     switch (sortBy) {
       case 'title':
-        return { title: order };
+        return [
+          { priority: 'desc' }, // URGENT always on top
+          { title: order }
+        ];
       case 'priority':
-        return { priority: order };
+        // Priority sorting with URGENT always on top when desc, ROUTINE on top when asc
+        return [
+          { priority: order },
+          { reportedAt: order } // Secondary sort by reported time
+        ];
       case 'status':
-        return { status: order };
+        return [
+          { priority: 'desc' }, // URGENT always on top
+          { status: order }
+        ];
       case 'completedAt':
-        return { completedAt: order };
+        return [
+          { priority: 'desc' }, // URGENT always on top
+          { completedAt: order }
+        ];
       case 'reportedAt':
       default:
-        return { reportedAt: order };
+        return [
+          { priority: 'desc' }, // URGENT always on top
+          { reportedAt: order }
+        ];
     }
   }
 

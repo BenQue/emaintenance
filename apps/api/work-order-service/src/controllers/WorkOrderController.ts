@@ -74,10 +74,39 @@ export class WorkOrderController {
       attachments = validatedData.attachments || [];
     }
 
+    // Handle fault symptoms: convert codes to IDs if needed
+    let faultSymptomIds: string[] | undefined;
+
+    if (validatedData.faultSymptomIds) {
+      // Already have IDs from web frontend
+      faultSymptomIds = validatedData.faultSymptomIds;
+    } else if ((validatedData as any).faultSymptoms) {
+      // Have codes from mobile frontend - convert to IDs
+      const faultSymptomCodes = (validatedData as any).faultSymptoms;
+      console.log(`[DEBUG] WorkOrderController.createWorkOrder: Converting fault symptom codes to IDs:`, faultSymptomCodes);
+
+      // Query database to get IDs for these codes
+      const faultSymptoms = await this.prisma.faultSymptom.findMany({
+        where: {
+          code: {
+            in: faultSymptomCodes
+          }
+        },
+        select: {
+          id: true,
+          code: true
+        }
+      });
+
+      faultSymptomIds = faultSymptoms.map(fs => fs.id);
+      console.log(`[DEBUG] WorkOrderController.createWorkOrder: Converted ${faultSymptomCodes.length} codes to ${faultSymptomIds.length} IDs`);
+    }
+
     // Create work order with validated data and attachments
     const workOrderData = {
       ...validatedData,
       attachments,
+      faultSymptomIds, // Use converted IDs
     };
 
     console.log(`[DEBUG] WorkOrderController.createWorkOrder: Creating work order with data:`, {
@@ -85,6 +114,7 @@ export class WorkOrderController {
       assetId: workOrderData.assetId,
       category: workOrderData.category,
       attachmentCount: workOrderData.attachments.length,
+      faultSymptomIdsCount: faultSymptomIds?.length || 0,
     });
 
     const workOrder = await this.workOrderService.createWorkOrder(
@@ -404,7 +434,13 @@ export class WorkOrderController {
     const result = await this.workOrderService.getAssignedWorkOrders(
       req.user.id,
       queryParams.page || 1,
-      queryParams.limit || 20
+      queryParams.limit || 20,
+      {
+        status: queryParams.status,
+        priority: queryParams.priority,
+        sortBy: queryParams.sortBy,
+        sortOrder: queryParams.sortOrder,
+      }
     );
 
     res.json({

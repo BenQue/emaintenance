@@ -42,11 +42,22 @@ export const CreateWorkOrderSchema = z.object({
   assetId: z.string()
     .min(1, '设备ID不能为空')
     .optional(),
-  
+
   attachments: z.array(z.string().min(1, '附件路径不能为空'))
     .max(10, '最多只能上传10个附件')
     .optional()
     .default([]),
+
+  // Fault symptoms (Story 2.4a) - support both IDs (web) and codes (mobile)
+  faultSymptomIds: z.array(z.string().min(1, '故障表现ID不能为空'))
+    .min(1, '请至少选择一个故障表现')
+    .max(10, '最多只能选择10个故障表现')
+    .optional(),
+
+  faultSymptoms: z.array(z.string().min(1, '故障表现代码不能为空'))
+    .min(1, '请至少选择一个故障表现')
+    .max(10, '最多只能选择10个故障表现')
+    .optional(),
 });
 
 // Create work order multipart form validation (when files are uploaded)
@@ -86,7 +97,32 @@ export const CreateWorkOrderMultipartSchema = z.object({
   
   assetId: z.string()
     .min(1, '设备ID不能为空'),
-  
+
+  // Fault symptoms (Story 2.4a) - support both IDs (web) and codes (mobile)
+  faultSymptomIds: z.string()
+    .transform(val => {
+      // In multipart form, arrays are often sent as JSON strings
+      try {
+        return JSON.parse(val);
+      } catch {
+        return val;
+      }
+    })
+    .pipe(z.array(z.string().min(1, '故障表现ID不能为空')))
+    .optional(),
+
+  faultSymptoms: z.string()
+    .transform(val => {
+      // In multipart form, arrays are often sent as JSON strings
+      try {
+        return JSON.parse(val);
+      } catch {
+        return val;
+      }
+    })
+    .pipe(z.array(z.string().min(1, '故障表现代码不能为空')))
+    .optional(),
+
   // For multipart form data, files are handled separately via req.files
   // No need to validate attachments in the body schema
 });

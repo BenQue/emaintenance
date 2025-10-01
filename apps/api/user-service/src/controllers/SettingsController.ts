@@ -711,4 +711,103 @@ export class SettingsController {
       res.status(statusCode).json(createErrorResponse(errorMessage, statusCode));
     }
   };
+
+  // ========== Fault Symptoms Management ==========
+  getFaultSymptoms = async (req: Request, res: Response) => {
+    try {
+      const validationResult = masterDataListQuerySchema.safeParse(req.query);
+
+      if (!validationResult.success) {
+        const errorMessage = `Validation failed: ${formatValidationErrors(validationResult.error)}`;
+        return res.status(400).json(createErrorResponse(errorMessage, 400));
+      }
+
+      const query = validationResult.data;
+      const result = await this.settingsService.getFaultSymptoms(query);
+
+      res.status(200).json(createSuccessResponse(result));
+
+    } catch (error) {
+      console.error('Get fault symptoms error:', error);
+
+      const errorMessage = error instanceof Error ? error.message : 'Failed to get fault symptoms';
+      const statusCode = error instanceof Error ? getErrorStatusCode(error) : 500;
+
+      res.status(statusCode).json(createErrorResponse(errorMessage, statusCode));
+    }
+  };
+
+  createFaultSymptom = async (req: Request, res: Response) => {
+    try {
+      const validationResult = MasterDataCreateSchema.safeParse(req.body);
+
+      if (!validationResult.success) {
+        const errorMessage = `Validation failed: ${formatValidationErrors(validationResult.error)}`;
+        return res.status(400).json(createErrorResponse(errorMessage, 400));
+      }
+
+      const faultSymptomData = validationResult.data;
+      const faultSymptom = await this.settingsService.createFaultSymptom({
+        ...faultSymptomData,
+        code: req.body.code, // code field is required for FaultSymptom
+        icon: req.body.icon,
+      });
+
+      res.status(201).json(createSuccessResponse(faultSymptom));
+    } catch (error) {
+      console.error('Create fault symptom error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create fault symptom';
+      res.status(500).json(createErrorResponse(errorMessage, 500));
+    }
+  };
+
+  updateFaultSymptom = async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const validationResult = MasterDataUpdateSchema.safeParse(req.body);
+
+      if (!validationResult.success) {
+        const errorMessage = `Validation failed: ${formatValidationErrors(validationResult.error)}`;
+        return res.status(400).json(createErrorResponse(errorMessage, 400));
+      }
+
+      const updateData = {
+        ...validationResult.data,
+        ...(req.body.code && { code: req.body.code }),
+        ...(req.body.icon !== undefined && { icon: req.body.icon }),
+      };
+
+      const faultSymptom = await this.settingsService.updateFaultSymptom(id, updateData);
+      res.status(200).json(createSuccessResponse(faultSymptom));
+    } catch (error) {
+      console.error('Update fault symptom error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update fault symptom';
+      res.status(500).json(createErrorResponse(errorMessage, 500));
+    }
+  };
+
+  deleteFaultSymptom = async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const faultSymptom = await this.settingsService.deleteFaultSymptom(id);
+      res.status(200).json(createSuccessResponse(faultSymptom));
+    } catch (error) {
+      console.error('Delete fault symptom error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete fault symptom';
+      const statusCode = error instanceof Error ? getErrorStatusCode(error) : 500;
+      res.status(statusCode).json(createErrorResponse(errorMessage, statusCode));
+    }
+  };
+
+  getFaultSymptomUsage = async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const usage = await this.settingsService.getFaultSymptomUsage(id);
+      res.status(200).json(createSuccessResponse(usage));
+    } catch (error) {
+      console.error('Get fault symptom usage error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to get fault symptom usage';
+      res.status(500).json(createErrorResponse(errorMessage, 500));
+    }
+  };
 }

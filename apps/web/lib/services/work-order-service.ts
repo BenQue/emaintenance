@@ -26,7 +26,7 @@ export interface CreateWorkOrderData {
   categoryId?: string;
   reasonId?: string;
   // New fields from Story 2.4a (matching mobile implementation)
-  faultSymptoms?: FaultSymptom[];
+  faultSymptomIds?: string[]; // Array of fault symptom IDs
   additionalLocation?: string;
   productionInterrupted?: boolean;
 }
@@ -81,7 +81,7 @@ class WorkOrderService {
 
   async getAssignedWorkOrders(page: number = 1, limit: number = 20): Promise<PaginatedWorkOrders> {
     return this.request<PaginatedWorkOrders>(
-      `/api/work-orders/assigned?page=${page}&limit=${limit}`
+      `/api/work-orders/assigned?page=${page}&limit=${limit}&status=ACTIVE&sortBy=reportedAt&sortOrder=asc`
     );
   }
 
@@ -153,8 +153,8 @@ class WorkOrderService {
       formDataObj.append('priority', formData.priority);
 
       // Add new fields from Story 2.4a
-      if (formData.faultSymptoms && formData.faultSymptoms.length > 0) {
-        formDataObj.append('faultSymptoms', JSON.stringify(formData.faultSymptoms));
+      if (formData.faultSymptomIds && formData.faultSymptomIds.length > 0) {
+        formDataObj.append('faultSymptomIds', JSON.stringify(formData.faultSymptomIds));
       }
       if (formData.productionInterrupted !== undefined) {
         formDataObj.append('productionInterrupted', formData.productionInterrupted.toString());
@@ -512,13 +512,13 @@ class WorkOrderService {
   }
 
   async assignToMe(id: string): Promise<WorkOrder> {
-    const response = await this.request<{ status: string; message: string; data: { workOrder: WorkOrder } }>(
+    const response = await this.request<{ workOrder: WorkOrder }>(
       `/work-orders/${id}/assign-to-me`,
       {
         method: 'PUT',
       }
     );
-    return response.data.workOrder;
+    return response.workOrder;
   }
 }
 

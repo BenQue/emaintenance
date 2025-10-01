@@ -74,11 +74,24 @@ export function WorkOrderDetail({ workOrderId }: WorkOrderDetailProps) {
   useEffect(() => {
     loadWorkOrderWithHistory(workOrderId);
     loadWorkOrderWithResolution(workOrderId);
-    
+
     return () => {
       clearCurrentWorkOrder();
     };
   }, [workOrderId]); // Only depend on workOrderId to prevent infinite loops
+
+  // Debug: Log fault symptoms when work order data changes
+  useEffect(() => {
+    if (currentWorkOrder) {
+      console.log('[DEBUG] WorkOrderDetail - currentWorkOrder:', {
+        id: currentWorkOrder.id,
+        title: currentWorkOrder.title,
+        hasFaultSymptoms: !!currentWorkOrder.faultSymptoms,
+        faultSymptomsCount: currentWorkOrder.faultSymptoms?.length || 0,
+        faultSymptoms: currentWorkOrder.faultSymptoms
+      });
+    }
+  }, [currentWorkOrder]);
 
   const handleStatusUpdateSuccess = () => {
     // Reload the work order to get updated data
@@ -120,9 +133,20 @@ export function WorkOrderDetail({ workOrderId }: WorkOrderDetailProps) {
   };
 
   const canCompleteWorkOrder = (workOrder: any) => {
-    return workOrder?.status === WorkOrderStatus.IN_PROGRESS || 
-           workOrder?.status === WorkOrderStatus.WAITING_PARTS || 
-           workOrder?.status === WorkOrderStatus.WAITING_EXTERNAL;
+    // Only allow completion if assigned to current user and in valid status
+    const isAssignedToMe = workOrder?.assignedToId === user?.id;
+    const isValidStatus = workOrder?.status === WorkOrderStatus.IN_PROGRESS ||
+                          workOrder?.status === WorkOrderStatus.WAITING_PARTS ||
+                          workOrder?.status === WorkOrderStatus.WAITING_EXTERNAL;
+    return isAssignedToMe && isValidStatus;
+  };
+
+  const canUpdateStatus = (workOrder: any) => {
+    // Only allow status updates if assigned to current user and not completed/cancelled
+    const isAssignedToMe = workOrder?.assignedToId === user?.id;
+    const isNotFinal = workOrder?.status !== WorkOrderStatus.COMPLETED &&
+                       workOrder?.status !== WorkOrderStatus.CANCELLED;
+    return isAssignedToMe && isNotFinal;
   };
 
   const canManageAssignment = () => {
@@ -212,25 +236,38 @@ export function WorkOrderDetail({ workOrderId }: WorkOrderDetailProps) {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <h4 className="font-medium text-gray-900 mb-2">描述</h4>
-                <p className="text-gray-700">{currentWorkOrder.description}</p>
+                <h4 className="font-medium text-gray-900 mb-2">问题描述</h4>
+                <p className="text-gray-700">{currentWorkOrder.description || '无'}</p>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+              {/* Fault Symptoms - Show reported fault symptoms */}
+              {currentWorkOrder.faultSymptoms && currentWorkOrder.faultSymptoms.length > 0 && (
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-2">类别</h4>
-                  <p className="text-gray-700">{currentWorkOrder.category}</p>
+                  <h4 className="font-medium text-gray-900 mb-2">故障表现</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {currentWorkOrder.faultSymptoms.map(({ faultSymptom }) => (
+                      <div
+                        key={faultSymptom.id}
+                        className="inline-flex items-center px-3 py-1.5 rounded-md bg-blue-50 border border-blue-200"
+                      >
+                        <span className="text-sm text-blue-700 font-medium">
+                          {faultSymptom.name}
+                        </span>
+                        {faultSymptom.description && (
+                          <span className="ml-2 text-xs text-blue-600">
+                            ({faultSymptom.description})
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-2">报修原因</h4>
-                  <p className="text-gray-700">{currentWorkOrder.reason}</p>
-                </div>
-              </div>
+              )}
 
               {/* Report Photos - Show photos uploaded during work order creation */}
               <div>
-                <WorkOrderPhotos 
-                  workOrderId={currentWorkOrder.id} 
+                <WorkOrderPhotos
+                  workOrderId={currentWorkOrder.id}
                   attachments={currentWorkOrder.attachments || []}
                 />
               </div>
@@ -377,13 +414,32 @@ export function WorkOrderDetail({ workOrderId }: WorkOrderDetailProps) {
             />
           )}
 
-          {/* Status Update Form - only show if not completed */}
-          {currentWorkOrder.status !== WorkOrderStatus.COMPLETED && !showCompletionForm && (
+          {/* Status Update Form - only show if assigned to current user and not completed */}
+          {canUpdateStatus(currentWorkOrder) && !showCompletionForm && (
             <StatusUpdateForm
               workOrderId={currentWorkOrder.id}
               currentStatus={currentWorkOrder.status}
               onSuccess={handleStatusUpdateSuccess}
             />
+          )}
+
+          {/* Show message if not assigned to current user */}
+          {!canUpdateStatus(currentWorkOrder) && currentWorkOrder.status !== WorkOrderStatus.COMPLETED && currentWorkOrder.status !== WorkOrderStatus.CANCELLED && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center text-gray-500">
+                  <AlertCircle className="w-5 h-5 mr-2" />
+                  状态更新
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 text-sm">
+                  {currentWorkOrder.assignedToId === user?.id
+                    ? '工单已完成或取消，无法更新状态'
+                    : '仅指派给您的工单可以更新状态'}
+                </p>
+              </CardContent>
+            </Card>
           )}
 
           {/* Assignment Management - Only for supervisors */}

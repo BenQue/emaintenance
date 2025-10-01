@@ -399,6 +399,19 @@ export class WorkOrderService {
             email: true,
           }
         },
+        faultSymptoms: {
+          include: {
+            faultSymptom: {
+              select: {
+                id: true,
+                code: true,
+                name: true,
+                description: true,
+                icon: true,
+              },
+            },
+          },
+        },
         statusHistory: {
           include: {
             changedBy: {
@@ -444,7 +457,13 @@ export class WorkOrderService {
   async getAssignedWorkOrders(
     technicianId: string,
     page: number = 1,
-    limit: number = 20
+    limit: number = 20,
+    filters?: {
+      status?: string;
+      priority?: string;
+      sortBy?: string;
+      sortOrder?: string;
+    }
   ): Promise<PaginatedWorkOrders> {
     // Validate technician role
     const user = await this.prisma.user.findUnique({
@@ -464,7 +483,13 @@ export class WorkOrderService {
       throw new Error('User role not authorized to view assigned work orders');
     }
 
-    return await this.getUserWorkOrders(technicianId, 'assigned', page, limit);
+    return await this.workOrderRepository.findMany({
+      assignedToId: technicianId,
+      status: filters?.status,
+      priority: filters?.priority,
+      sortBy: filters?.sortBy || 'reportedAt',
+      sortOrder: filters?.sortOrder || 'asc',
+    }, page, limit);
   }
 
   async completeWorkOrder(

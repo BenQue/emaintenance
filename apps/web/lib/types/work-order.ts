@@ -53,6 +53,14 @@ export interface User {
   email: string;
 }
 
+export interface FaultSymptomInfo {
+  id: string;
+  code: string;
+  name: string;
+  description?: string | null;
+  icon?: string | null;
+}
+
 export interface WorkOrder {
   id: string;
   workOrderNumber?: string | null; // New field for business-friendly work order number
@@ -77,6 +85,9 @@ export interface WorkOrder {
   asset: Asset;
   createdBy: User;
   assignedTo?: User | null;
+  faultSymptoms?: {
+    faultSymptom: FaultSymptomInfo;
+  }[];
 }
 
 export interface WorkOrderStatusHistoryItem {

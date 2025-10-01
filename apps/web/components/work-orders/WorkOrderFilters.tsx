@@ -167,9 +167,9 @@ export function WorkOrderFilters({ onFiltersChange, onExport }: WorkOrderFilters
       {/* Quick Status Filters */}
       <div className="flex flex-wrap gap-2">
         <Button
-          variant={filters.status === 'NOT_COMPLETED' ? 'default' : 'outline'}
+          variant={filters.status === 'ACTIVE' ? 'default' : 'outline'}
           size="sm"
-          onClick={() => setFilter('status', 'NOT_COMPLETED')}
+          onClick={() => setFilter('status', 'ACTIVE')}
           className="flex items-center gap-1"
         >
           进行中工单（默认）

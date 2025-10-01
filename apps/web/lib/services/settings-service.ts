@@ -29,6 +29,17 @@ export interface FaultCode {
   updatedAt: string;
 }
 
+export interface FaultSymptom {
+  id: string;
+  code: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Reason {
   id: string;
   name: string;
@@ -277,4 +288,19 @@ export class SettingsService {
     const response = await apiClient.post(`/api/settings/categories/${categoryId}/reasons`, data);
     return response.data as Reason;
   }
+
+  // Fault Symptoms
+  static async getFaultSymptoms(query?: MasterDataListQuery): Promise<MasterDataListResponse<FaultSymptom>> {
+    const params = new URLSearchParams();
+    if (query?.page) params.append('page', query.page.toString());
+    if (query?.limit) params.append('limit', query.limit.toString());
+    if (query?.search) params.append('search', query.search);
+    if (query?.isActive !== undefined) params.append('isActive', query.isActive.toString());
+
+    const response = await apiClient.get(`/api/settings/fault-symptoms?${params.toString()}`);
+    return response.data as MasterDataListResponse<FaultSymptom>;
+  }
 }
+
+// Export singleton instance
+export const settingsService = new SettingsService();

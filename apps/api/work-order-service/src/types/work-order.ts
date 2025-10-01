@@ -12,6 +12,8 @@ export interface CreateWorkOrderRequest {
   // New fields for integrated categories and reasons
   categoryId?: string;
   reasonId?: string;
+  // Fault symptoms (array of fault symptom IDs)
+  faultSymptomIds?: string[];
 }
 
 export interface UpdateWorkOrderRequest {
@@ -68,6 +70,15 @@ export interface WorkOrderWithRelations {
     email: string;
   } | null;
   photos?: WorkOrderPhoto[];
+  faultSymptoms?: {
+    faultSymptom: {
+      id: string;
+      code: string;
+      name: string;
+      description: string | null;
+      icon: string | null;
+    };
+  }[];
 }
 
 export interface WorkOrderFilters {

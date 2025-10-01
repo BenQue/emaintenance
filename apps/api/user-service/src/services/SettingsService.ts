@@ -1,10 +1,15 @@
-import { Category, Location, FaultCodeMaster, Reason, PriorityLevel } from '@emaintenance/database';
+import { Category, Location, FaultCodeMaster, FaultSymptom, Reason, PriorityLevel } from '@emaintenance/database';
 import { SettingsRepository } from '../repositories/SettingsRepository';
 
 export interface MasterDataCreateInput {
   name: string;
   description?: string;
   level?: number; // Only for PriorityLevel
+}
+
+export interface FaultSymptomCreateInput extends MasterDataCreateInput {
+  code: string; // Unique code like 'EQUIPMENT_SHUTDOWN'
+  icon?: string; // Optional icon name
 }
 
 export interface MasterDataUpdateInput {
@@ -286,5 +291,31 @@ export class SettingsService {
       ...data,
       categoryId,
     });
+  }
+
+  // FaultSymptom methods
+  async getFaultSymptoms(query: MasterDataListQuery): Promise<MasterDataListResponse<FaultSymptom>> {
+    return this.settingsRepository.getFaultSymptoms(query);
+  }
+
+  async createFaultSymptom(data: FaultSymptomCreateInput): Promise<FaultSymptom> {
+    return this.settingsRepository.createFaultSymptom(data);
+  }
+
+  async updateFaultSymptom(id: string, data: Partial<FaultSymptomCreateInput>): Promise<FaultSymptom> {
+    return this.settingsRepository.updateFaultSymptom(id, data);
+  }
+
+  async deleteFaultSymptom(id: string): Promise<FaultSymptom> {
+    // Check if fault symptom is in use before deletion
+    const usage = await this.settingsRepository.getFaultSymptomUsage(id);
+    if (!usage.canDelete) {
+      throw new Error(`Cannot delete fault symptom: ${usage.workOrderCount} work orders are using this fault symptom`);
+    }
+    return this.settingsRepository.deleteFaultSymptom(id);
+  }
+
+  async getFaultSymptomUsage(id: string): Promise<UsageInfo> {
+    return this.settingsRepository.getFaultSymptomUsage(id);
   }
 }

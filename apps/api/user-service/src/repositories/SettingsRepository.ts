@@ -1,5 +1,5 @@
-import { prisma, Category, Location, FaultCodeMaster, Reason, PriorityLevel } from '@emaintenance/database';
-import { MasterDataCreateInput, MasterDataUpdateInput, MasterDataListQuery, MasterDataListResponse, UsageInfo } from '../services/SettingsService';
+import { prisma, Category, Location, FaultCodeMaster, FaultSymptom, Reason, PriorityLevel } from '@emaintenance/database';
+import { MasterDataCreateInput, MasterDataUpdateInput, MasterDataListQuery, MasterDataListResponse, UsageInfo, FaultSymptomCreateInput } from '../services/SettingsService';
 
 export class SettingsRepository {
   // Category methods
@@ -451,5 +451,82 @@ export class SettingsRepository {
 
   async getReasonsCount(where: any): Promise<number> {
     return prisma.reason.count({ where });
+  }
+
+  // FaultSymptom methods
+  async getFaultSymptoms(query: MasterDataListQuery): Promise<MasterDataListResponse<FaultSymptom>> {
+    const { page = 1, limit = 20, search, isActive } = query;
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { code: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+    if (isActive !== undefined) {
+      where.isActive = isActive;
+    }
+
+    const [items, total] = await Promise.all([
+      prisma.faultSymptom.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: [{ name: 'asc' }],
+      }),
+      prisma.faultSymptom.count({ where }),
+    ]);
+
+    return { items, total, page, limit };
+  }
+
+  async createFaultSymptom(data: FaultSymptomCreateInput): Promise<FaultSymptom> {
+    return prisma.faultSymptom.create({
+      data: {
+        code: data.code,
+        name: data.name,
+        description: data.description,
+        icon: data.icon,
+      },
+    });
+  }
+
+  async updateFaultSymptom(id: string, data: Partial<FaultSymptomCreateInput>): Promise<FaultSymptom> {
+    return prisma.faultSymptom.update({
+      where: { id },
+      data: {
+        ...(data.code && { code: data.code }),
+        ...(data.name && { name: data.name }),
+        ...(data.description !== undefined && { description: data.description }),
+        ...(data.icon !== undefined && { icon: data.icon }),
+        ...(data.isActive !== undefined && { isActive: data.isActive }),
+      },
+    });
+  }
+
+  async deleteFaultSymptom(id: string): Promise<FaultSymptom> {
+    return prisma.faultSymptom.delete({
+      where: { id },
+    });
+  }
+
+  async getFaultSymptomUsage(id: string): Promise<UsageInfo> {
+    const workOrderCount = await prisma.workOrderFaultSymptom.count({
+      where: { faultSymptomId: id },
+    });
+
+    const faultSymptom = await prisma.faultSymptom.findUnique({
+      where: { id },
+    });
+
+    return {
+      id,
+      name: faultSymptom?.name || '',
+      workOrderCount,
+      canDelete: workOrderCount === 0,
+    };
   }
 }

@@ -178,8 +178,8 @@ export function AdvancedWorkOrderList({
   }, [onWorkOrderClick]);
 
   const handleEdit = useCallback((workOrder: WorkOrder) => {
-    // Navigate to edit page
-    window.location.href = `/dashboard/work-orders/${workOrder.id}/edit`;
+    // Navigate to detail page (same as view detail)
+    window.location.href = `/dashboard/work-orders/${workOrder.id}`;
   }, []);
 
   const handleDelete = useCallback(async (workOrder: WorkOrder) => {
@@ -238,15 +238,13 @@ export function AdvancedWorkOrderList({
       },
     ];
 
-    // Edit action - available to TECHNICIAN and above, but not for completed/cancelled orders
+    // Edit/View action - opens detail page where edit controls are conditionally enabled
     if (hasRole(UserRole.TECHNICIAN)) {
       baseActions.push({
         label: '编辑',
         icon: <Edit className="h-4 w-4" />,
         onClick: handleEdit,
-        disabled: (workOrder) => 
-          workOrder.status === WorkOrderStatus.COMPLETED || 
-          workOrder.status === WorkOrderStatus.CANCELLED,
+        // Always enabled - permissions are handled in the detail page
       });
     }
 
@@ -265,8 +263,10 @@ export function AdvancedWorkOrderList({
           workOrder.status === WorkOrderStatus.COMPLETED ||
           workOrder.status === WorkOrderStatus.CANCELLED,
       });
+    }
 
-      // Complete action - for technicians and above
+    if (hasRole(UserRole.SUPERVISOR)) {
+      // Complete action - only for supervisors and admins (technicians must use detail page)
       statusActions.push({
         label: '标记完成',
         icon: <CheckCircle className="h-4 w-4" />,
@@ -275,9 +275,6 @@ export function AdvancedWorkOrderList({
           workOrder.status === WorkOrderStatus.COMPLETED ||
           workOrder.status === WorkOrderStatus.CANCELLED,
       });
-    }
-
-    if (hasRole(UserRole.SUPERVISOR)) {
       // Cancel action - for supervisors and above
       statusActions.push({
         label: '取消工单',
@@ -449,7 +446,8 @@ export function AdvancedWorkOrderList({
   return (
     <div className="space-y-4">
       {/* Bulk Actions */}
-      {selectedRows.length > 0 && (
+      {/* Bulk Actions - Only for SUPERVISOR and ADMIN */}
+      {(hasRole(UserRole.SUPERVISOR) || isAdmin) && selectedRows.length > 0 && (
         <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
           <div className="flex items-center justify-between">
             <span className="text-sm text-blue-700">
@@ -504,7 +502,7 @@ export function AdvancedWorkOrderList({
         data={workOrders.workOrders}
         columns={columns}
         actions={actions}
-        selection={true}
+        selection={hasRole(UserRole.SUPERVISOR) || isAdmin}
         searchable={false}
         onSelectionChange={setSelectedRows}
         onRowClick={onWorkOrderClick}

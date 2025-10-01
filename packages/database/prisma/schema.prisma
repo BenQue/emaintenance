@@ -106,6 +106,25 @@ model FaultCodeMaster {
   @@map("fault_codes")
 }
 
+model FaultSymptom {
+  id          String   @id @default(cuid())
+  code        String   @unique // Unique code like 'EQUIPMENT_SHUTDOWN'
+  name        String   // Display name like '设备停机'
+  description String?  // Detailed description
+  icon        String?  // Optional icon name for UI
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  workOrders  WorkOrderFaultSymptom[]
+
+  @@index([isActive])
+  @@index([code])
+  @@index([name])
+  @@map("fault_symptoms")
+}
+
 model Reason {
   id          String   @id @default(cuid())
   name        String
@@ -249,6 +268,7 @@ model WorkOrder {
   photos          WorkOrderPhoto[]
   resolutionRecord ResolutionRecord?
   maintenanceHistory MaintenanceHistory?
+  faultSymptoms   WorkOrderFaultSymptom[] // Many-to-many relation with FaultSymptom
 
   @@index([status, priority])
   @@index([assetId, status])
@@ -271,6 +291,21 @@ model WorkOrderSequence {
   createdAt   DateTime @default(now())
 
   @@map("work_order_sequences")
+}
+
+model WorkOrderFaultSymptom {
+  workOrderId     String
+  faultSymptomId  String
+  createdAt       DateTime @default(now())
+
+  // Relations
+  workOrder       WorkOrder    @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  faultSymptom    FaultSymptom @relation(fields: [faultSymptomId], references: [id], onDelete: Cascade)
+
+  @@id([workOrderId, faultSymptomId])
+  @@index([workOrderId])
+  @@index([faultSymptomId])
+  @@map("work_order_fault_symptoms")
 }
 
 model WorkOrderStatusHistory {

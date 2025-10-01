@@ -56,9 +56,9 @@ interface WorkOrderFilterState {
 
 const initialFilters: WorkOrderFilters = {
   sortBy: 'reportedAt',
-  sortOrder: 'desc',
-  // Default to show only active work orders (exclude COMPLETED)
-  status: 'NOT_COMPLETED',
+  sortOrder: 'asc',
+  // Default to show only active work orders (exclude COMPLETED, CANCELLED, CLOSED)
+  status: 'ACTIVE',
 };
 
 export const useWorkOrderFilterStore = create<WorkOrderFilterState>()(
@@ -67,8 +67,8 @@ export const useWorkOrderFilterStore = create<WorkOrderFilterState>()(
       // State - explicitly set initial filters
       filters: {
         sortBy: 'reportedAt',
-        sortOrder: 'desc',
-        status: 'NOT_COMPLETED',
+        sortOrder: 'asc',
+        status: 'ACTIVE',
       },
       filterOptions: null,
       isLoading: false,
@@ -183,7 +183,7 @@ export const useWorkOrderFilterStore = create<WorkOrderFilterState>()(
       },
     }),
     {
-      name: 'work-order-filters-v2', // Change storage key to force reset
+      name: 'work-order-filters-v4', // Change storage key to force reset with chronological order
       partialize: (state) => ({
         filters: state.filters,
         pageSize: state.pageSize,

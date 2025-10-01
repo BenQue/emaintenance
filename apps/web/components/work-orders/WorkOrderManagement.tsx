@@ -7,6 +7,8 @@ import { AdvancedWorkOrderList } from './AdvancedWorkOrderList';
 import { WorkOrderCreateModal } from './WorkOrderCreateModal';
 import { WorkOrder } from '../../lib/types/work-order';
 import { workOrderService } from '../../lib/services/work-order-service';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
+import { UserRole } from '../../lib/types/user';
 import {
   useWorkOrderFilterStore,
   WorkOrderFilters as FilterType,
@@ -15,26 +17,66 @@ import {
 export function WorkOrderManagement() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user, hasRole } = useCurrentUser();
   const {
     filters,
     getFilterQueryParams,
     setFiltersFromUrl,
     resetFilters,
+    setFilters,
     setError,
   } = useWorkOrderFilterStore();
 
   const [isExporting, setIsExporting] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [initialized, setInitialized] = useState(false);
 
-  // Initialize filters from URL on mount, ensure default state
+  // Initialize filters from URL on mount, with role-based defaults
   useEffect(() => {
-    if (searchParams && searchParams.toString()) {
-      setFiltersFromUrl(searchParams);
+    if (!user || initialized) return;
+
+    // Apply role-based default filters for technicians
+    if (hasRole(UserRole.TECHNICIAN) && !hasRole(UserRole.SUPERVISOR)) {
+      // Technicians always see only their assigned work orders with ACTIVE status
+      const technicianFilters = {
+        assignedToId: user.id,
+        sortBy: 'reportedAt',
+        sortOrder: 'asc',
+        status: 'ACTIVE', // Always exclude completed/cancelled/closed for technicians
+      };
+
+      // If there are URL params, merge them but preserve technician-specific filters
+      if (searchParams && searchParams.toString()) {
+        const urlFilters: any = {};
+        const supportedParams = [
+          'priority', 'assetId', 'category', 'startDate', 'endDate', 'search'
+        ];
+        supportedParams.forEach((param) => {
+          const value = searchParams.get(param);
+          if (value) {
+            urlFilters[param] = value;
+          }
+        });
+
+        // Merge URL filters with technician defaults (technician defaults take precedence)
+        setFilters({
+          ...urlFilters,
+          ...technicianFilters,
+        });
+      } else {
+        setFilters(technicianFilters);
+      }
     } else {
-      // Ensure default filters are applied on fresh page load
-      resetFilters();
+      // Supervisors and admins: use URL filters or defaults
+      if (searchParams && searchParams.toString()) {
+        setFiltersFromUrl(searchParams);
+      } else {
+        resetFilters();
+      }
     }
-  }, [searchParams, setFiltersFromUrl, resetFilters]);
+
+    setInitialized(true);
+  }, [user, searchParams, setFiltersFromUrl, resetFilters, setFilters, hasRole, initialized]);
 
   // Update URL when filters change
   useEffect(() => {

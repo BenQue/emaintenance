@@ -190,15 +190,18 @@ function NavMain() {
             
             return (
               <SidebarMenuItem key={item.href}>
-                <SidebarMenuButton 
-                  asChild 
+                <SidebarMenuButton
+                  asChild
                   isActive={isActive}
                   className={cn(
                     "transition-all duration-200",
-                    item.primary && [
+                    item.primary && isActive && [
                       "bg-bizlink-500 text-white hover:bg-bizlink-600",
                       "data-[active=true]:bg-bizlink-600 data-[active=true]:text-white",
                       "shadow-md"
+                    ],
+                    item.primary && !isActive && [
+                      "hover:bg-bizlink-50",
                     ],
                     isActive && !item.primary && "font-medium",
                     isCollapsed && "justify-center px-2"

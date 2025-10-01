@@ -21,6 +21,8 @@ interface ResolutionRecordFormProps {
 }
 
 interface ResolutionFormData {
+  category: string;
+  reason: string;
   solutionDescription: string;
   faultCode: FaultCode | 'NONE';
   photos: FileList | null;
@@ -38,6 +40,8 @@ export function ResolutionRecordForm({
   // React Hook Form setup
   const form = useForm<ResolutionFormData>({
     defaultValues: {
+      category: '',
+      reason: '',
       solutionDescription: '',
       faultCode: 'NONE',
       photos: null,
@@ -80,6 +84,16 @@ export function ResolutionRecordForm({
   };
 
   const onFormSubmit = async (data: ResolutionFormData) => {
+    if (!data.category.trim()) {
+      setError('请选择故障类别');
+      return;
+    }
+
+    if (!data.reason.trim()) {
+      setError('请填写故障原因');
+      return;
+    }
+
     if (!data.solutionDescription.trim()) {
       setError('请输入解决方案描述');
       return;
@@ -91,10 +105,12 @@ export function ResolutionRecordForm({
     }
 
     setError('');
-    
+
     try {
       // Submit completion data without photos first, then upload photos separately
       await onSubmit({
+        category: data.category.trim(),
+        reason: data.reason.trim(),
         solutionDescription: data.solutionDescription.trim(),
         faultCode: data.faultCode && data.faultCode !== 'NONE' ? data.faultCode : undefined,
         // Don't include photos in completion request anymore
@@ -128,6 +144,29 @@ export function ResolutionRecordForm({
           loading={loading}
           className="space-y-6"
         >
+          {/* Fault Category */}
+          <UnifiedFormField
+            control={form.control}
+            name="category"
+            label="故障类别"
+            type="text"
+            placeholder="请输入故障类别，例如：电气故障、机械故障、液压故障等"
+            description="根据实际检查情况填写故障类别"
+            rules={workOrderValidationRules.category}
+          />
+
+          {/* Fault Reason */}
+          <UnifiedFormField
+            control={form.control}
+            name="reason"
+            label="故障原因"
+            type="textarea"
+            placeholder="请详细描述故障的具体原因..."
+            description="请提供详细的故障原因分析"
+            className="min-h-[80px]"
+            rules={workOrderValidationRules.reason}
+          />
+
           {/* Solution Description */}
           <UnifiedFormField
             control={form.control}

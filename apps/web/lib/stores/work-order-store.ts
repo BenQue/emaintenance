@@ -103,8 +103,12 @@ export const useWorkOrderStore = create<WorkOrderState>()(
             assetName: workOrder?.asset?.name,
             hasStatusHistory: !!workOrder?.statusHistory,
             statusHistoryCount: workOrder?.statusHistory?.length || 0,
+            hasFaultSymptoms: !!workOrder?.faultSymptoms,
+            faultSymptomsCount: workOrder?.faultSymptoms?.length || 0,
           });
-          
+
+          console.log(`[DEBUG] WorkOrderStore.loadWorkOrderWithHistory: Full workOrder object:`, workOrder);
+
           set({
             currentWorkOrder: workOrder,
             statusHistory: workOrder.statusHistory,

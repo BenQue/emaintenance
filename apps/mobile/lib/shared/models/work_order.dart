@@ -151,13 +151,35 @@ class WorkOrder {
   });
 
   factory WorkOrder.fromJson(Map<String, dynamic> json) {
+    // Parse fault symptoms - handle both string array (old format) and object array (new format)
+    List<FaultSymptom> parseFaultSymptoms(dynamic faultSymptomsJson) {
+      if (faultSymptomsJson == null) return [];
+
+      final list = faultSymptomsJson as List<dynamic>;
+      if (list.isEmpty) return [];
+
+      // Check if first item is a string (old format) or object (new format)
+      if (list.first is String) {
+        // Old format: ["ABNORMAL_NOISE", "LEAKAGE"]
+        return list.map((symptom) => FaultSymptom.fromString(symptom as String)).toList();
+      } else if (list.first is Map) {
+        // New format from backend: [{"faultSymptom": {"code": "ABNORMAL_NOISE", ...}}]
+        return list.map((item) {
+          final symptomData = item as Map<String, dynamic>;
+          final faultSymptom = symptomData['faultSymptom'] as Map<String, dynamic>;
+          final code = faultSymptom['code'] as String;
+          return FaultSymptom.fromString(code);
+        }).toList();
+      }
+
+      return [];
+    }
+
     return WorkOrder(
       id: json['id'] as String,
       title: json['title'] as String,
       description: json['description'] as String,
-      faultSymptoms: (json['faultSymptoms'] as List<dynamic>?)
-          ?.map((symptom) => FaultSymptom.fromString(symptom as String))
-          .toList() ?? [],
+      faultSymptoms: parseFaultSymptoms(json['faultSymptoms']),
       location: json['location'] as String?,
       additionalLocation: json['additionalLocation'] as String?,
       productionInterrupted: json['productionInterrupted'] as bool? ?? false,
