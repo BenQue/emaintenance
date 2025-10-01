@@ -107,6 +107,7 @@ enum WorkOrderStatus {
 
 class WorkOrder {
   final String id;
+  final String? workOrderNumber; // 工单编号
   final String title;
   final String description;
   final List<FaultSymptom> faultSymptoms;
@@ -129,6 +130,7 @@ class WorkOrder {
 
   const WorkOrder({
     required this.id,
+    this.workOrderNumber,
     required this.title,
     required this.description,
     required this.faultSymptoms,
@@ -177,6 +179,7 @@ class WorkOrder {
 
     return WorkOrder(
       id: json['id'] as String,
+      workOrderNumber: json['workOrderNumber'] as String?,
       title: json['title'] as String,
       description: json['description'] as String,
       faultSymptoms: parseFaultSymptoms(json['faultSymptoms']),
@@ -377,6 +380,7 @@ class WorkOrderWithRelations extends WorkOrder {
 
   const WorkOrderWithRelations({
     required super.id,
+    super.workOrderNumber,
     required super.title,
     required super.description,
     required super.faultSymptoms,
@@ -403,13 +407,48 @@ class WorkOrderWithRelations extends WorkOrder {
   });
 
   factory WorkOrderWithRelations.fromJson(Map<String, dynamic> json) {
+    // Parse fault symptoms - handle both string array and object array
+    List<FaultSymptom> parseFaultSymptoms(dynamic faultSymptomsJson) {
+      if (faultSymptomsJson == null) return [];
+
+      final list = faultSymptomsJson as List<dynamic>;
+      if (list.isEmpty) return [];
+
+      // Check if first item is a string (old format) or object (new format)
+      final firstItem = list.first;
+      if (firstItem is String) {
+        // Old format: array of strings
+        return list.map((symptom) => FaultSymptom.fromString(symptom as String)).toList();
+      } else if (firstItem is Map<String, dynamic>) {
+        // New format: array of objects with faultSymptom property
+        return list
+            .map((item) {
+              final symptomData = item as Map<String, dynamic>;
+              // Try to get faultSymptom.value or faultSymptom.name
+              if (symptomData.containsKey('faultSymptom')) {
+                final faultSymptom = symptomData['faultSymptom'] as Map<String, dynamic>;
+                final value = faultSymptom['value'] as String? ?? faultSymptom['name'] as String;
+                return FaultSymptom.fromString(value);
+              } else if (symptomData.containsKey('faultSymptomId')) {
+                // If we only have ID, we can't reconstruct the full symptom, skip it
+                return null;
+              }
+              return null;
+            })
+            .where((symptom) => symptom != null)
+            .cast<FaultSymptom>()
+            .toList();
+      }
+
+      return [];
+    }
+
     return WorkOrderWithRelations(
       id: json['id'] as String,
+      workOrderNumber: json['workOrderNumber'] as String?,
       title: json['title'] as String,
       description: json['description'] as String? ?? '',
-      faultSymptoms: (json['faultSymptoms'] as List<dynamic>?)
-          ?.map((symptom) => FaultSymptom.fromString(symptom as String))
-          .toList() ?? [],
+      faultSymptoms: parseFaultSymptoms(json['faultSymptoms']),
       location: json['location'] as String? ?? '',
       additionalLocation: json['additionalLocation'] as String?,
       productionInterrupted: json['productionInterrupted'] as bool? ?? false,
@@ -532,6 +571,7 @@ class WorkOrderWithResolution extends WorkOrderWithRelations {
 
   const WorkOrderWithResolution({
     required super.id,
+    super.workOrderNumber,
     required super.title,
     required super.description,
     required super.faultSymptoms,
@@ -562,6 +602,7 @@ class WorkOrderWithResolution extends WorkOrderWithRelations {
     final base = WorkOrderWithRelations.fromJson(json);
     return WorkOrderWithResolution(
       id: base.id,
+      workOrderNumber: base.workOrderNumber,
       title: base.title,
       description: base.description,
       faultSymptoms: base.faultSymptoms,

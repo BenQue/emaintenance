@@ -38,6 +38,11 @@ export function WorkOrderFilters({ onFiltersChange, onExport }: WorkOrderFilters
   const [searchValue, setSearchValue] = useState(filters.search || '');
   const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout>();
 
+  // Helper function to set quick filter (always show all users' work orders)
+  const setQuickFilter = (status: string | undefined) => {
+    setFilters({ status, assignedToId: undefined });
+  };
+
   // Load filter options on mount
   useEffect(() => {
     loadFilterOptions();
@@ -164,63 +169,79 @@ export function WorkOrderFilters({ onFiltersChange, onExport }: WorkOrderFilters
         </div>
       </div>
 
-      {/* Quick Status Filters */}
+      {/* Quick Status Filters - All show all users' work orders */}
       <div className="flex flex-wrap gap-2">
+        {/* 进行中（默认）- 显示所有 ACTIVE 工单 */}
         <Button
           variant={filters.status === 'ACTIVE' ? 'default' : 'outline'}
           size="sm"
-          onClick={() => setFilter('status', 'ACTIVE')}
-          className="flex items-center gap-1"
-        >
-          进行中工单（默认）
-        </Button>
-        <Button
-          variant={filters.status === 'PENDING' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setFilter('status', 'PENDING')}
-          className="flex items-center gap-1"
-        >
-          待处理工单
-        </Button>
-        <Button
-          variant={filters.status === 'IN_PROGRESS' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setFilter('status', 'IN_PROGRESS')}
+          onClick={() => setQuickFilter('ACTIVE')}
           className="flex items-center gap-1"
         >
           进行中
         </Button>
+        {/* 全部工单 - 显示所有状态的工单 */}
+        <Button
+          variant={!filters.status ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setQuickFilter(undefined)}
+          className="flex items-center gap-1"
+        >
+          全部工单
+        </Button>
+        {/* 待处理 - 显示所有 PENDING 工单 */}
+        <Button
+          variant={filters.status === 'PENDING' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setQuickFilter('PENDING')}
+          className="flex items-center gap-1"
+        >
+          待处理
+        </Button>
+        {/* 处理中 - 显示所有 IN_PROGRESS 工单 */}
+        <Button
+          variant={filters.status === 'IN_PROGRESS' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setQuickFilter('IN_PROGRESS')}
+          className="flex items-center gap-1"
+        >
+          处理中
+        </Button>
+        {/* 等待配件 - 显示所有 WAITING_PARTS 工单 */}
         <Button
           variant={filters.status === 'WAITING_PARTS' ? 'default' : 'outline'}
           size="sm"
-          onClick={() => setFilter('status', 'WAITING_PARTS')}
+          onClick={() => setQuickFilter('WAITING_PARTS')}
           className="flex items-center gap-1"
         >
           等待配件
         </Button>
+        {/* 等待外部 - 显示所有 WAITING_EXTERNAL 工单 */}
+        <Button
+          variant={filters.status === 'WAITING_EXTERNAL' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setQuickFilter('WAITING_EXTERNAL')}
+          className="flex items-center gap-1"
+        >
+          等待外部
+        </Button>
+        {/* 已完成 - 显示所有 COMPLETED 工单 */}
         <Button
           variant={filters.status === 'COMPLETED' ? 'default' : 'outline'}
           size="sm"
-          onClick={() => setFilter('status', 'COMPLETED')}
+          onClick={() => setQuickFilter('COMPLETED')}
           className="flex items-center gap-1"
         >
-          已完成工单
+          已完成
         </Button>
+        {/* 已关闭 - 显示所有 CLOSED 工单 */}
         <Button
           variant={filters.status === 'CLOSED' ? 'default' : 'outline'}
           size="sm"
-          onClick={() => setFilter('status', 'CLOSED')}
+          onClick={() => setQuickFilter('CLOSED')}
           className="flex items-center gap-1"
         >
-          已关闭工单
-        </Button>
-        <Button
-          variant={!filters.status || filters.status === '' || filters.status === undefined ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setFilter('status', undefined)}
-          className="flex items-center gap-1"
-        >
-          全部工单
+          已关闭
         </Button>
       </div>
 

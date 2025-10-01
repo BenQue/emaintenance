@@ -153,18 +153,6 @@ export function ResolutionRecordForm({
             rules={workOrderValidationRules.category}
           />
 
-          {/* Fault Reason */}
-          <UnifiedFormField
-            control={form.control}
-            name="reason"
-            label="故障原因"
-            type="textarea"
-            placeholder="请详细描述故障的具体原因..."
-            description="请提供详细的故障原因分析"
-            className="min-h-[80px]"
-            rules={workOrderValidationRules.reason}
-          />
-
           {/* Solution Description */}
           <UnifiedFormField
             control={form.control}

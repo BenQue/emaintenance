@@ -35,6 +35,13 @@ export function WorkOrderManagement() {
   useEffect(() => {
     if (!user || initialized) return;
 
+    console.log('[WorkOrderManagement] Initializing filters for user:', {
+      userId: user.id,
+      role: user.role,
+      currentFilters: filters,
+      hasSearchParams: !!searchParams?.toString()
+    });
+
     // Apply role-based default filters for technicians
     if (hasRole(UserRole.TECHNICIAN) && !hasRole(UserRole.SUPERVISOR)) {
       // Technicians always see only their assigned work orders with ACTIVE status
@@ -44,6 +51,8 @@ export function WorkOrderManagement() {
         sortOrder: 'asc',
         status: 'ACTIVE', // Always exclude completed/cancelled/closed for technicians
       };
+
+      console.log('[WorkOrderManagement] Applying technician filters:', technicianFilters);
 
       // If there are URL params, merge them but preserve technician-specific filters
       if (searchParams && searchParams.toString()) {
@@ -68,10 +77,14 @@ export function WorkOrderManagement() {
       }
     } else {
       // Supervisors and admins: use URL filters or defaults
+      console.log('[WorkOrderManagement] User is SUPERVISOR/ADMIN');
       if (searchParams && searchParams.toString()) {
+        console.log('[WorkOrderManagement] Loading filters from URL:', searchParams.toString());
         setFiltersFromUrl(searchParams);
       } else {
+        console.log('[WorkOrderManagement] No URL params, resetting to defaults');
         resetFilters();
+        console.log('[WorkOrderManagement] After resetFilters, current filters:', filters);
       }
     }
 

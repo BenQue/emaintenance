@@ -135,10 +135,11 @@ class _TaskListScreenState extends State<TaskListScreen> {
           );
           break;
         case TaskViewMode.allTasks:
-          print('📞 Calling getAllWorkOrders without status filter');
+          print('📞 Calling getAllWorkOrders with ACTIVE status');
           result = await workOrderService.getAllWorkOrders(
             page: _currentPage,
             limit: 20,
+            status: 'ACTIVE', // 默认显示 ACTIVE 工单(排除 COMPLETED、CANCELLED、CLOSED)
           );
           break;
       }
@@ -203,10 +204,11 @@ class _TaskListScreenState extends State<TaskListScreen> {
           );
           break;
         case TaskViewMode.allTasks:
-          print('📞 Calling getAllWorkOrders without status filter (loadMore)');
+          print('📞 Calling getAllWorkOrders with ACTIVE status (loadMore)');
           result = await workOrderService.getAllWorkOrders(
             page: _currentPage,
             limit: 20,
+            status: 'ACTIVE', // 默认显示 ACTIVE 工单(排除 COMPLETED、CANCELLED、CLOSED)
           );
           break;
       }
@@ -260,10 +262,8 @@ class _TaskListScreenState extends State<TaskListScreen> {
           // 只显示未完成的状态（已在API层面过滤）
           break;
         case TaskViewMode.allTasks:
-          // 显示所有状态，但默认隐藏已关闭
-          if (workOrder.status == WorkOrderStatus.closed) {
-            return false;
-          }
+          // ACTIVE 状态已在 API 层过滤(排除 COMPLETED、CANCELLED、CLOSED)
+          // 这里不需要额外过滤
           break;
       }
 
@@ -390,7 +390,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
                 break;
               case TaskViewMode.allTasks:
                 title = '所有工单';
-                subtitle = '显示系统中的所有工单';
+                subtitle = '显示系统中所有活动工单(不含已完成/已取消/已关闭)';
                 break;
             }
 
@@ -591,6 +591,17 @@ class _TaskListScreenState extends State<TaskListScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // 工单编号
+                        Text(
+                          workOrder.workOrderNumber ?? '',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.blue,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        // 工单标题
                         Text(
                           workOrder.title,
                           style: const TextStyle(
@@ -599,6 +610,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
                           ),
                         ),
                         const SizedBox(height: 4),
+                        // 工单描述
                         Text(
                           workOrder.description,
                           maxLines: 2,
