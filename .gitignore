@@ -121,3 +121,16 @@ docker-data/
 # Build metadata
 build-info.json
 *.apk
+
+# 备份和临时文件
+*.backup
+*.backup[0-9]*
+*.old
+*.bak
+*.tmp
+*~
+
+# macOS 系统文件
+.DS_Store
+.AppleDouble
+.LSOverride

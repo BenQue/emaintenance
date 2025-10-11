@@ -1,13 +1,14 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
+import multer from 'multer';
 import { AssetController } from '../controllers/AssetController';
 import { authenticate, requireAdmin, requireSupervisor, requireTechnician } from '../middleware/auth.middleware';
-import { 
-  validateCreateAsset, 
-  validateUpdateAsset, 
-  validateGetAssetById, 
-  validateListAssets, 
-  validateSearchAssets 
+import {
+  validateCreateAsset,
+  validateUpdateAsset,
+  validateGetAssetById,
+  validateListAssets,
+  validateSearchAssets
 } from '../middleware/validation.middleware';
 import { requestLogger, errorLogger } from '../middleware/logging.middleware';
 import { PrismaClient } from '@emaintenance/database';
@@ -15,6 +16,19 @@ import { PrismaClient } from '@emaintenance/database';
 const router = Router();
 const prisma = new PrismaClient();
 const assetController = new AssetController(prisma);
+
+// 配置文件上传中间件
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'text/csv' || file.originalname.endsWith('.csv')) {
+      cb(null, true);
+    } else {
+      cb(new Error('只支持CSV文件'));
+    }
+  }
+});
 
 // Rate limiting configuration
 const generalRateLimit = rateLimit({
@@ -48,6 +62,24 @@ router.get(
   '/import/templates/assets',
   authenticate, // All authenticated users can download templates
   assetController.downloadCSVTemplate.bind(assetController)
+);
+
+// CSV预览 - POST /api/import/preview/assets
+router.post(
+  '/import/preview/assets',
+  authenticate,
+  upload.single('file'),
+  assetController.previewAssetCSV.bind(assetController)
+);
+
+// CSV导入 - POST /api/import/assets
+router.post(
+  '/import/assets',
+  strictRateLimit,
+  authenticate,
+  requireSupervisor, // 仅SUPERVISOR和ADMIN可以批量导入
+  upload.single('file'),
+  assetController.importAssetsFromCSV.bind(assetController)
 );
 
 // Asset CRUD Operations

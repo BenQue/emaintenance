@@ -3,6 +3,7 @@ import { AssetRepository, CreateAssetData, UpdateAssetData, AssetListFilters, As
 import { AssetDowntimeStatistics, AssetPerformanceRanking, AssetKPIFilters, AssetHealthMetrics } from '../types/asset';
 import { generateAssetQRCode } from '../utils/qr-generator';
 import logger from '../utils/logger';
+import * as Papa from 'papaparse';
 
 export class AssetService {
   private assetRepository: AssetRepository;
@@ -487,6 +488,244 @@ export class AssetService {
       };
     } catch (error) {
       logger.error('Asset service: Failed to get asset statistics', {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * 解析并预览CSV文件
+   */
+  async parseAndPreviewAssetCSV(fileBuffer: Buffer): Promise<{
+    headers: string[];
+    sampleData: any[];
+    totalRows: number;
+    validation: {
+      valid: number;
+      invalid: number;
+      errors: Array<{
+        row: number;
+        field: string;
+        error: string;
+        data: any;
+      }>;
+    };
+  }> {
+    try {
+      // 解析CSV
+      const csvText = fileBuffer.toString('utf-8');
+      const parsed = Papa.parse(csvText, {
+        header: true,
+        skipEmptyLines: true,
+        transformHeader: (header: string) => header.trim(),
+      });
+
+      if (parsed.errors.length > 0) {
+        throw new Error(`CSV解析错误: ${parsed.errors[0].message}`);
+      }
+
+      const rows = parsed.data as any[];
+      const headers = parsed.meta.fields || [];
+
+      // 验证必需字段
+      const requiredFields = ['assetCode', 'name', 'location'];
+      const missingFields = requiredFields.filter(f => !headers.includes(f));
+
+      if (missingFields.length > 0) {
+        throw new Error(`缺少必填字段: ${missingFields.join(', ')}`);
+      }
+
+      // 验证数据
+      const errors: any[] = [];
+      let validCount = 0;
+
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const rowErrors: string[] = [];
+
+        // 验证assetCode
+        if (!row.assetCode || !row.assetCode.trim()) {
+          rowErrors.push('assetCode不能为空');
+        }
+
+        // 验证name
+        if (!row.name || !row.name.trim()) {
+          rowErrors.push('name不能为空');
+        }
+
+        // 验证location
+        if (!row.location || !row.location.trim()) {
+          rowErrors.push('location不能为空');
+        } else {
+          // 检查location是否存在
+          const locationExists = await this.prisma.location.findFirst({
+            where: { name: row.location.trim(), isActive: true }
+          });
+          if (!locationExists) {
+            rowErrors.push(`位置不存在: ${row.location}`);
+          }
+        }
+
+        // 验证assetCode唯一性
+        if (row.assetCode && row.assetCode.trim()) {
+          const exists = await this.prisma.asset.findUnique({
+            where: { assetCode: row.assetCode.trim() }
+          });
+          if (exists) {
+            rowErrors.push(`资产编码已存在: ${row.assetCode}`);
+          }
+        }
+
+        // 验证日期格式
+        if (row.installDate && row.installDate.trim()) {
+          const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+          if (!dateRegex.test(row.installDate.trim())) {
+            rowErrors.push('installDate格式错误，应为YYYY-MM-DD');
+          }
+        }
+
+        if (rowErrors.length > 0) {
+          rowErrors.forEach(error => {
+            errors.push({
+              row: i + 2, // CSV行号（考虑头部）
+              field: '',
+              error,
+              data: row
+            });
+          });
+        } else {
+          validCount++;
+        }
+      }
+
+      return {
+        headers,
+        sampleData: rows.slice(0, 10), // 返回前10行作为预览
+        totalRows: rows.length,
+        validation: {
+          valid: validCount,
+          invalid: errors.length,
+          errors: errors.slice(0, 50), // 最多返回50个错误
+        }
+      };
+    } catch (error) {
+      logger.error('Asset service: Failed to parse CSV', {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * 批量导入资产
+   */
+  async bulkImportAssets(fileBuffer: Buffer): Promise<{
+    total: number;
+    successful: number;
+    failed: number;
+    errors: Array<{
+      row: number;
+      data: any;
+      error: string;
+    }>;
+    imported: any[];
+  }> {
+    try {
+      // 解析CSV
+      const csvText = fileBuffer.toString('utf-8');
+      const parsed = Papa.parse(csvText, {
+        header: true,
+        skipEmptyLines: true,
+        transformHeader: (header: string) => header.trim(),
+      });
+
+      const rows = parsed.data as any[];
+      const results = {
+        total: rows.length,
+        successful: 0,
+        failed: 0,
+        errors: [] as any[],
+        imported: [] as any[],
+      };
+
+      // 逐行导入
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+
+        try {
+          // 验证必填字段
+          if (!row.assetCode?.trim() || !row.name?.trim() || !row.location?.trim()) {
+            throw new Error('缺少必填字段');
+          }
+
+          // 获取locationId
+          const location = await this.prisma.location.findFirst({
+            where: { name: row.location.trim(), isActive: true }
+          });
+
+          if (!location) {
+            throw new Error(`位置不存在: ${row.location}`);
+          }
+
+          // 解析日期
+          let installDate: Date | null = null;
+          if (row.installDate && row.installDate.trim()) {
+            const parsedDate = new Date(row.installDate.trim());
+            if (!isNaN(parsedDate.getTime())) {
+              installDate = parsedDate;
+            }
+          }
+
+          // 构建描述
+          let description = '';
+          if (row.category && row.category.trim()) {
+            description = `类别: ${row.category.trim()}`;
+          }
+          if (row.description && row.description.trim()) {
+            description = description
+              ? `${description}\n${row.description.trim()}`
+              : row.description.trim();
+          }
+
+          // 创建资产
+          const asset = await this.prisma.asset.create({
+            data: {
+              assetCode: row.assetCode.trim(),
+              name: row.name.trim(),
+              description: description || null,
+              model: row.model?.trim() || null,
+              manufacturer: row.manufacturer?.trim() || null,
+              serialNumber: row.serialNumber?.trim() || null,
+              location: row.location.trim(),
+              locationId: location.id,
+              installDate,
+              isActive: row.status?.trim().toUpperCase() === 'ACTIVE' || !row.status,
+            }
+          });
+
+          results.successful++;
+          results.imported.push(asset);
+
+        } catch (error) {
+          results.failed++;
+          results.errors.push({
+            row: i + 2,
+            data: row,
+            error: error instanceof Error ? error.message : 'Unknown error'
+          });
+        }
+      }
+
+      logger.info('Bulk import completed', {
+        total: results.total,
+        successful: results.successful,
+        failed: results.failed
+      });
+
+      return results;
+    } catch (error) {
+      logger.error('Asset service: Failed to import assets', {
         error: error instanceof Error ? error.message : 'Unknown error'
       });
       throw error;

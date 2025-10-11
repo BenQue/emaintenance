@@ -451,55 +451,56 @@ export class AssetController {
         userAgent: req.get('User-Agent'),
       });
 
-      // CSV headers for asset import template
+      // 标准10字段CSV头部（对齐数据库模型）
       const headers = [
-        'assetCode',        // 设备代码 (required, unique)
-        'name',            // 设备名称 (required)
-        'description',     // 描述
-        'category',        // 类别 (MECHANICAL/ELECTRICAL/SOFTWARE/INFRASTRUCTURE)
-        'status',          // 状态 (ACTIVE/INACTIVE/MAINTENANCE/RETIRED)
-        'priority',        // 优先级 (LOW/MEDIUM/HIGH/CRITICAL)
-        'location',        // 位置
-        'department',      // 部门
-        'manufacturer',    // 制造商
-        'model',           // 型号
-        'serialNumber',    // 序列号
-        'purchaseDate',    // 购买日期 (YYYY-MM-DD)
-        'warrantyExpiry',  // 保修到期日 (YYYY-MM-DD)
-        'purchasePrice',   // 购买价格
-        'currentValue',    // 当前价值
-        'specifications',  // 技术规格 (JSON格式)
-        'maintenanceSchedule', // 维护计划 (JSON格式)
+        'assetCode',        // 资产编码 (必填, 唯一)
+        'name',            // 资产名称 (必填)
+        'category',        // 类别 (可选: MECHANICAL/ELECTRICAL/SOFTWARE/OTHER)
+        'location',        // 位置 (必填, 必须在Location表中存在)
+        'status',          // 状态 (可选: ACTIVE/INACTIVE, 默认ACTIVE)
+        'installDate',     // 安装日期 (可选: YYYY-MM-DD)
+        'model',           // 设备型号 (可选)
+        'manufacturer',    // 制造商 (可选)
+        'serialNumber',    // 序列号 (可选)
+        'description',     // 详细描述 (可选)
       ];
 
-      // Sample data row for reference
-      const sampleRow = [
-        'ASSET001',
-        'Sample Equipment',
-        'This is a sample equipment for demonstration',
-        'MECHANICAL',
-        'ACTIVE',
-        'MEDIUM',
-        'Workshop A',
-        'Production',
-        'ABC Manufacturing',
-        'Model-X2024',
-        'SN123456789',
-        '2024-01-15',
-        '2026-01-15',
-        '50000',
-        '45000',
-        '{"power": "220V", "weight": "500kg", "dimensions": "2m x 1m x 1.5m"}',
-        '{"frequency": "monthly", "type": "preventive", "estimatedHours": 2}'
+      // 示例数据行
+      const sampleRows = [
+        [
+          'ASSET001',
+          'Sample Equipment',
+          'MECHANICAL',
+          'HPC-Production',
+          'ACTIVE',
+          '2024-01-15',
+          'Model-X2024',
+          'ABC Manufacturing',
+          'SN123456789',
+          '这是一台示例设备'
+        ],
+        [
+          'ASSET002',
+          'Test Device',
+          'ELECTRICAL',
+          'AD-Production',
+          'ACTIVE',
+          '',
+          '',
+          '',
+          '',
+          ''
+        ]
       ];
 
-      // Create CSV content
-      const csvContent = [
+      // 生成CSV内容（包含BOM for Excel兼容性）
+      const BOM = '\uFEFF';
+      const csvContent = BOM + [
         headers.join(','),
-        sampleRow.join(','),
+        ...sampleRows.map(row => row.join(','))
       ].join('\n');
 
-      // Set response headers for file download
+      // 设置响应头
       res.setHeader('Content-Type', 'text/csv; charset=utf-8');
       res.setHeader('Content-Disposition', 'attachment; filename="assets_import_template.csv"');
       res.setHeader('Content-Length', Buffer.byteLength(csvContent, 'utf8'));
@@ -708,7 +709,7 @@ export class AssetController {
   async getAssetStats(req: Request, res: Response): Promise<void> {
     try {
       const stats = await this.assetService.getAssetStatistics();
-      
+
       res.json({
         success: true,
         data: stats,
@@ -723,6 +724,88 @@ export class AssetController {
       res.status(500).json({
         success: false,
         error: 'Failed to fetch asset statistics',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  /**
+   * 预览CSV文件
+   * POST /api/import/preview/assets
+   */
+  async previewAssetCSV(req: Request, res: Response): Promise<void> {
+    try {
+      if (!req.file) {
+        res.status(400).json({
+          success: false,
+          error: '未上传文件',
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+
+      const preview = await this.assetService.parseAndPreviewAssetCSV(req.file.buffer);
+
+      logger.info('CSV preview generated', {
+        totalRows: preview.totalRows,
+        validRows: preview.validation.valid,
+        invalidRows: preview.validation.invalid,
+      });
+
+      res.json({
+        success: true,
+        data: preview,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      logger.error('Error previewing CSV', {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : '预览失败',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  /**
+   * 执行批量导入
+   * POST /api/import/assets
+   */
+  async importAssetsFromCSV(req: Request, res: Response): Promise<void> {
+    try {
+      if (!req.file) {
+        res.status(400).json({
+          success: false,
+          error: '未上传文件',
+          timestamp: new Date().toISOString(),
+        });
+        return;
+      }
+
+      const result = await this.assetService.bulkImportAssets(req.file.buffer);
+
+      logger.info('Bulk import completed', {
+        total: result.total,
+        successful: result.successful,
+        failed: result.failed,
+      });
+
+      res.json({
+        success: true,
+        data: result,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      logger.error('Error importing assets', {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : '导入失败',
         timestamp: new Date().toISOString(),
       });
     }

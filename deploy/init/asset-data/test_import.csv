@@ -1,0 +1,4 @@
+assetCode,name,category,location,status,installDate,model,manufacturer,serialNumber,description
+TEST001,测试设备1,MECHANICAL,HPC-Production,ACTIVE,2024-01-15,Model-X100,测试厂商,SN001,这是测试设备1
+TEST002,测试设备2,ELECTRICAL,AD-Production,ACTIVE,2024-02-01,Model-Y200,测试厂商,SN002,这是测试设备2
+TEST003,测试设备3,SOFTWARE,HPC-Production,INACTIVE,2024-03-10,Model-Z300,测试厂商,SN003,这是测试设备3

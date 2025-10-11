@@ -212,27 +212,41 @@ export default function AssetImportPage() {
               <div className="space-y-3 text-sm text-gray-600">
                 <div className="flex items-start space-x-2">
                   <span className="font-medium text-blue-600">1.</span>
-                  <span>点击"下载CSV模板"获取标准格式的模板文件</span>
+                  <span>点击"下载CSV模板"获取标准10字段格式的模板文件（包含2行示例数据）</span>
                 </div>
                 <div className="flex items-start space-x-2">
                   <span className="font-medium text-blue-600">2.</span>
-                  <span>按照模板格式填写设备信息，必填字段包括：资产编码、资产名称、位置</span>
+                  <div>
+                    <div className="mb-1">按照模板格式填写设备信息，标准字段说明：</div>
+                    <ul className="ml-4 space-y-1 text-xs">
+                      <li><strong>assetCode*</strong>: 资产编码（必填，唯一）</li>
+                      <li><strong>name*</strong>: 资产名称（必填）</li>
+                      <li><strong>category</strong>: 类别（可选：MECHANICAL/ELECTRICAL/SOFTWARE/OTHER）</li>
+                      <li><strong>location*</strong>: 位置（必填，必须在系统中存在）</li>
+                      <li><strong>status</strong>: 状态（可选：ACTIVE/INACTIVE，默认ACTIVE）</li>
+                      <li><strong>installDate</strong>: 安装日期（可选：YYYY-MM-DD）</li>
+                      <li><strong>model</strong>: 设备型号（可选）</li>
+                      <li><strong>manufacturer</strong>: 制造商（可选）</li>
+                      <li><strong>serialNumber</strong>: 序列号（可选）</li>
+                      <li><strong>description</strong>: 详细描述（可选）</li>
+                    </ul>
+                  </div>
                 </div>
                 <div className="flex items-start space-x-2">
                   <span className="font-medium text-blue-600">3.</span>
-                  <span>资产编码必须唯一，建议使用有意义的编码规则（如：EQ001、PROD-001等）</span>
+                  <span>资产编码必须唯一，建议使用有意义的编码规则（如：ASSET001、EQ-PROD-001）</span>
                 </div>
                 <div className="flex items-start space-x-2">
                   <span className="font-medium text-blue-600">4.</span>
-                  <span>安装日期格式请使用：YYYY-MM-DD（如：2024-01-15）</span>
+                  <span>位置字段必须使用系统中已存在的位置名称（如：HPC-Production、AD-Production）</span>
                 </div>
                 <div className="flex items-start space-x-2">
                   <span className="font-medium text-blue-600">5.</span>
-                  <span>上传文件后系统会自动验证数据格式，有错误的行会显示详细说明</span>
+                  <span>上传文件后系统会自动验证数据格式，显示预览并标注所有错误</span>
                 </div>
                 <div className="flex items-start space-x-2">
                   <span className="font-medium text-blue-600">6.</span>
-                  <span>导入成功的设备状态默认为"激活"，可以在设备管理中进行进一步配置</span>
+                  <span>只有通过验证的数据才能导入，失败的行会返回详细错误信息供您修正</span>
                 </div>
               </div>
             </Card>

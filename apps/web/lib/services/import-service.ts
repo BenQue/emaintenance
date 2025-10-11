@@ -31,25 +31,40 @@ export interface ImportResult {
 }
 
 export class ImportService {
-  private baseUrl = '/api/import';
-
   /**
    * 下载用户CSV模板
    */
   async downloadUserTemplate(): Promise<Blob> {
-    const response = await apiClient.get(`${this.baseUrl}/templates/users`, {
-      responseType: 'blob'
+    const url = buildApiUrl('/api/import/templates/users', 'user');
+    const token = authService.getToken();
+
+    if (!token) {
+      throw new Error('未登录，请先登录后再下载模板');
+    }
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'text/csv',
+      },
     });
-    return response.data as Blob;
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`下载模板失败: ${response.status} ${errorText}`);
+    }
+
+    return await response.blob();
   }
 
   /**
    * 下载资产CSV模板
    */
   async downloadAssetTemplate(): Promise<Blob> {
-    const url = buildApiUrl('/import/templates/assets', 'asset');
+    const url = buildApiUrl('/api/import/templates/assets', 'asset');
     const token = authService.getToken();
-    
+
     if (!token) {
       throw new Error('未登录，请先登录后再下载模板');
     }
@@ -77,13 +92,28 @@ export class ImportService {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await apiClient.post(`${this.baseUrl}/preview/users`, formData, {
+    const url = buildApiUrl('/api/import/preview/users', 'user');
+    const token = authService.getToken();
+
+    if (!token) {
+      throw new Error('未登录，请先登录');
+    }
+
+    const response = await fetch(url, {
+      method: 'POST',
       headers: {
-        'Content-Type': 'multipart/form-data',
+        'Authorization': `Bearer ${token}`,
       },
+      body: formData,
     });
 
-    return (response.data as any).data;
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || '预览失败');
+    }
+
+    const result = await response.json();
+    return result.data;
   }
 
   /**
@@ -93,13 +123,28 @@ export class ImportService {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await apiClient.post(`${this.baseUrl}/preview/assets`, formData, {
+    const url = buildApiUrl('/api/import/preview/assets', 'asset');
+    const token = authService.getToken();
+
+    if (!token) {
+      throw new Error('未登录，请先登录');
+    }
+
+    const response = await fetch(url, {
+      method: 'POST',
       headers: {
-        'Content-Type': 'multipart/form-data',
+        'Authorization': `Bearer ${token}`,
       },
+      body: formData,
     });
 
-    return (response.data as any).data;
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || '预览失败');
+    }
+
+    const result = await response.json();
+    return result.data;
   }
 
   /**
@@ -109,13 +154,28 @@ export class ImportService {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await apiClient.post(`${this.baseUrl}/users`, formData, {
+    const url = buildApiUrl('/api/import/users', 'user');
+    const token = authService.getToken();
+
+    if (!token) {
+      throw new Error('未登录，请先登录');
+    }
+
+    const response = await fetch(url, {
+      method: 'POST',
       headers: {
-        'Content-Type': 'multipart/form-data',
+        'Authorization': `Bearer ${token}`,
       },
+      body: formData,
     });
 
-    return (response.data as any).data;
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || '导入失败');
+    }
+
+    const result = await response.json();
+    return result.data;
   }
 
   /**
@@ -125,13 +185,28 @@ export class ImportService {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await apiClient.post(`${this.baseUrl}/assets`, formData, {
+    const url = buildApiUrl('/api/import/assets', 'asset');
+    const token = authService.getToken();
+
+    if (!token) {
+      throw new Error('未登录，请先登录');
+    }
+
+    const response = await fetch(url, {
+      method: 'POST',
       headers: {
-        'Content-Type': 'multipart/form-data',
+        'Authorization': `Bearer ${token}`,
       },
+      body: formData,
     });
 
-    return (response.data as any).data;
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || '导入失败');
+    }
+
+    const result = await response.json();
+    return result.data;
   }
 
   /**
