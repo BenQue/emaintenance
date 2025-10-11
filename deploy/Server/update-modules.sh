@@ -114,9 +114,7 @@ get_compose_file() {
             echo "$DEPLOY_DIR/asset-service/docker-compose.yml"
             ;;
         "nginx")
-            # Nginx 使用官方镜像，不需要 docker-compose 文件
-            echo ""
-            return 0
+            echo "$DEPLOY_DIR/nginx/docker-compose.yml"
             ;;
         *)
             echo "" >&2
@@ -269,11 +267,64 @@ check_git_status() {
     echo "current_commit=$current_commit" >> "$DEPLOY_DIR/.env.build"
 }
 
+# 确保基础设施服务运行
+ensure_infrastructure() {
+    log_step "确保基础设施服务运行..."
+
+    local infra_compose="$DEPLOY_DIR/infrastructure/docker-compose.yml"
+    local env_file="$DEPLOY_DIR/.env"
+
+    if [[ ! -f "$infra_compose" ]]; then
+        log_warn "未找到基础设施 docker-compose 文件: $infra_compose"
+        return 0
+    fi
+
+    # 检查 PostgreSQL 和 Redis 是否运行
+    local postgres_running=$(docker ps --filter "name=emaintenance-postgres" --filter "status=running" -q)
+    local redis_running=$(docker ps --filter "name=emaintenance-redis" --filter "status=running" -q)
+
+    if [[ -z "$postgres_running" || -z "$redis_running" ]]; then
+        log_info "启动基础设施服务 (PostgreSQL + Redis)..."
+        docker-compose -f "$infra_compose" --env-file "$env_file" up -d || {
+            log_error "基础设施服务启动失败"
+            return 1
+        }
+
+        log_info "等待基础设施服务就绪..."
+        sleep 10
+
+        # 验证服务健康状态
+        local max_retries=12
+        local retry_count=0
+
+        while [ $retry_count -lt $max_retries ]; do
+            postgres_status=$(docker inspect --format='{{.State.Health.Status}}' emaintenance-postgres 2>/dev/null || echo "unknown")
+            redis_status=$(docker inspect --format='{{.State.Health.Status}}' emaintenance-redis 2>/dev/null || echo "unknown")
+
+            if [[ "$postgres_status" == "healthy" && "$redis_status" == "healthy" ]]; then
+                log_info "✅ 基础设施服务已就绪"
+                return 0
+            fi
+
+            log_info "等待基础设施服务健康检查... (${retry_count}/${max_retries})"
+            sleep 5
+            ((retry_count++))
+        done
+
+        log_error "基础设施服务健康检查超时"
+        return 1
+    else
+        log_info "✅ 基础设施服务已运行"
+    fi
+
+    return 0
+}
+
 # 构建指定的模块
 build_modules() {
     local modules=("$@")
     local build_tag="v$(date +%Y%m%d_%H%M%S)_$(git rev-parse --short HEAD)"
-    
+
     log_step "开始构建模块，标签: $build_tag"
     
     # 生成构建环境文件
@@ -412,12 +463,6 @@ update_services() {
     for module in "${modules[@]}"; do
         log_info "重新启动服务: $module"
 
-        # 跳过 nginx（使用官方镜像，不需要重新部署）
-        if [[ "$module" == "nginx" ]]; then
-            log_info "Nginx 使用官方镜像，跳过重新部署"
-            continue
-        fi
-
         # 获取模块的 compose 文件
         local compose_file=$(get_compose_file "$module")
         if [[ -z "$compose_file" || ! -f "$compose_file" ]]; then
@@ -554,26 +599,55 @@ show_summary() {
 # 主函数
 main() {
     check_requirements
-    
+
     # 进入项目根目录
     cd "$PROJECT_ROOT"
-    
+
     # 检查Git状态
     check_git_status
-    
-    # 显示模块菜单
-    while true; do
-        show_module_menu
-        echo -n "请选择要更新的模块 (a/f/s/c/q): "
-        read -r selection
-        
-        selected_modules=$(parse_selection "$selection")
-        if [ $? -eq 0 ]; then
-            break
+
+    # 处理命令行参数
+    local modules_array=()
+    if [ $# -gt 0 ]; then
+        # 命令行参数模式：直接指定模块
+        log_info "命令行模式: 直接指定模块"
+        for module in "$@"; do
+            if [[ -n "${MODULES[$module]}" ]]; then
+                modules_array+=("$module")
+                log_info "已选择模块: $module - ${MODULES[$module]}"
+            elif [[ -n "${STABLE_MODULES[$module]}" ]]; then
+                log_warn "模块 $module (${STABLE_MODULES[$module]}) 通常不建议更新"
+                echo "是否确定要更新此模块？(y/N): "
+                read -r confirm
+                if [[ "$confirm" =~ ^[Yy]$ ]]; then
+                    modules_array+=("$module")
+                fi
+            else
+                log_error "未知模块: $module"
+                log_info "可用模块: ${!MODULES[@]}"
+                exit 1
+            fi
+        done
+
+        if [ ${#modules_array[@]} -eq 0 ]; then
+            log_error "未选择任何有效模块"
+            exit 1
         fi
-    done
-    
-    local modules_array=($selected_modules)
+    else
+        # 交互式菜单模式
+        while true; do
+            show_module_menu
+            echo -n "请选择要更新的模块 (a/f/s/c/q): "
+            read -r selection
+
+            selected_modules=$(parse_selection "$selection")
+            if [ $? -eq 0 ]; then
+                break
+            fi
+        done
+
+        modules_array=($selected_modules)
+    fi
     
     # 确认更新
     echo ""
@@ -585,7 +659,14 @@ main() {
         log_info "已取消更新"
         exit 0
     fi
-    
+
+    # 确保基础设施服务运行（必须在构建之前）
+    ensure_infrastructure
+    if [ $? -ne 0 ]; then
+        log_error "基础设施服务启动失败，无法继续部署"
+        exit 1
+    fi
+
     # 构建模块
     build_tag=$(build_modules "${modules_array[@]}")
     if [ $? -ne 0 ]; then
