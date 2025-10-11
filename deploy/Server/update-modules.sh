@@ -77,10 +77,42 @@ declare -A STABLE_MODULES=(
     ["postgres"]="PostgreSQL 数据库"
 )
 
+# 获取模块的 docker-compose 文件路径
+get_compose_file() {
+    local module="$1"
+    case "$module" in
+        "infrastructure"|"postgres"|"redis")
+            echo "$DEPLOY_DIR/infrastructure/docker-compose.yml"
+            ;;
+        "web")
+            echo "$DEPLOY_DIR/web-service/docker-compose.yml"
+            ;;
+        "user-service")
+            echo "$DEPLOY_DIR/user-service/docker-compose.yml"
+            ;;
+        "work-order-service")
+            echo "$DEPLOY_DIR/work-order-service/docker-compose.yml"
+            ;;
+        "asset-service")
+            echo "$DEPLOY_DIR/asset-service/docker-compose.yml"
+            ;;
+        *)
+            echo "" >&2
+            return 1
+            ;;
+    esac
+}
+
 # 获取当前运行的容器
 get_running_containers() {
-    local containers=$(docker-compose -f "$DEPLOY_DIR/docker-compose.yml" ps --services --filter "status=running" 2>/dev/null || true)
-    echo "$containers"
+    local containers=""
+    for compose_file in "$DEPLOY_DIR"/*/docker-compose.yml; do
+        if [[ -f "$compose_file" ]]; then
+            containers+=$(docker-compose -f "$compose_file" ps --services --filter "status=running" 2>/dev/null || true)
+            containers+=$'\n'
+        fi
+    done
+    echo "$containers" | sort -u | grep -v '^$'
 }
 
 # 显示模块选择菜单
@@ -356,28 +388,35 @@ update_services() {
     log_step "重新启动选中的服务..."
     for module in "${modules[@]}"; do
         log_info "重新启动服务: $module"
-        
+
+        # 获取模块的 compose 文件
+        local compose_file=$(get_compose_file "$module")
+        if [[ -z "$compose_file" || ! -f "$compose_file" ]]; then
+            log_error "找不到模块 $module 的 docker-compose 文件"
+            return 1
+        fi
+
         # 停止旧容器
-        docker-compose stop "$module" 2>/dev/null || true
-        docker-compose rm -f "$module" 2>/dev/null || true
-        
+        docker-compose -f "$compose_file" stop 2>/dev/null || true
+        docker-compose -f "$compose_file" rm -f 2>/dev/null || true
+
         # 启动新容器
-        docker-compose up -d "$module" || {
+        docker-compose -f "$compose_file" up -d || {
             log_error "服务 $module 启动失败"
             return 1
         }
-        
+
         # 等待服务启动
         log_info "等待服务 $module 启动..."
         sleep 5
-        
+
         # 检查服务状态
-        if docker-compose ps "$module" | grep -q "Up"; then
+        if docker-compose -f "$compose_file" ps | grep -q "Up"; then
             log_info "✅ $module 启动成功"
         else
             log_error "❌ $module 启动失败"
             log_info "查看日志:"
-            docker-compose logs --tail=20 "$module"
+            docker-compose -f "$compose_file" logs --tail=20
             return 1
         fi
     done
@@ -397,20 +436,28 @@ health_check() {
         case "$module" in
             "web"|"user-service"|"work-order-service"|"asset-service")
                 log_info "检查 $module 健康状态..."
-                
+
+                # 获取模块的 compose 文件
+                local compose_file=$(get_compose_file "$module")
+                if [[ -z "$compose_file" || ! -f "$compose_file" ]]; then
+                    log_error "找不到模块 $module 的 docker-compose 文件"
+                    failed_services+=("$module")
+                    continue
+                fi
+
                 # 等待服务完全启动
                 sleep 10
-                
+
                 # 获取容器状态
-                local container_status=$(docker-compose -f "$DEPLOY_DIR/docker-compose.yml" ps -q "$module" | xargs docker inspect --format='{{.State.Health.Status}}' 2>/dev/null || echo "unknown")
-                
+                local container_status=$(docker-compose -f "$compose_file" ps -q | xargs docker inspect --format='{{.State.Health.Status}}' 2>/dev/null || echo "unknown")
+
                 if [[ "$container_status" == "healthy" ]]; then
                     log_info "✅ $module 健康检查通过"
                 elif [[ "$container_status" == "starting" ]]; then
                     log_warn "⏳ $module 正在启动中..."
                     # 再等待一段时间
                     sleep 15
-                    container_status=$(docker-compose -f "$DEPLOY_DIR/docker-compose.yml" ps -q "$module" | xargs docker inspect --format='{{.State.Health.Status}}' 2>/dev/null || echo "unknown")
+                    container_status=$(docker-compose -f "$compose_file" ps -q | xargs docker inspect --format='{{.State.Health.Status}}' 2>/dev/null || echo "unknown")
                     if [[ "$container_status" == "healthy" ]]; then
                         log_info "✅ $module 健康检查通过"
                     else
