@@ -249,7 +249,7 @@ EOF
             "web")
                 log_info "构建前端应用..."
                 docker build -t "emaintenance-web:$build_tag" \
-                    -f apps/web/Dockerfile.prod \
+                    -f apps/web/Dockerfile \
                     --build-arg BUILD_TAG="$build_tag" \
                     . || {
                     log_error "前端应用构建失败"
@@ -261,7 +261,7 @@ EOF
                 docker build -t "emaintenance-user-service:$build_tag" \
                     -f apps/api/user-service/Dockerfile \
                     --build-arg BUILD_TAG="$build_tag" \
-                    ./apps/api/user-service || {
+                    . || {
                     log_error "用户服务构建失败"
                     return 1
                 }
@@ -271,7 +271,7 @@ EOF
                 docker build -t "emaintenance-work-order-service:$build_tag" \
                     -f apps/api/work-order-service/Dockerfile \
                     --build-arg BUILD_TAG="$build_tag" \
-                    ./apps/api/work-order-service || {
+                    . || {
                     log_error "工单服务构建失败"
                     return 1
                 }
@@ -281,7 +281,7 @@ EOF
                 docker build -t "emaintenance-asset-service:$build_tag" \
                     -f apps/api/asset-service/Dockerfile \
                     --build-arg BUILD_TAG="$build_tag" \
-                    ./apps/api/asset-service || {
+                    . || {
                     log_error "资产服务构建失败"
                     return 1
                 }
