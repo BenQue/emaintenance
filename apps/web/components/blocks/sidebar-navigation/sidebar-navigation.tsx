@@ -434,7 +434,7 @@ function ThemeToggleButton() {
 // Complete Sidebar Block Layout
 export function SidebarNavigationLayout({ children }: { children: React.ReactNode }) {
   const { user } = useAuthStore()
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   if (!user) return null
 
@@ -483,7 +483,7 @@ export function SidebarNavigationLayout({ children }: { children: React.ReactNod
             {/* Center: Main Title - Absolutely centered */}
             <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
               <div className="flex flex-col items-center">
-                <h1 className="text-xl font-semibold whitespace-nowrap leading-tight">企业设备维护管理系统</h1>
+                <h1 className="text-2xl font-semibold whitespace-nowrap leading-tight">企业设备维护管理系统</h1>
                 <p className="text-sm text-muted-foreground whitespace-nowrap leading-tight">E-Maintenance System</p>
               </div>
             </div>
@@ -492,9 +492,9 @@ export function SidebarNavigationLayout({ children }: { children: React.ReactNod
             <div className="flex items-center gap-2 ml-auto z-10">
               {/* Notification bell with badge */}
               <NotificationButton />
-              
-              {/* Theme toggle */}
-              <ThemeToggleButton />
+
+              {/* Theme toggle - 已暂时冻结，默认使用浅色主题 */}
+              {/* <ThemeToggleButton /> */}
             </div>
           </header>
 

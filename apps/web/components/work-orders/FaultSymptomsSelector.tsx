@@ -3,19 +3,8 @@
 import { useState, useEffect } from 'react';
 import { SettingsService, FaultSymptom } from '../../lib/services/settings-service';
 import { Badge } from '../ui/badge';
-import {
-  Power,
-  Zap,
-  Volume2,
-  Droplet,
-  Flame,
-  Waves,
-  Gauge,
-  AlertCircle,
-  PlayCircle,
-  XCircle,
-  MoreHorizontal
-} from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
+import { AVAILABLE_ICONS } from '../settings/IconSelector';
 
 interface FaultSymptomsSelectorProps {
   selectedSymptomIds: string[];
@@ -24,19 +13,11 @@ interface FaultSymptomsSelectorProps {
   error?: string;
 }
 
-// Map fault symptom codes to lucide-react icons
-const iconMap: Record<string, React.ElementType> = {
-  'EQUIPMENT_SHUTDOWN': Power,
-  'POWER_OUTAGE': Zap,
-  'ABNORMAL_NOISE': Volume2,
-  'LEAKAGE': Droplet,
-  'OVERHEATING': Flame,
-  'ABNORMAL_VIBRATION': Waves,
-  'SPEED_ABNORMALITY': Gauge,
-  'DISPLAY_ERROR': AlertCircle,
-  'CANNOT_START': PlayCircle,
-  'FUNCTION_FAILURE': XCircle,
-  'OTHER': MoreHorizontal,
+// Helper function to get icon component from icon name
+const getIconComponent = (iconName?: string) => {
+  if (!iconName) return AlertCircle;
+  const iconConfig = AVAILABLE_ICONS.find(i => i.name === iconName);
+  return iconConfig?.icon || AlertCircle;
 };
 
 export function FaultSymptomsSelector({
@@ -119,7 +100,8 @@ export function FaultSymptomsSelector({
       <div className="flex flex-wrap gap-2">
         {faultSymptoms.map((symptom) => {
           const isSelected = selectedSymptomIds.includes(symptom.id);
-          const Icon = iconMap[symptom.code] || AlertCircle;
+          // Use database icon field if available
+          const Icon = getIconComponent(symptom.icon);
 
           return (
             <button

@@ -300,6 +300,26 @@ export class SettingsService {
     const response = await apiClient.get(`/api/settings/fault-symptoms?${params.toString()}`);
     return response.data as MasterDataListResponse<FaultSymptom>;
   }
+
+  static async createFaultSymptom(data: MasterDataCreateInput & { code: string; icon?: string }): Promise<FaultSymptom> {
+    const response = await apiClient.post('/api/settings/fault-symptoms', data);
+    return response.data as FaultSymptom;
+  }
+
+  static async updateFaultSymptom(id: string, data: MasterDataUpdateInput & { code?: string; icon?: string }): Promise<FaultSymptom> {
+    const response = await apiClient.put(`/api/settings/fault-symptoms/${id}`, data);
+    return response.data as FaultSymptom;
+  }
+
+  static async deleteFaultSymptom(id: string): Promise<FaultSymptom> {
+    const response = await apiClient.delete(`/api/settings/fault-symptoms/${id}`);
+    return response.data as FaultSymptom;
+  }
+
+  static async getFaultSymptomUsage(id: string): Promise<UsageInfo> {
+    const response = await apiClient.get(`/api/settings/fault-symptoms/${id}/usage`);
+    return response.data as UsageInfo;
+  }
 }
 
 // Export singleton instance

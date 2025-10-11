@@ -100,10 +100,11 @@ export function UserMenu() {
             </p>
           </div>
         </DropdownMenuLabel>
-        
+
         <DropdownMenuSeparator />
-        
-        <div className="px-2 py-1">
+
+        {/* 主题切换功能已暂时冻结，默认使用浅色主题 */}
+        {/* <div className="px-2 py-1">
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground flex items-center gap-2">
               <Palette className="h-4 w-4" />
@@ -112,9 +113,9 @@ export function UserMenu() {
             <ThemeToggle />
           </div>
         </div>
-        
-        <DropdownMenuSeparator />
-        
+
+        <DropdownMenuSeparator /> */}
+
         <DropdownMenuItem 
           onClick={handleLogout}
           className="text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"

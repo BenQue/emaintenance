@@ -21,7 +21,7 @@ android {
     defaultConfig {
         applicationId = "com.bizlink.emaintenance.mobile"
         minSdk = 21
-        targetSdk = 36
+        targetSdk = 30  // Android 11 - Optimized for PDA devices
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
@@ -47,6 +47,11 @@ android {
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
+    }
+
+    lint {
+        // Disable target SDK version check for PDA deployment (not targeting Google Play)
+        disable += "ExpiredTargetSdkVersion"
     }
 }
 

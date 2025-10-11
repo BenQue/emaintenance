@@ -11,31 +11,36 @@ import { DataTable } from '../interactive/tables/DataTable';
 import { ColumnDef } from '../interactive/tables/types';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { ConfirmDialog } from '../interactive/dialogs/ConfirmDialog';
-import { Plus, Settings, Search, Edit, Trash2, Eye } from 'lucide-react';
+import { Plus, Settings, Search, Edit, Trash2, Eye, type LucideIcon } from 'lucide-react';
+import { AVAILABLE_ICONS } from './IconSelector';
 import { formatDate } from '../../lib/utils';
-import { MasterDataCreateInput, MasterDataUpdateInput, Category, Location, FaultCode, Reason, PriorityLevel, UsageInfo } from '../../lib/services/settings-service';
+import { MasterDataCreateInput, MasterDataUpdateInput, Category, Location, FaultCode, FaultSymptom, Reason, PriorityLevel, UsageInfo } from '../../lib/services/settings-service';
 import { IntegratedCategoriesManagement } from './IntegratedCategoriesManagement';
+import { IconSelector } from './IconSelector';
 
 const MASTER_DATA_TYPES = [
   { key: 'integrated-categories', label: '报修分类', description: '管理报修分类和原因', isIntegrated: true },
   { key: 'fault-codes', label: '故障分析', description: '管理故障分析代码' },
+  { key: 'fault-symptoms', label: '故障表现', description: '管理设备故障表现类型' },
   { key: 'locations', label: '设备位置', description: '管理设备位置信息' },
-  // { key: 'priority-levels', label: '优先级', description: '管理优先级等级' }, // 隐藏优先级设置，程序内置
+  // { key: 'priority-levels', label: '优先级', description: '管理优先级等级' }, // 隐藏优先级设置,程序内置
 ] as const;
 
 type MasterDataType = typeof MASTER_DATA_TYPES[number]['key'];
-type MasterDataItem = Category | Location | FaultCode | Reason | PriorityLevel;
+type MasterDataItem = Category | Location | FaultCode | FaultSymptom | Reason | PriorityLevel;
 
 export const SettingsManagement: React.FC = () => {
   const {
     categories,
     locations,
     faultCodes,
+    faultSymptoms,
     reasons,
     priorityLevels,
     categoriesTotal,
     locationsTotal,
     faultCodesTotal,
+    faultSymptomsTotal,
     reasonsTotal,
     priorityLevelsTotal,
     currentType,
@@ -52,6 +57,7 @@ export const SettingsManagement: React.FC = () => {
     fetchCategories,
     fetchLocations,
     fetchFaultCodes,
+    fetchFaultSymptoms,
     fetchReasons,
     fetchPriorityLevels,
     createCategory,
@@ -66,6 +72,10 @@ export const SettingsManagement: React.FC = () => {
     updateFaultCode,
     deleteFaultCode,
     getFaultCodeUsage,
+    createFaultSymptom,
+    updateFaultSymptom,
+    deleteFaultSymptom,
+    getFaultSymptomUsage,
     createReason,
     updateReason,
     deleteReason,
@@ -83,7 +93,7 @@ export const SettingsManagement: React.FC = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<MasterDataItem | null>(null);
   const [usageInfo, setUsageInfo] = useState<UsageInfo | null>(null);
-  const [formData, setFormData] = useState<MasterDataCreateInput>({ name: '', description: '' });
+  const [formData, setFormData] = useState<MasterDataCreateInput & { code?: string; icon?: string }>({ name: '', description: '' });
 
   // Load data when component mounts or type changes
   useEffect(() => {
@@ -98,6 +108,9 @@ export const SettingsManagement: React.FC = () => {
           break;
         case 'fault-codes':
           await fetchFaultCodes({ page: 1, limit: 20 });
+          break;
+        case 'fault-symptoms':
+          await fetchFaultSymptoms({ page: 1, limit: 20 });
           break;
         case 'priority-levels':
           await fetchPriorityLevels({ page: 1, limit: 20 });
@@ -116,6 +129,8 @@ export const SettingsManagement: React.FC = () => {
         return { items: locations, total: locationsTotal };
       case 'fault-codes':
         return { items: faultCodes, total: faultCodesTotal };
+      case 'fault-symptoms':
+        return { items: faultSymptoms, total: faultSymptomsTotal };
       case 'priority-levels':
         return { items: priorityLevels, total: priorityLevelsTotal };
       default:
@@ -127,11 +142,40 @@ export const SettingsManagement: React.FC = () => {
 
   // Define table columns
   const columns: ColumnDef<MasterDataItem>[] = [
+    ...(currentType === 'fault-symptoms' ? [{
+      id: 'icon',
+      header: '图标',
+      cell: (item: MasterDataItem) => {
+        const faultSymptom = item as FaultSymptom;
+        if (!faultSymptom.icon) {
+          return <span className="text-gray-400">-</span>;
+        }
+        const iconConfig = AVAILABLE_ICONS.find(i => i.name === faultSymptom.icon);
+        if (!iconConfig) {
+          return <span className="text-gray-400 text-xs">{faultSymptom.icon}</span>;
+        }
+        const IconComponent = iconConfig.icon;
+        return (
+          <div className="flex items-center gap-2">
+            <IconComponent className="h-5 w-5 text-blue-600" />
+            <span className="text-xs text-gray-500">{iconConfig.label}</span>
+          </div>
+        );
+      },
+    }] : []),
     {
       id: 'name',
       header: '名称',
       cell: (item: MasterDataItem) => <span className="font-medium">{item.name}</span>,
     },
+    ...(currentType === 'fault-symptoms' ? [{
+      id: 'code',
+      header: '代码',
+      cell: (item: MasterDataItem) => {
+        const faultSymptom = item as FaultSymptom;
+        return <code className="px-2 py-1 bg-gray-100 rounded text-xs">{faultSymptom.code}</code>;
+      },
+    }] : []),
     {
       id: 'description',
       header: '描述',
@@ -195,7 +239,12 @@ export const SettingsManagement: React.FC = () => {
 
   // Handle actions
   const handleCreate = () => {
-    setFormData({ name: '', description: '', ...(currentType === 'priority-levels' && { level: 1 }) });
+    setFormData({
+      name: '',
+      description: '',
+      ...(currentType === 'priority-levels' && { level: 1 }),
+      ...(currentType === 'fault-symptoms' && { code: '', icon: '' })
+    });
     setIsCreateDialogOpen(true);
   };
 
@@ -204,7 +253,8 @@ export const SettingsManagement: React.FC = () => {
     setFormData({
       name: item.name,
       description: item.description || '',
-      ...(currentType === 'priority-levels' && 'level' in item && { level: item.level })
+      ...(currentType === 'priority-levels' && 'level' in item && { level: item.level }),
+      ...(currentType === 'fault-symptoms' && 'code' in item && { code: item.code, icon: item.icon || '' })
     });
     setIsEditDialogOpen(true);
   };
@@ -227,6 +277,9 @@ export const SettingsManagement: React.FC = () => {
           break;
         case 'fault-codes':
           usage = await getFaultCodeUsage(item.id);
+          break;
+        case 'fault-symptoms':
+          usage = await getFaultSymptomUsage(item.id);
           break;
         case 'reasons':
           usage = await getReasonUsage(item.id);
@@ -256,6 +309,17 @@ export const SettingsManagement: React.FC = () => {
         case 'fault-codes':
           await createFaultCode(formData);
           break;
+        case 'fault-symptoms':
+          if (!formData.code) {
+            throw new Error('Fault symptom code is required');
+          }
+          await createFaultSymptom({
+            name: formData.name,
+            description: formData.description,
+            code: formData.code,
+            icon: formData.icon
+          });
+          break;
         case 'reasons':
           await createReason(formData);
           break;
@@ -271,12 +335,13 @@ export const SettingsManagement: React.FC = () => {
 
   const handleSubmitEdit = async () => {
     if (!selectedItem) return;
-    
+
     try {
-      const updateData: MasterDataUpdateInput = {
+      const updateData: MasterDataUpdateInput & { code?: string; icon?: string } = {
         name: formData.name,
         description: formData.description,
-        ...(currentType === 'priority-levels' && formData.level && { level: formData.level })
+        ...(currentType === 'priority-levels' && formData.level && { level: formData.level }),
+        ...(currentType === 'fault-symptoms' && { code: formData.code, icon: formData.icon })
       };
 
       switch (currentType) {
@@ -288,6 +353,9 @@ export const SettingsManagement: React.FC = () => {
           break;
         case 'fault-codes':
           await updateFaultCode(selectedItem.id, updateData);
+          break;
+        case 'fault-symptoms':
+          await updateFaultSymptom(selectedItem.id, updateData);
           break;
         case 'reasons':
           await updateReason(selectedItem.id, updateData);
@@ -317,6 +385,9 @@ export const SettingsManagement: React.FC = () => {
         case 'fault-codes':
           await deleteFaultCode(selectedItem.id);
           break;
+        case 'fault-symptoms':
+          await deleteFaultSymptom(selectedItem.id);
+          break;
         case 'reasons':
           await deleteReason(selectedItem.id);
           break;
@@ -345,7 +416,7 @@ export const SettingsManagement: React.FC = () => {
       </div>
 
       {/* Master Data Type Selector */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-4 gap-3">
         {MASTER_DATA_TYPES.map((type) => (
           <Card
             key={type.key}
@@ -354,7 +425,7 @@ export const SettingsManagement: React.FC = () => {
             }`}
             onClick={() => setCurrentType(type.key as MasterDataType)}
           >
-            <CardHeader className="pb-2">
+            <CardHeader className="pb-1 px-4 pt-3">
               <CardTitle className="text-sm">{type.label}</CardTitle>
               <CardDescription className="text-xs">{type.description}</CardDescription>
             </CardHeader>
@@ -375,7 +446,12 @@ export const SettingsManagement: React.FC = () => {
               </div>
               <Button onClick={handleCreate} disabled={isCreating}>
                 <Plus className="mr-2 h-4 w-4" />
-                {`添加${currentTypeConfig?.label.slice(0, 2)}`}
+                {currentType === 'categories' ? '添加分类' :
+                 currentType === 'reasons' ? '添加原因' :
+                 currentType === 'locations' ? '添加位置' :
+                 currentType === 'fault-codes' ? '添加故障' :
+                 currentType === 'fault-symptoms' ? '添加表现' :
+                 `添加${currentTypeConfig?.label.slice(0, 2)}`}
               </Button>
             </div>
           </CardHeader>
@@ -415,11 +491,17 @@ export const SettingsManagement: React.FC = () => {
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{currentType === 'categories' ? '添加分类' : 
-                         currentType === 'reasons' ? '添加原因' : 
+            <DialogTitle>{currentType === 'categories' ? '添加分类' :
+                         currentType === 'reasons' ? '添加原因' :
+                         currentType === 'locations' ? '添加位置' :
+                         currentType === 'fault-codes' ? '添加故障' :
+                         currentType === 'fault-symptoms' ? '添加表现' :
                          `添加${currentTypeConfig?.label.slice(0, 2)}`}</DialogTitle>
-            <DialogDescription>{currentType === 'categories' ? '创建新的报修分类' : 
-                                 currentType === 'reasons' ? '创建新的报修原因' : 
+            <DialogDescription>{currentType === 'categories' ? '创建新的报修分类' :
+                                 currentType === 'reasons' ? '创建新的报修原因' :
+                                 currentType === 'locations' ? '创建新的设备位置' :
+                                 currentType === 'fault-codes' ? '创建新的故障分析' :
+                                 currentType === 'fault-symptoms' ? '创建新的故障表现' :
                                  `创建新的${currentTypeConfig?.label}`}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -455,11 +537,28 @@ export const SettingsManagement: React.FC = () => {
                 />
               </div>
             )}
+            {currentType === 'fault-symptoms' && (
+              <>
+                <div>
+                  <Label htmlFor="code">代码 *</Label>
+                  <Input
+                    id="code"
+                    value={formData.code || ''}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, code: e.target.value })}
+                    placeholder="输入唯一代码 (如: EQUIPMENT_SHUTDOWN)"
+                  />
+                </div>
+                <IconSelector
+                  value={formData.icon || ''}
+                  onChange={(iconName: string) => setFormData({ ...formData, icon: iconName })}
+                />
+              </>
+            )}
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                 取消
               </Button>
-              <Button onClick={handleSubmitCreate} disabled={isCreating || !formData.name}>
+              <Button onClick={handleSubmitCreate} disabled={isCreating || !formData.name || (currentType === 'fault-symptoms' && !formData.code)}>
                 {isCreating ? '创建中...' : '创建'}
               </Button>
             </div>
@@ -511,11 +610,28 @@ export const SettingsManagement: React.FC = () => {
                 />
               </div>
             )}
+            {currentType === 'fault-symptoms' && (
+              <>
+                <div>
+                  <Label htmlFor="edit-code">代码 *</Label>
+                  <Input
+                    id="edit-code"
+                    value={formData.code || ''}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, code: e.target.value })}
+                    placeholder="输入唯一代码 (如: EQUIPMENT_SHUTDOWN)"
+                  />
+                </div>
+                <IconSelector
+                  value={formData.icon || ''}
+                  onChange={(iconName: string) => setFormData({ ...formData, icon: iconName })}
+                />
+              </>
+            )}
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
                 取消
               </Button>
-              <Button onClick={handleSubmitEdit} disabled={isUpdating || !formData.name}>
+              <Button onClick={handleSubmitEdit} disabled={isUpdating || !formData.name || (currentType === 'fault-symptoms' && !formData.code)}>
                 {isUpdating ? '更新中...' : '更新'}
               </Button>
             </div>

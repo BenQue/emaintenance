@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Search, MapPin, Activity, Settings, Eye, Edit, Trash2 } from 'lucide-react';
+import { Plus, Search, MapPin, Activity, Settings, Eye, Edit, Trash2, LayoutGrid, List } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Card } from '../ui/card';
 import { Badge } from '../ui/badge';
@@ -30,7 +30,8 @@ export function AssetManagement() {
   const [selectedLocation, setSelectedLocation] = useState<string>('');
   const [selectedStatus, setSelectedStatus] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(12);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   // QR Code modal state
   const [qrModalOpen, setQrModalOpen] = useState(false);
@@ -147,9 +148,9 @@ export function AssetManagement() {
         <div className="space-y-6">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
               {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-24 bg-gray-200 rounded"></div>
+                <div key={i} className="h-20 bg-gray-200 rounded"></div>
               ))}
             </div>
             <div className="h-96 bg-gray-200 rounded"></div>
@@ -194,51 +195,51 @@ export function AssetManagement() {
         <div className="space-y-6">
           {/* Stats Cards */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Settings className="h-5 w-5 text-blue-600" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <Card className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-blue-100 rounded-lg">
+                <Settings className="h-4 w-4 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">总设备数</p>
-                <p className="text-2xl font-bold">{stats.total}</p>
+                <p className="text-xs text-gray-600">总设备数</p>
+                <p className="text-xl font-bold">{stats.total}</p>
               </div>
             </div>
           </Card>
 
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Activity className="h-5 w-5 text-green-600" />
+          <Card className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-green-100 rounded-lg">
+                <Activity className="h-4 w-4 text-green-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">活跃设备</p>
-                <p className="text-2xl font-bold">{stats.active}</p>
+                <p className="text-xs text-gray-600">活跃设备</p>
+                <p className="text-xl font-bold">{stats.active}</p>
               </div>
             </div>
           </Card>
 
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <Activity className="h-5 w-5 text-red-600" />
+          <Card className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-red-100 rounded-lg">
+                <Activity className="h-4 w-4 text-red-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">停用设备</p>
-                <p className="text-2xl font-bold">{stats.inactive}</p>
+                <p className="text-xs text-gray-600">停用设备</p>
+                <p className="text-xl font-bold">{stats.inactive}</p>
               </div>
             </div>
           </Card>
 
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <MapPin className="h-5 w-5 text-yellow-600" />
+          <Card className="p-3">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-yellow-100 rounded-lg">
+                <MapPin className="h-4 w-4 text-yellow-600" />
               </div>
               <div>
-                <p className="text-sm text-gray-600">使用位置</p>
-                <p className="text-2xl font-bold">{stats.locations}</p>
+                <p className="text-xs text-gray-600">使用位置</p>
+                <p className="text-xl font-bold">{stats.locations}</p>
               </div>
             </div>
           </Card>
@@ -319,106 +320,219 @@ export function AssetManagement() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="10">10</SelectItem>
-                  <SelectItem value="20">20</SelectItem>
-                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="12">12</SelectItem>
+                  <SelectItem value="24">24</SelectItem>
+                  <SelectItem value="48">48</SelectItem>
                 </SelectContent>
               </Select>
+              <div className="flex items-center gap-1 ml-4 border rounded-md">
+                <Button
+                  variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('grid')}
+                  className="h-8 px-3"
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                  className="h-8 px-3"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
 
-          {/* Assets Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {(assets.assets || []).map((asset) => (
-              <Card key={asset.id} className="p-4 hover:shadow-md transition-shadow relative">
-                {/* QR Code in top right corner */}
-                <div className="absolute top-3 right-3">
-                  <QRCode 
-                    value={asset.assetCode} 
-                    size={60} 
-                    onClick={() => handleQRCodeClick(asset)}
-                    className="cursor-pointer hover:opacity-80 transition-opacity"
-                  />
-                </div>
+          {/* Assets Display - Grid or List View */}
+          {viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {(assets.assets || []).map((asset) => (
+                <Card key={asset.id} className="p-4 hover:shadow-md transition-shadow relative">
+                  {/* QR Code in top right corner */}
+                  <div className="absolute top-3 right-3">
+                    <QRCode
+                      value={asset.assetCode}
+                      size={60}
+                      onClick={() => handleQRCodeClick(asset)}
+                      className="cursor-pointer hover:opacity-80 transition-opacity"
+                    />
+                  </div>
 
-                <div className="flex justify-between items-start mb-3 pr-16">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h3 className="font-semibold text-lg">{asset.name}</h3>
-                      <Badge variant={asset.isActive ? 'default' : 'secondary'}>
-                        {asset.isActive ? '活跃' : '停用'}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-1">
-                      编码: {asset.assetCode}
-                    </p>
-                    {asset.model && (
+                  <div className="flex justify-between items-start mb-3 pr-16">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="font-semibold text-lg">{asset.name}</h3>
+                        <Badge variant={asset.isActive ? 'default' : 'secondary'}>
+                          {asset.isActive ? '活跃' : '停用'}
+                        </Badge>
+                      </div>
                       <p className="text-sm text-gray-600 mb-1">
-                        型号: {asset.model}
+                        编码: {asset.assetCode}
                       </p>
+                      {asset.model && (
+                        <p className="text-sm text-gray-600 mb-1">
+                          型号: {asset.model}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-4 w-4" />
+                      <span>{asset.location}</span>
+                    </div>
+
+                    {asset.manufacturer && (
+                      <div className="flex items-center gap-2">
+                        <Settings className="h-4 w-4" />
+                        <span>制造商: {asset.manufacturer}</span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-2">
+                      <Activity className="h-4 w-4" />
+                      <span>
+                        负责人: {asset.administrator?.firstName || '未分配'} {asset.administrator?.lastName || ''}
+                      </span>
+                    </div>
+
+                    {asset.installDate && (
+                      <div className="text-xs text-gray-500">
+                        安装日期: {formatDate(asset.installDate)}
+                      </div>
                     )}
                   </div>
-                </div>
 
-                <div className="space-y-2 text-sm text-gray-600">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    <span>{asset.location}</span>
+                  <div className="flex gap-2 mt-4 pt-3 border-t">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex items-center gap-1"
+                      onClick={() => handleViewAsset(asset.id)}
+                    >
+                      <Eye className="h-3 w-3" />
+                      查看
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex items-center gap-1"
+                      onClick={() => handleEditAsset(asset.id)}
+                    >
+                      <Edit className="h-3 w-3" />
+                      编辑
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex items-center gap-1 text-red-600 hover:text-red-700"
+                      onClick={() => handleDeleteAsset(asset.id, asset.name)}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                      删除
+                    </Button>
                   </div>
-                  
-                  {asset.manufacturer && (
-                    <div className="flex items-center gap-2">
-                      <Settings className="h-4 w-4" />
-                      <span>制造商: {asset.manufacturer}</span>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {(assets.assets || []).map((asset) => (
+                <Card key={asset.id} className="p-3 hover:shadow-md transition-shadow">
+                  <div className="flex items-center gap-4">
+                    {/* QR Code */}
+                    <div className="flex-shrink-0">
+                      <QRCode
+                        value={asset.assetCode}
+                        size={48}
+                        onClick={() => handleQRCodeClick(asset)}
+                        className="cursor-pointer hover:opacity-80 transition-opacity"
+                      />
                     </div>
-                  )}
-                  
-                  <div className="flex items-center gap-2">
-                    <Activity className="h-4 w-4" />
-                    <span>
-                      负责人: {asset.administrator?.firstName || '未分配'} {asset.administrator?.lastName || ''}
-                    </span>
+
+                    {/* Asset Info */}
+                    <div className="flex-1 grid grid-cols-6 gap-4 items-center">
+                      <div className="col-span-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-base">{asset.name}</h3>
+                          <Badge variant={asset.isActive ? 'default' : 'secondary'} className="text-xs">
+                            {asset.isActive ? '活跃' : '停用'}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-gray-600 mt-1">
+                          {asset.assetCode}
+                        </p>
+                      </div>
+
+                      <div className="col-span-1">
+                        <p className="text-sm text-gray-600">{asset.model || '-'}</p>
+                        <p className="text-xs text-gray-500">型号</p>
+                      </div>
+
+                      <div className="col-span-1">
+                        <div className="flex items-center gap-1">
+                          <MapPin className="h-3 w-3 text-gray-500" />
+                          <p className="text-sm text-gray-600">{asset.location}</p>
+                        </div>
+                        <p className="text-xs text-gray-500">位置</p>
+                      </div>
+
+                      <div className="col-span-1">
+                        <p className="text-sm text-gray-600">{asset.manufacturer || '-'}</p>
+                        <p className="text-xs text-gray-500">制造商</p>
+                      </div>
+
+                      <div className="col-span-1">
+                        <p className="text-sm text-gray-600">
+                          {asset.administrator?.firstName || '未分配'} {asset.administrator?.lastName || ''}
+                        </p>
+                        <p className="text-xs text-gray-500">负责人</p>
+                      </div>
+
+                      <div className="col-span-1">
+                        <p className="text-sm text-gray-600">
+                          {asset.installDate ? formatDate(asset.installDate) : '-'}
+                        </p>
+                        <p className="text-xs text-gray-500">安装日期</p>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-1 flex-shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-2"
+                        onClick={() => handleViewAsset(asset.id)}
+                      >
+                        <Eye className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-2"
+                        onClick={() => handleEditAsset(asset.id)}
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-2 text-red-600 hover:text-red-700"
+                        onClick={() => handleDeleteAsset(asset.id, asset.name)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
-
-                  {asset.installDate && (
-                    <div className="text-xs text-gray-500">
-                      安装日期: {formatDate(asset.installDate)}
-                    </div>
-                  )}
-                </div>
-
-                <div className="flex gap-2 mt-4 pt-3 border-t">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="flex items-center gap-1"
-                    onClick={() => handleViewAsset(asset.id)}
-                  >
-                    <Eye className="h-3 w-3" />
-                    查看
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="flex items-center gap-1"
-                    onClick={() => handleEditAsset(asset.id)}
-                  >
-                    <Edit className="h-3 w-3" />
-                    编辑
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="flex items-center gap-1 text-red-600 hover:text-red-700"
-                    onClick={() => handleDeleteAsset(asset.id, asset.name)}
-                  >
-                    <Trash2 className="h-3 w-3" />
-                    删除
-                  </Button>
-                </div>
-              </Card>
-            ))}
-          </div>
+                </Card>
+              ))}
+            </div>
+          )}
 
           {/* Pagination */}
           {assets && assets.totalPages && assets.totalPages > 1 && (

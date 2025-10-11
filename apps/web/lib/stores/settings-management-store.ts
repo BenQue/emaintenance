@@ -1,14 +1,15 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { 
-  SettingsService, 
-  Category, 
-  Location, 
-  FaultCode, 
-  Reason, 
+import {
+  SettingsService,
+  Category,
+  Location,
+  FaultCode,
+  FaultSymptom,
+  Reason,
   PriorityLevel,
-  MasterDataCreateInput, 
-  MasterDataUpdateInput, 
+  MasterDataCreateInput,
+  MasterDataUpdateInput,
   MasterDataListQuery,
   UsageInfo
 } from '../services/settings-service';
@@ -18,21 +19,23 @@ interface SettingsManagementState {
   categories: Category[];
   locations: Location[];
   faultCodes: FaultCode[];
+  faultSymptoms: FaultSymptom[];
   reasons: Reason[];
   priorityLevels: PriorityLevel[];
-  
+
   // Pagination and totals
   categoriesTotal: number;
   locationsTotal: number;
   faultCodesTotal: number;
+  faultSymptomsTotal: number;
   reasonsTotal: number;
   priorityLevelsTotal: number;
-  
+
   page: number;
   limit: number;
-  
+
   // Current master data type being viewed
-  currentType: 'integrated-categories' | 'locations' | 'fault-codes' | 'priority-levels' | 'categories' | 'reasons';
+  currentType: 'integrated-categories' | 'locations' | 'fault-codes' | 'fault-symptoms' | 'priority-levels' | 'categories' | 'reasons';
   
   // Filters and search
   filters: MasterDataListQuery;
@@ -52,9 +55,10 @@ interface SettingsManagementState {
   fetchCategories: (query?: MasterDataListQuery) => Promise<void>;
   fetchLocations: (query?: MasterDataListQuery) => Promise<void>;
   fetchFaultCodes: (query?: MasterDataListQuery) => Promise<void>;
+  fetchFaultSymptoms: (query?: MasterDataListQuery) => Promise<void>;
   fetchReasons: (query?: MasterDataListQuery) => Promise<void>;
   fetchPriorityLevels: (query?: MasterDataListQuery) => Promise<void>;
-  
+
   refreshCurrentType: () => Promise<void>;
 
   // Actions - Category management
@@ -75,6 +79,12 @@ interface SettingsManagementState {
   deleteFaultCode: (id: string) => Promise<FaultCode>;
   getFaultCodeUsage: (id: string) => Promise<UsageInfo>;
 
+  // Actions - Fault Symptom management
+  createFaultSymptom: (data: MasterDataCreateInput & { code: string; icon?: string }) => Promise<FaultSymptom>;
+  updateFaultSymptom: (id: string, data: MasterDataUpdateInput & { code?: string; icon?: string }) => Promise<FaultSymptom>;
+  deleteFaultSymptom: (id: string) => Promise<FaultSymptom>;
+  getFaultSymptomUsage: (id: string) => Promise<UsageInfo>;
+
   // Actions - Reason management
   createReason: (data: MasterDataCreateInput) => Promise<Reason>;
   updateReason: (id: string, data: MasterDataUpdateInput) => Promise<Reason>;
@@ -88,7 +98,7 @@ interface SettingsManagementState {
   getPriorityLevelUsage: (id: string) => Promise<UsageInfo>;
 
   // Actions - UI state management
-  setCurrentType: (type: 'integrated-categories' | 'locations' | 'fault-codes' | 'priority-levels' | 'categories' | 'reasons') => void;
+  setCurrentType: (type: 'integrated-categories' | 'locations' | 'fault-codes' | 'fault-symptoms' | 'priority-levels' | 'categories' | 'reasons') => void;
   updateFilters: (filters: Partial<MasterDataListQuery>) => void;
   updateSearchQuery: (query: string) => void;
   clearError: () => void;
@@ -102,11 +112,13 @@ export const useSettingsManagementStore = create<SettingsManagementState>()(
       categories: [],
       locations: [],
       faultCodes: [],
+      faultSymptoms: [],
       reasons: [],
       priorityLevels: [],
       categoriesTotal: 0,
       locationsTotal: 0,
       faultCodesTotal: 0,
+      faultSymptomsTotal: 0,
       reasonsTotal: 0,
       priorityLevelsTotal: 0,
       page: 1,
@@ -169,8 +181,8 @@ export const useSettingsManagementStore = create<SettingsManagementState>()(
         try {
           const finalQuery = { ...get().filters, ...query };
           const response = await SettingsService.getFaultCodes(finalQuery);
-          set({ 
-            faultCodes: response.items, 
+          set({
+            faultCodes: response.items,
             faultCodesTotal: response.total,
             page: response.page,
             filters: finalQuery,
@@ -178,9 +190,30 @@ export const useSettingsManagementStore = create<SettingsManagementState>()(
             isInitialized: true
           });
         } catch (error) {
-          set({ 
+          set({
             error: error instanceof Error ? error.message : 'Failed to fetch fault codes',
-            isLoading: false 
+            isLoading: false
+          });
+        }
+      },
+
+      fetchFaultSymptoms: async (query) => {
+        set({ isLoading: true, error: null });
+        try {
+          const finalQuery = { ...get().filters, ...query };
+          const response = await SettingsService.getFaultSymptoms(finalQuery);
+          set({
+            faultSymptoms: response.items,
+            faultSymptomsTotal: response.total,
+            page: response.page,
+            filters: finalQuery,
+            isLoading: false,
+            isInitialized: true
+          });
+        } catch (error) {
+          set({
+            error: error instanceof Error ? error.message : 'Failed to fetch fault symptoms',
+            isLoading: false
           });
         }
       },
@@ -238,6 +271,9 @@ export const useSettingsManagementStore = create<SettingsManagementState>()(
             break;
           case 'fault-codes':
             await get().fetchFaultCodes(filters);
+            break;
+          case 'fault-symptoms':
+            await get().fetchFaultSymptoms(filters);
             break;
           case 'priority-levels':
             await get().fetchPriorityLevels(filters);
@@ -419,6 +455,64 @@ export const useSettingsManagementStore = create<SettingsManagementState>()(
         }
       },
 
+      // Fault Symptom management
+      createFaultSymptom: async (data) => {
+        set({ isCreating: true, error: null });
+        try {
+          const faultSymptom = await SettingsService.createFaultSymptom(data);
+          await get().refreshCurrentType();
+          set({ isCreating: false });
+          return faultSymptom;
+        } catch (error) {
+          set({
+            error: error instanceof Error ? error.message : 'Failed to create fault symptom',
+            isCreating: false
+          });
+          throw error;
+        }
+      },
+
+      updateFaultSymptom: async (id, data) => {
+        set({ isUpdating: true, error: null });
+        try {
+          const faultSymptom = await SettingsService.updateFaultSymptom(id, data);
+          await get().refreshCurrentType();
+          set({ isUpdating: false });
+          return faultSymptom;
+        } catch (error) {
+          set({
+            error: error instanceof Error ? error.message : 'Failed to update fault symptom',
+            isUpdating: false
+          });
+          throw error;
+        }
+      },
+
+      deleteFaultSymptom: async (id) => {
+        set({ isDeleting: true, error: null });
+        try {
+          const faultSymptom = await SettingsService.deleteFaultSymptom(id);
+          await get().refreshCurrentType();
+          set({ isDeleting: false });
+          return faultSymptom;
+        } catch (error) {
+          set({
+            error: error instanceof Error ? error.message : 'Failed to delete fault symptom',
+            isDeleting: false
+          });
+          throw error;
+        }
+      },
+
+      getFaultSymptomUsage: async (id) => {
+        try {
+          return await SettingsService.getFaultSymptomUsage(id);
+        } catch (error) {
+          set({ error: error instanceof Error ? error.message : 'Failed to get fault symptom usage' });
+          throw error;
+        }
+      },
+
       // Reason management
       createReason: async (data) => {
         set({ isCreating: true, error: null });
@@ -554,11 +648,13 @@ export const useSettingsManagementStore = create<SettingsManagementState>()(
         categories: [],
         locations: [],
         faultCodes: [],
+        faultSymptoms: [],
         reasons: [],
         priorityLevels: [],
         categoriesTotal: 0,
         locationsTotal: 0,
         faultCodesTotal: 0,
+        faultSymptomsTotal: 0,
         reasonsTotal: 0,
         priorityLevelsTotal: 0,
         page: 1,

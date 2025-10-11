@@ -1,0 +1,29 @@
+E-Maintenance Android APK - PDA Release
+========================================
+Version: v1.1.0
+Build Number: 4
+Build Date: 2025-10-11
+Target Platform: Android 10 & 11 (PDA Devices)
+
+Technical Specifications:
+- minSdkVersion: 21 (Android 5.0+)
+- targetSdkVersion: 30 (Android 11)
+- compileSdkVersion: 36
+- Architecture: Universal (arm64-v8a, armeabi-v7a, x86_64)
+
+Compatibility:
+✓ Android 10 (API 29)
+✓ Android 11 (API 30)
+✓ Backward compatible to Android 5.0 (API 21)
+
+Build Configuration:
+- Release mode with ProGuard optimization
+- Code signing: Debug keystore (for PDA deployment)
+- Minification: Enabled
+- Tree-shaking: Enabled (99.5% icon reduction)
+
+Installation:
+adb install emaintenance-v1.1.0-pda-android10-11-release.apk
+
+File Information:
+-rw-r--r--@ 1 benque  staff    34M Oct 11 15:22 releases/android/v1.1.0-pda/emaintenance-v1.1.0-pda-android10-11-release.apk
