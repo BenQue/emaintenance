@@ -113,6 +113,11 @@ get_compose_file() {
         "asset-service")
             echo "$DEPLOY_DIR/asset-service/docker-compose.yml"
             ;;
+        "nginx")
+            # Nginx 使用官方镜像，不需要 docker-compose 文件
+            echo ""
+            return 0
+            ;;
         *)
             echo "" >&2
             return 1
@@ -123,9 +128,10 @@ get_compose_file() {
 # 获取当前运行的容器
 get_running_containers() {
     local containers=""
+    local env_file="$DEPLOY_DIR/.env"
     for compose_file in "$DEPLOY_DIR"/*/docker-compose.yml; do
         if [[ -f "$compose_file" ]]; then
-            containers+=$(docker-compose -f "$compose_file" ps --services --filter "status=running" 2>/dev/null || true)
+            containers+=$(docker-compose -f "$compose_file" --env-file "$env_file" ps --services --filter "status=running" 2>/dev/null || true)
             containers+=$'\n'
         fi
     done
@@ -406,6 +412,12 @@ update_services() {
     for module in "${modules[@]}"; do
         log_info "重新启动服务: $module"
 
+        # 跳过 nginx（使用官方镜像，不需要重新部署）
+        if [[ "$module" == "nginx" ]]; then
+            log_info "Nginx 使用官方镜像，跳过重新部署"
+            continue
+        fi
+
         # 获取模块的 compose 文件
         local compose_file=$(get_compose_file "$module")
         if [[ -z "$compose_file" || ! -f "$compose_file" ]]; then
@@ -413,12 +425,15 @@ update_services() {
             return 1
         fi
 
+        # 环境变量文件路径
+        local env_file="$DEPLOY_DIR/.env"
+
         # 停止旧容器
-        docker-compose -f "$compose_file" stop 2>/dev/null || true
-        docker-compose -f "$compose_file" rm -f 2>/dev/null || true
+        docker-compose -f "$compose_file" --env-file "$env_file" stop 2>/dev/null || true
+        docker-compose -f "$compose_file" --env-file "$env_file" rm -f 2>/dev/null || true
 
         # 启动新容器
-        docker-compose -f "$compose_file" up -d || {
+        docker-compose -f "$compose_file" --env-file "$env_file" up -d || {
             log_error "服务 $module 启动失败"
             return 1
         }
@@ -428,12 +443,12 @@ update_services() {
         sleep 5
 
         # 检查服务状态
-        if docker-compose -f "$compose_file" ps | grep -q "Up"; then
+        if docker-compose -f "$compose_file" --env-file "$env_file" ps | grep -q "Up"; then
             log_info "✅ $module 启动成功"
         else
             log_error "❌ $module 启动失败"
             log_info "查看日志:"
-            docker-compose -f "$compose_file" logs --tail=20
+            docker-compose -f "$compose_file" --env-file "$env_file" logs --tail=20
             return 1
         fi
     done
@@ -462,11 +477,14 @@ health_check() {
                     continue
                 fi
 
+                # 环境变量文件路径
+                local env_file="$DEPLOY_DIR/.env"
+
                 # 等待服务完全启动
                 sleep 10
 
                 # 获取容器状态
-                local container_status=$(docker-compose -f "$compose_file" ps -q | xargs docker inspect --format='{{.State.Health.Status}}' 2>/dev/null || echo "unknown")
+                local container_status=$(docker-compose -f "$compose_file" --env-file "$env_file" ps -q | xargs docker inspect --format='{{.State.Health.Status}}' 2>/dev/null || echo "unknown")
 
                 if [[ "$container_status" == "healthy" ]]; then
                     log_info "✅ $module 健康检查通过"
@@ -474,7 +492,7 @@ health_check() {
                     log_warn "⏳ $module 正在启动中..."
                     # 再等待一段时间
                     sleep 15
-                    container_status=$(docker-compose -f "$compose_file" ps -q | xargs docker inspect --format='{{.State.Health.Status}}' 2>/dev/null || echo "unknown")
+                    container_status=$(docker-compose -f "$compose_file" --env-file "$env_file" ps -q | xargs docker inspect --format='{{.State.Health.Status}}' 2>/dev/null || echo "unknown")
                     if [[ "$container_status" == "healthy" ]]; then
                         log_info "✅ $module 健康检查通过"
                     else
