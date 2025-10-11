@@ -14,12 +14,12 @@ PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
-# 日志函数
-log_info() { echo -e "${GREEN}[INFO]${NC} $1"; }
-log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; }
-log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
-log_debug() { echo -e "${BLUE}[DEBUG]${NC} $1"; }
-log_step() { echo -e "${CYAN}[STEP]${NC} $1"; }
+# 日志函数（输出到 stderr 避免污染函数返回值）
+log_info() { echo -e "${GREEN}[INFO]${NC} $1" >&2; }
+log_warn() { echo -e "${YELLOW}[WARN]${NC} $1" >&2; }
+log_error() { echo -e "${RED}[ERROR]${NC} $1" >&2; }
+log_debug() { echo -e "${BLUE}[DEBUG]${NC} $1" >&2; }
+log_step() { echo -e "${CYAN}[STEP]${NC} $1" >&2; }
 
 # 脚本信息
 echo -e "${PURPLE}"
