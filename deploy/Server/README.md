@@ -91,9 +91,49 @@ cd /path/to/emaintenance/deploy/Server
 ./quick-update.sh asset      # 修复资产服务
 ```
 
+## ⚙️ 环境配置
+
+### 首次部署必需步骤
+
+**1. 配置环境变量文件**
+
+部署脚本会自动加载项目根目录的 `.env` 文件：
+```bash
+cd /path/to/emaintenance
+# 如果没有 .env 文件，从示例复制
+cp .env.example .env
+```
+
+**2. 配置必需的环境变量**
+
+编辑项目根目录的 `.env` 文件，确保设置了：
+```bash
+# 数据库密码（必需）
+DB_PASSWORD=your-strong-password-here
+
+# JWT 签名密钥（必需，至少32字符）
+JWT_SECRET=your-jwt-secret-min-32-chars-here
+```
+
+**3. 生成强密钥（推荐）**
+```bash
+# 生成随机JWT密钥
+openssl rand -base64 32
+
+# 生成随机数据库密码
+openssl rand -base64 24
+```
+
+⚠️ **重要提示**:
+- 部署脚本会自动将 `DB_PASSWORD` 映射为 `POSTGRES_PASSWORD`
+- `.env` 文件包含敏感信息，不要提交到版本控制
+- 生产环境必须使用强密码和密钥（建议至少32字符）
+
 ## 📋 部署清单
 
 ### 部署前检查
+- [ ] **已创建并配置 .env 文件** ⚠️ **必需**
+- [ ] **已设置强密码和JWT密钥** ⚠️ **必需**
 - [ ] 服务器磁盘空间充足 (至少5GB)
 - [ ] Docker和Docker Compose已安装运行
 - [ ] 网络连接稳定

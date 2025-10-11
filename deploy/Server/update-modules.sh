@@ -54,6 +54,23 @@ DEPLOY_DIR="$PROJECT_ROOT/deploy/Server"
 log_info "项目根目录: $PROJECT_ROOT"
 log_info "部署目录: $DEPLOY_DIR"
 
+# 加载项目根目录的环境变量
+if [[ -f "$PROJECT_ROOT/.env" ]]; then
+    log_info "加载环境变量: $PROJECT_ROOT/.env"
+    set -a  # 自动导出所有变量
+    source "$PROJECT_ROOT/.env"
+    set +a
+
+    # 处理变量名兼容性：DB_PASSWORD -> POSTGRES_PASSWORD
+    if [[ -n "$DB_PASSWORD" && -z "$POSTGRES_PASSWORD" ]]; then
+        export POSTGRES_PASSWORD="$DB_PASSWORD"
+        log_info "已映射 DB_PASSWORD -> POSTGRES_PASSWORD"
+    fi
+else
+    log_warn "未找到项目根目录的 .env 文件: $PROJECT_ROOT/.env"
+    log_warn "某些环境变量可能未设置"
+fi
+
 # 检查目录结构
 if [[ ! -d "$DEPLOY_DIR" ]]; then
     log_error "部署目录不存在: $DEPLOY_DIR"
