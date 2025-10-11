@@ -287,13 +287,9 @@ EOF
                 }
                 ;;
             "nginx")
-                log_info "构建Nginx代理..."
-                docker build -t "emaintenance-nginx:$build_tag" \
-                    -f "$DEPLOY_DIR/configs/nginx/Dockerfile" \
-                    "$DEPLOY_DIR/configs/nginx" || {
-                    log_error "Nginx构建失败"
-                    return 1
-                }
+                log_info "Nginx 使用官方镜像，跳过构建..."
+                log_info "将使用 nginx:alpine 官方镜像"
+                # Nginx 不需要构建，使用官方镜像 + 配置文件挂载
                 ;;
             *)
                 log_warn "跳过未知模块: $module"
@@ -347,8 +343,8 @@ update_services() {
                 echo "ASSET_SERVICE_IMAGE_TAG=$build_tag" >> .env
                 ;;
             "nginx")
-                sed -i.bak "s/^NGINX_IMAGE_TAG=.*/NGINX_IMAGE_TAG=$build_tag/" .env || \
-                echo "NGINX_IMAGE_TAG=$build_tag" >> .env
+                # Nginx 使用官方镜像，不需要更新镜像标签
+                log_info "Nginx 使用 nginx:alpine 官方镜像，跳过标签更新"
                 ;;
         esac
     done
